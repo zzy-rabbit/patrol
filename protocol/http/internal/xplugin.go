@@ -2,7 +2,7 @@ package internal
 
 import (
 	"context"
-	configApi "github.com/zzy-rabbit/patrol/plugins/logic/config/api"
+	configApi "github.com/zzy-rabbit/patrol/logic/config/api"
 	"github.com/zzy-rabbit/patrol/protocol/http/api"
 )
 

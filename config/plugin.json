@@ -37,8 +37,14 @@
             "stop_param": ""
         },
         {
-            "name": "patrol.plugins.protocol.http",
-            "init_param": "{\"host\": \"0.0.0.0\", \"port\": 9988}",
+            "name": "patrol.protocol.http",
+            "init_param": "{\"host\": \"0.0.0.0\", \"port\": 9900}",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
+            "name": "patrol.protocol.websocket",
+            "init_param": "{\"host\": \"0.0.0.0\", \"port\": 9901}",
             "run_param": "",
             "stop_param": ""
         }

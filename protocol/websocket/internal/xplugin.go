@@ -2,7 +2,7 @@ package internal
 
 import (
 	"context"
-	"github.com/zzy-rabbit/patrol/protocol/http/api"
+	"github.com/zzy-rabbit/patrol/protocol/websocket/api"
 )
 
 type service struct {
