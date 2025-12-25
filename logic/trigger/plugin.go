@@ -1,7 +1,7 @@
-package dao
+package trigger
 
 import (
-	"github.com/zzy-rabbit/patrol/plugins/logic/trigger/internal"
+	"github.com/zzy-rabbit/patrol/logic/trigger/internal"
 	"github.com/zzy-rabbit/xtools/xcontext"
 	"github.com/zzy-rabbit/xtools/xplugin"
 )

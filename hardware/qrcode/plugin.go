@@ -1,7 +1,7 @@
-package http
+package qrcode
 
 import (
-	"github.com/zzy-rabbit/patrol/protocol/http/internal"
+	"github.com/zzy-rabbit/patrol/hardware/qrcode/internal"
 	"github.com/zzy-rabbit/xtools/xcontext"
 	"github.com/zzy-rabbit/xtools/xplugin"
 )

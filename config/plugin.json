@@ -1,0 +1,46 @@
+{
+    "plugins": [
+        {
+            "name": "patrol.plugins.data.dao",
+            "init_param": "",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
+            "name": "patrol.hardware.qrcode",
+            "init_param": "",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
+            "name": "patrol.hardware.nfc",
+            "init_param": "",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
+            "name": "patrol.logic.config",
+            "init_param": "",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
+            "name": "patrol.logic.executor",
+            "init_param": "",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
+            "name": "patrol.logic.trigger",
+            "init_param": "",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
+            "name": "patrol.plugins.protocol.http",
+            "init_param": "{\"host\": \"0.0.0.0\", \"port\": 9988}",
+            "run_param": "",
+            "stop_param": ""
+        }
+    ]
+}

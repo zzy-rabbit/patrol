@@ -1,7 +1,7 @@
-package dao
+package nfc
 
 import (
-	"github.com/zzy-rabbit/patrol/plugins/logic/executor/internal"
+	"github.com/zzy-rabbit/patrol/hardware/nfc/internal"
 	"github.com/zzy-rabbit/xtools/xcontext"
 	"github.com/zzy-rabbit/xtools/xplugin"
 )

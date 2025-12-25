@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	PluginName = "patrol.plugins.logic.executor"
+	PluginName = "patrol.hardware.nfc"
 )
 
 type IPlugin interface {

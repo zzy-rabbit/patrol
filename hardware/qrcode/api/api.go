@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	PluginName = "patrol.plugins.logic.config"
+	PluginName = "patrol.hardware.qrcode"
 )
 
 type IPlugin interface {

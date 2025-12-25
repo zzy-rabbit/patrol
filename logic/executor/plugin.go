@@ -1,7 +1,7 @@
-package dao
+package executor
 
 import (
-	"github.com/zzy-rabbit/patrol/plugins/logic/config/internal"
+	"github.com/zzy-rabbit/patrol/logic/executor/internal"
 	"github.com/zzy-rabbit/xtools/xcontext"
 	"github.com/zzy-rabbit/xtools/xplugin"
 )

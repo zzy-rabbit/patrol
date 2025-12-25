@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	PluginName = "patrol.plugins.logic.trigger"
+	PluginName = "patrol.logic.executor"
 )
 
 type IPlugin interface {

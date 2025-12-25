@@ -1,7 +1,7 @@
-package http
+package config
 
 import (
-	"github.com/zzy-rabbit/patrol/protocol/http/internal"
+	"github.com/zzy-rabbit/patrol/logic/config/internal"
 	"github.com/zzy-rabbit/xtools/xcontext"
 	"github.com/zzy-rabbit/xtools/xplugin"
 )

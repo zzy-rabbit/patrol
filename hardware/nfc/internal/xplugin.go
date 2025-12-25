@@ -2,7 +2,7 @@ package internal
 
 import (
 	"context"
-	"github.com/zzy-rabbit/patrol/plugins/logic/config/api"
+	"github.com/zzy-rabbit/patrol/hardware/nfc/api"
 )
 
 type service struct {

@@ -2,7 +2,7 @@ package internal
 
 import (
 	"context"
-	"github.com/zzy-rabbit/patrol/plugins/logic/trigger/api"
+	"github.com/zzy-rabbit/patrol/logic/config/api"
 )
 
 type service struct {
