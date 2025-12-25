@@ -1,7 +1,7 @@
-package dao
+package websocket
 
 import (
-	"github.com/zzy-rabbit/patrol/data/dao/internal"
+	"github.com/zzy-rabbit/patrol/protocol/websocket/internal"
 	"github.com/zzy-rabbit/xtools/xcontext"
 	"github.com/zzy-rabbit/xtools/xplugin"
 )

@@ -2,7 +2,7 @@ package internal
 
 import (
 	"context"
-	"github.com/zzy-rabbit/patrol/plugins/data/dao/api"
+	"github.com/zzy-rabbit/patrol/data/dao/api"
 )
 
 func (s *service) GetDB(ctx context.Context) api.ISession {

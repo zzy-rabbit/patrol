@@ -2,10 +2,12 @@ package internal
 
 import (
 	"context"
+	daoApi "github.com/zzy-rabbit/patrol/data/dao/api"
 	"github.com/zzy-rabbit/patrol/logic/config/api"
 )
 
 type service struct {
+	IDao daoApi.IPlugin `xplugin:"patrol.data.dao"`
 }
 
 func New(ctx context.Context) api.IPlugin {

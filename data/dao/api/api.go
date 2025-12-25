@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	PluginName = "patrol.plugins.data.dao"
+	PluginName = "patrol.data.dao"
 )
 
 type ISession interface {
