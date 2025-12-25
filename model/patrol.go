@@ -20,21 +20,17 @@ type Router struct {
 	ID     string     `json:"id"`
 	Name   string     `json:"name"`
 	Type   RouterType `json:"type"`
-	Points []Point    `json:"points"`
-}
-
-type Schedule struct {
-	ID     string `json:"id"`
-	Name   string `json:"name"`
-	PlanID string `json:"plan_id"`
+	Points []string   `json:"points"`
 }
 
 type PlanType int
 
 type Plan struct {
-	ID        string     `json:"id"`
-	Name      string     `json:"name"`
-	Type      PlanType   `json:"type"`
-	Router    string     `json:"router_id"`
-	Schedules []Schedule `json:"schedules"`
+	ID     string   `json:"id"`
+	Name   string   `json:"name"`
+	Type   PlanType `json:"type"`
+	Router string   `json:"router"`
+	Util   string   `json:"util"`
+	Start  string   `json:"start"`
+	End    string   `json:"end"`
 }
