@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/gofiber/fiber/v2 v2.52.10
 	github.com/mattn/go-sqlite3 v1.14.22
-	github.com/zzy-rabbit/xtools v0.0.0-20251226165245-e112e8c73f81
+	github.com/zzy-rabbit/xtools v0.0.0-20251226172041-a420afff389c
 	gorm.io/gorm v1.31.1
 )
 

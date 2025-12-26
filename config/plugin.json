@@ -1,55 +1,55 @@
 {
     "plugins": [
         {
-            "name": "patrol.utils.log",
+            "plugin_name": "patrol.utils.log",
             "init_param": "{\"level\": 1,\"name\": \"patrol\",\"suffix\": \".log\",\"path\": \"\",\"max_size\": 10}",
             "run_param": "",
             "stop_param": ""
         },
         {
-            "name": "patrol.data.dao",
+            "plugin_name": "patrol.data.dao",
             "init_param": "",
             "run_param": "",
             "stop_param": ""
         },
         {
-            "name": "patrol.hardware.qrcode",
+            "plugin_name": "patrol.hardware.qrcode",
             "init_param": "",
             "run_param": "",
             "stop_param": ""
         },
         {
-            "name": "patrol.hardware.nfc",
+            "plugin_name": "patrol.hardware.nfc",
             "init_param": "",
             "run_param": "",
             "stop_param": ""
         },
         {
-            "name": "patrol.logic.config",
+            "plugin_name": "patrol.logic.config",
             "init_param": "",
             "run_param": "",
             "stop_param": ""
         },
         {
-            "name": "patrol.logic.executor",
+            "plugin_name": "patrol.logic.executor",
             "init_param": "",
             "run_param": "",
             "stop_param": ""
         },
         {
-            "name": "patrol.logic.trigger",
+            "plugin_name": "patrol.logic.trigger",
             "init_param": "",
             "run_param": "",
             "stop_param": ""
         },
         {
-            "name": "patrol.protocol.http",
+            "plugin_name": "patrol.protocol.http",
             "init_param": "{\"host\": \"0.0.0.0\", \"port\": 9900}",
             "run_param": "",
             "stop_param": ""
         },
         {
-            "name": "patrol.protocol.websocket",
+            "plugin_name": "patrol.protocol.websocket",
             "init_param": "{\"host\": \"0.0.0.0\", \"port\": 9901}",
             "run_param": "",
             "stop_param": ""

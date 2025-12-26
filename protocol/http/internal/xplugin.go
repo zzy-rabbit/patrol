@@ -8,6 +8,7 @@ import (
 	configApi "github.com/zzy-rabbit/patrol/logic/config/api"
 	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/patrol/protocol/http/api"
+	logApi "github.com/zzy-rabbit/patrol/utils/log/api"
 	"github.com/zzy-rabbit/xtools/xerror"
 )
 
@@ -15,6 +16,7 @@ type service struct {
 	network  model.Network
 	fiberApp *fiber.App
 	IConfig  configApi.IPlugin `xplugin:"patrol.logic.config"`
+	ILogger  logApi.IPlugin    `xplugin:"patrol.utils.log"`
 }
 
 func New(ctx context.Context) api.IPlugin {
@@ -29,6 +31,7 @@ func (s *service) Init(ctx context.Context, initParam string) error {
 	var network model.Network
 	err := json.Unmarshal([]byte(initParam), &network)
 	if xerror.Error(err) {
+		s.ILogger.Error(ctx, "plugin %s init fail %v", s.GetName(ctx), err)
 		return err
 	}
 	s.fiberApp = fiber.New()
@@ -38,17 +41,21 @@ func (s *service) Init(ctx context.Context, initParam string) error {
 }
 
 func (s *service) Run(ctx context.Context, runParam string) error {
-	addr := fmt.Sprintf("%s:%d", s.network.Host, s.network.Port)
-	err := s.fiberApp.Listen(addr)
-	if xerror.Error(err) {
-		return err
-	}
+	go func() {
+		addr := fmt.Sprintf("%s:%d", s.network.Host, s.network.Port)
+		err := s.fiberApp.Listen(addr)
+		if xerror.Error(err) {
+			s.ILogger.Error(ctx, "plugin %s run %s at addr %s fail %v", s.GetName(ctx), runParam, addr, err)
+			return
+		}
+	}()
 	return nil
 }
 
 func (s *service) Stop(ctx context.Context, stopParam string) error {
 	err := s.fiberApp.Shutdown()
 	if xerror.Error(err) {
+		s.ILogger.Error(ctx, "plugin %s stop %s fail %v", s.GetName(ctx), stopParam, err)
 		return err
 	}
 	return nil
