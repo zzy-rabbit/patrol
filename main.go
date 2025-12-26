@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/zzy-rabbit/xtools/xcontext"
+	"github.com/zzy-rabbit/xtools/xerror"
 	"github.com/zzy-rabbit/xtools/xplugin"
 	"os"
 	"os/signal"
@@ -11,13 +12,18 @@ import (
 func main() {
 	ctx := xcontext.Background()
 
-	err := xplugin.Init(ctx)
-	if err != nil {
+	err := ParseStartParams(ctx)
+	if xerror.Error(err) {
+		panic(err)
+	}
+
+	err = xplugin.Init(ctx)
+	if xerror.Error(err) {
 		panic(err)
 	}
 
 	err = xplugin.Run(ctx)
-	if err != nil {
+	if xerror.Error(err) {
 		panic(err)
 	}
 
@@ -26,7 +32,7 @@ func main() {
 	<-exit
 
 	err = xplugin.Stop(ctx)
-	if err != nil {
+	if xerror.Error(err) {
 		panic(err)
 	}
 }

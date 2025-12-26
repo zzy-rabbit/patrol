@@ -47,7 +47,7 @@ func (r *HttpResponse) UnmarshalJSON(data []byte) error {
 	}
 	var resp response
 	err := json.Unmarshal(data, &resp)
-	if err != nil {
+	if xerror.Error(err) {
 		return err
 	}
 	r.IError = xerror.New(resp.Code, resp.Message)

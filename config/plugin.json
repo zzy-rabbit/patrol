@@ -1,7 +1,13 @@
 {
     "plugins": [
         {
-            "name": "patrol.plugins.data.dao",
+            "name": "patrol.utils.log",
+            "init_param": "{\"level\": 1,\"name\": \"patrol\",\"suffix\": \".log\",\"path\": \"\",\"max_size\": 10}",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
+            "name": "patrol.data.dao",
             "init_param": "",
             "run_param": "",
             "stop_param": ""

@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zzy-rabbit/xtools/xerror"
 	"time"
 )
 
@@ -93,22 +94,22 @@ func (p *Plan) UnmarshalJSON(data []byte) error {
 	}
 
 	var aux planJSON
-	if err := json.Unmarshal(data, &aux); err != nil {
+	if err := json.Unmarshal(data, &aux); xerror.Error(err) {
 		return err
 	}
 
 	util, err := time.ParseInLocation("2006-01-02", aux.Util, time.Local)
-	if err != nil {
+	if xerror.Error(err) {
 		return fmt.Errorf("util format error: %w", err)
 	}
 
 	start, err := time.ParseInLocation("15:04:05", aux.Start, time.Local)
-	if err != nil {
+	if xerror.Error(err) {
 		return fmt.Errorf("start format error: %w", err)
 	}
 
 	end, err := time.ParseInLocation("15:04:05", aux.End, time.Local)
-	if err != nil {
+	if xerror.Error(err) {
 		return fmt.Errorf("end format error: %w", err)
 	}
 
@@ -173,17 +174,17 @@ func (p *PlanCondition) UnmarshalJSON(data []byte) error {
 	}
 
 	var aux planJSON
-	if err := json.Unmarshal(data, &aux); err != nil {
+	if err := json.Unmarshal(data, &aux); xerror.Error(err) {
 		return err
 	}
 
 	start, err := time.ParseInLocation("15:04:05", aux.Start, time.Local)
-	if err != nil {
+	if xerror.Error(err) {
 		return fmt.Errorf("start format error: %w", err)
 	}
 
 	end, err := time.ParseInLocation("15:04:05", aux.End, time.Local)
-	if err != nil {
+	if xerror.Error(err) {
 		return fmt.Errorf("end format error: %w", err)
 	}
 

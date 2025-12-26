@@ -1,7 +1,7 @@
-package executor
+package log
 
 import (
-	"github.com/zzy-rabbit/patrol/logic/executor/internal"
+	"github.com/zzy-rabbit/patrol/utils/log/internal"
 	"github.com/zzy-rabbit/xtools/xcontext"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"github.com/zzy-rabbit/xtools/xplugin"

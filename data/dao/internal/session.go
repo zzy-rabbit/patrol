@@ -63,13 +63,13 @@ func (s *session) DeletePointsFromRouters(ctx context.Context, points []string) 
 	// 查询涉及的department
 	var departments []string
 	err := s.db.Where("identify in ?", points).Distinct("department").Pluck("department", &departments).Error
-	if err != nil {
+	if xerror.Error(err) {
 		return transError(err)
 	}
 
 	// 获取涉及的routers
 	routers, _, err := s.GetRouters(ctx, model.RouterCondition{Departments: departments})
-	if err != nil {
+	if xerror.Error(err) {
 		return transError(err)
 	}
 
@@ -88,7 +88,7 @@ func (s *session) DeletePointsFromRouters(ctx context.Context, points []string) 
 	// 更新routers
 	for _, router := range routers {
 		err = s.UpdateRouter(ctx, router)
-		if err != nil {
+		if xerror.Error(err) {
 			return transError(err)
 		}
 	}
@@ -105,14 +105,14 @@ func (s *session) DeletePoints(ctx context.Context, identifies ...model.Identify
 
 	// 更新router
 	xerr := tx.DeletePointsFromRouters(ctx, ids)
-	if xerr != nil {
+	if xerror.Error(xerr) {
 		tx.Rollback(ctx)
 		return xerr
 	}
 
 	// 删除point
 	err := tx.db.Where("identify in ?", ids).Delete(&Point{}).Error
-	if err != nil {
+	if xerror.Error(err) {
 		tx.Rollback(ctx)
 		return transError(err)
 	}
@@ -141,7 +141,7 @@ func (s *session) GetPoints(ctx context.Context, condition model.PointCondition)
 	total := int64(0)
 	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
 		err := db.Count(&total).Error
-		if err != nil {
+		if xerror.Error(err) {
 			return nil, model.PageInfo{}, transError(err)
 		}
 		offset := (condition.PageQuery.Num - 1) * condition.PageQuery.Size
@@ -150,7 +150,7 @@ func (s *session) GetPoints(ctx context.Context, condition model.PointCondition)
 
 	var tables []Point
 	err := db.Find(&tables).Error
-	if err != nil {
+	if xerror.Error(err) {
 		return nil, model.PageInfo{}, transError(err)
 	}
 	points := make([]model.Point, 0, len(tables))
@@ -181,13 +181,13 @@ func (s *session) DeleteRoutersFromPlans(ctx context.Context, routers []string) 
 	// 查询涉及的department
 	var departments []string
 	err := s.db.Where("identify in ?", routers).Distinct("department").Pluck("department", &departments).Error
-	if err != nil {
+	if xerror.Error(err) {
 		return transError(err)
 	}
 
 	// 获取涉及的plans
 	plans, _, err := s.GetPlans(ctx, model.PlanCondition{Departments: departments, Routers: routers})
-	if err != nil {
+	if xerror.Error(err) {
 		return transError(err)
 	}
 
@@ -199,7 +199,7 @@ func (s *session) DeleteRoutersFromPlans(ctx context.Context, routers []string) 
 	// 更新plans
 	for _, plan := range plans {
 		err = s.UpdatePlan(ctx, plan)
-		if err != nil {
+		if xerror.Error(err) {
 			return transError(err)
 		}
 	}
@@ -216,14 +216,14 @@ func (s *session) DeleteRouters(ctx context.Context, identifies ...model.Identif
 
 	// 更新plan
 	xerr := tx.DeleteRoutersFromPlans(ctx, ids)
-	if xerr != nil {
+	if xerror.Error(xerr) {
 		tx.Rollback(ctx)
 		return xerr
 	}
 
 	// 删除router
 	err := tx.db.Where("identify in ?", ids).Delete(&Router{}).Error
-	if err != nil {
+	if xerror.Error(err) {
 		tx.Rollback(ctx)
 		return transError(err)
 	}
@@ -249,7 +249,7 @@ func (s *session) GetRouters(ctx context.Context, condition model.RouterConditio
 	total := int64(0)
 	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
 		err := db.Count(&total).Error
-		if err != nil {
+		if xerror.Error(err) {
 			return nil, model.PageInfo{}, transError(err)
 		}
 		offset := (condition.PageQuery.Num - 1) * condition.PageQuery.Size
@@ -258,7 +258,7 @@ func (s *session) GetRouters(ctx context.Context, condition model.RouterConditio
 
 	var tables []Router
 	err := db.Find(&tables).Error
-	if err != nil {
+	if xerror.Error(err) {
 		return nil, model.PageInfo{}, transError(err)
 	}
 	routers := make([]model.Router, 0, len(tables))
@@ -292,7 +292,7 @@ func (s *session) DeletePlans(ctx context.Context, identifies ...model.Identify)
 	}
 	// 删除plan
 	err := s.db.Where("identify in ?", ids).Delete(&Router{}).Error
-	if err != nil {
+	if xerror.Error(err) {
 		return transError(err)
 	}
 	return nil
@@ -325,7 +325,7 @@ func (s *session) GetPlans(ctx context.Context, condition model.PlanCondition) (
 	total := int64(0)
 	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
 		err := db.Count(&total).Error
-		if err != nil {
+		if xerror.Error(err) {
 			return nil, model.PageInfo{}, transError(err)
 		}
 		offset := (condition.PageQuery.Num - 1) * condition.PageQuery.Size
@@ -334,7 +334,7 @@ func (s *session) GetPlans(ctx context.Context, condition model.PlanCondition) (
 
 	var tables []Plan
 	err := db.Find(&tables).Error
-	if err != nil {
+	if xerror.Error(err) {
 		return nil, model.PageInfo{}, transError(err)
 	}
 	plans := make([]model.Plan, 0, len(tables))
