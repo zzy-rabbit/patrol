@@ -1,0 +1,69 @@
+package internal
+
+import "github.com/zzy-rabbit/patrol/model"
+
+func (p *Point) FromModel(m model.Point) {
+	p.Identify = m.Identify.ID
+	p.Department = m.Department
+	p.Name = m.Name
+	p.Type = int(m.Type)
+	p.Serial = m.Serial
+}
+
+func (p *Point) ToModel() model.Point {
+	return model.Point{
+		Identify: model.Identify{
+			ID: p.Identify,
+		},
+		Department: p.Department,
+		Name:       p.Name,
+		Type:       model.PointType(p.Type),
+		Serial:     p.Serial,
+	}
+}
+
+func (r *Router) FromModel(m model.Router) {
+	r.Identify = m.Identify.ID
+	r.Department = m.Department
+	r.Name = m.Name
+	r.Type = int(m.Type)
+	r.Points = m.Points
+}
+
+func (r *Router) ToModel() model.Router {
+	return model.Router{
+		Identify: model.Identify{
+			ID: r.Identify,
+		},
+		Department: r.Department,
+		Name:       r.Name,
+		Type:       model.RouterType(r.Type),
+		Points:     r.Points,
+	}
+}
+
+func (p *Plan) FromModel(m model.Plan) {
+	p.Identify = m.Identify.ID
+	p.Department = m.Department
+	p.Name = m.Name
+	p.Type = int(m.Type)
+	p.Router = m.Router
+	p.Start = m.Start
+	p.End = m.End
+	p.Util = m.Util
+}
+
+func (p *Plan) ToModel() model.Plan {
+	return model.Plan{
+		Identify: model.Identify{
+			ID: p.Identify,
+		},
+		Department: p.Department,
+		Name:       p.Name,
+		Type:       model.PlanType(p.Type),
+		Router:     p.Router,
+		Start:      p.Start,
+		End:        p.End,
+		Util:       p.Util,
+	}
+}
