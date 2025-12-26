@@ -42,11 +42,11 @@ type Point struct {
 
 type PointCondition struct {
 	*PageQuery
-	ID         []string    `json:"ids"`
-	Department []string    `json:"departments"`
-	Type       []PointType `json:"types"`
-	Name       string      `json:"name"`
-	Serial     []string    `json:"serials"`
+	IDs         []string    `json:"ids"`
+	Departments []string    `json:"departments"`
+	Types       []PointType `json:"types"`
+	Name        string      `json:"name"`
+	Serials     []string    `json:"serials"`
 }
 
 type RouterType int
@@ -61,10 +61,10 @@ type Router struct {
 
 type RouterCondition struct {
 	*PageQuery
-	ID         []string     `json:"id"`
-	Department []string     `json:"department"`
-	Type       []RouterType `json:"type"`
-	Name       string       `json:"name"`
+	IDs         []string     `json:"ids"`
+	Departments []string     `json:"departments"`
+	Types       []RouterType `json:"types"`
+	Name        string       `json:"name"`
 }
 
 type PlanType int
@@ -151,10 +151,74 @@ func (p *Plan) MarshalJSON() ([]byte, error) {
 
 type PlanCondition struct {
 	*PageQuery
-	ID         []string   `json:"id"`
-	Department []string   `json:"department"`
-	Type       []PlanType `json:"type"`
-	Name       string     `json:"name"`
-	Start      string     `json:"start"`
-	End        string     `json:"end"`
+	IDs         []string   `json:"ids"`
+	Departments []string   `json:"departments"`
+	Types       []PlanType `json:"types"`
+	Routers     []string   `json:"routers"`
+	Name        string     `json:"name"`
+	Start       time.Time  `json:"start"`
+	End         time.Time  `json:"end"`
+}
+
+func (p *PlanCondition) UnmarshalJSON(data []byte) error {
+	type planJSON struct {
+		*PageQuery
+		IDs         []string   `json:"ids"`
+		Departments []string   `json:"departments"`
+		Types       []PlanType `json:"types"`
+		Routers     []string   `json:"routers"`
+		Name        string     `json:"name"`
+		Start       string     `json:"start"`
+		End         string     `json:"end"`
+	}
+
+	var aux planJSON
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	start, err := time.ParseInLocation("15:04:05", aux.Start, time.Local)
+	if err != nil {
+		return fmt.Errorf("start format error: %w", err)
+	}
+
+	end, err := time.ParseInLocation("15:04:05", aux.End, time.Local)
+	if err != nil {
+		return fmt.Errorf("end format error: %w", err)
+	}
+
+	p.PageQuery = aux.PageQuery
+	p.IDs = aux.IDs
+	p.Departments = aux.Departments
+	p.Types = aux.Types
+	p.Routers = aux.Routers
+	p.Name = aux.Name
+	p.Start = start
+	p.End = end
+	return nil
+}
+
+func (p *PlanCondition) MarshalJSON() ([]byte, error) {
+	type planJSON struct {
+		*PageQuery
+		IDs         []string   `json:"ids"`
+		Departments []string   `json:"departments"`
+		Types       []PlanType `json:"types"`
+		Routers     []string   `json:"routers"`
+		Name        string     `json:"name"`
+		Start       string     `json:"start"`
+		End         string     `json:"end"`
+	}
+
+	aux := planJSON{
+		PageQuery:   p.PageQuery,
+		IDs:         p.IDs,
+		Departments: p.Departments,
+		Types:       p.Types,
+		Routers:     p.Routers,
+		Name:        p.Name,
+		Start:       p.Start.Format("15:04:05"),
+		End:         p.End.Format("15:04:05"),
+	}
+	return json.Marshal(aux)
 }

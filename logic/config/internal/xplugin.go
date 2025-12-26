@@ -4,10 +4,12 @@ import (
 	"context"
 	daoApi "github.com/zzy-rabbit/patrol/data/dao/api"
 	"github.com/zzy-rabbit/patrol/logic/config/api"
+	websocketApi "github.com/zzy-rabbit/patrol/protocol/websocket/api"
 )
 
 type service struct {
-	IDao daoApi.IPlugin `xplugin:"patrol.data.dao"`
+	IDao    daoApi.IPlugin       `xplugin:"patrol.data.dao"`
+	IReport websocketApi.IPlugin `xplugin:"patrol.protocol.websocket"`
 }
 
 func New(ctx context.Context) api.IPlugin {

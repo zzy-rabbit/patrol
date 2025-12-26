@@ -6,6 +6,7 @@ import (
 	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"gorm.io/gorm"
+	"time"
 )
 
 type session struct {
@@ -53,12 +54,51 @@ func (s *session) UpdatePoint(ctx context.Context, point model.Point) xerror.IEr
 	return transError(err)
 }
 
+func (s *session) DeletePointsFromRouters(ctx context.Context, points []string) xerror.IError {
+	pointMap := make(map[string]bool, len(points))
+	for _, point := range points {
+		pointMap[point] = true
+	}
+
+	// 查询涉及的department
+	var departments []string
+	err := s.db.Where("identify in ?", points).Distinct("department").Pluck("department", &departments).Error
+	if err != nil {
+		return transError(err)
+	}
+
+	// 获取涉及的routers
+	routers, _, err := s.GetRouters(ctx, model.RouterCondition{Departments: departments})
+	if err != nil {
+		return transError(err)
+	}
+
+	// 删除router中的point
+	for i, router := range routers {
+		tempPoints := make([]string, 0, len(router.Points))
+		for _, point := range router.Points {
+			if pointMap[point] {
+				continue
+			}
+			tempPoints = append(tempPoints, point)
+		}
+		routers[i].Points = tempPoints
+	}
+
+	// 更新routers
+	for _, router := range routers {
+		err = s.UpdateRouter(ctx, router)
+		if err != nil {
+			return transError(err)
+		}
+	}
+	return nil
+}
+
 func (s *session) DeletePoints(ctx context.Context, identifies ...model.Identify) xerror.IError {
 	ids := make([]string, 0, len(identifies))
-	idMap := make(map[string]bool, len(identifies))
 	for _, identify := range identifies {
 		ids = append(ids, identify.ID)
-		idMap[identify.ID] = true
 	}
 
 	tx := s.getTransaction(ctx)
@@ -83,20 +123,20 @@ func (s *session) DeletePoints(ctx context.Context, identifies ...model.Identify
 
 func (s *session) GetPoints(ctx context.Context, condition model.PointCondition) ([]model.Point, model.PageInfo, xerror.IError) {
 	db := s.db
-	if len(condition.ID) > 0 {
-		db = db.Where("identify in ?", condition.ID)
+	if len(condition.IDs) > 0 {
+		db = db.Where("identify in ?", condition.IDs)
 	}
-	if len(condition.Department) > 0 {
-		db = db.Where("department in ?", condition.Department)
+	if len(condition.Departments) > 0 {
+		db = db.Where("department in ?", condition.Departments)
 	}
-	if len(condition.Type) > 0 {
-		db = db.Where("type in ?", condition.Type)
+	if len(condition.Types) > 0 {
+		db = db.Where("type in ?", condition.Types)
 	}
 	if condition.Name != "" {
 		db = db.Where("name like ?", "%"+condition.Name+"%")
 	}
-	if len(condition.Serial) > 0 {
-		db = db.Where("serial in ?", condition.Serial)
+	if len(condition.Serials) > 0 {
+		db = db.Where("serial in ?", condition.Serials)
 	}
 	total := int64(0)
 	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
@@ -124,51 +164,41 @@ func (s *session) GetPoints(ctx context.Context, condition model.PointCondition)
 }
 
 func (s *session) AddRouter(ctx context.Context, router model.Router) (int, xerror.IError) {
-	return 0, nil
+	var table Router
+	table.FromModel(router)
+	err := s.db.Create(&table).Error
+	return table.ID, transError(err)
 }
 
 func (s *session) UpdateRouter(ctx context.Context, router model.Router) xerror.IError {
-	return nil
+	var table Router
+	table.FromModel(router)
+	err := s.db.Updates(&table).Error
+	return transError(err)
 }
 
-func (s *session) DeleteRouters(ctx context.Context, routers ...model.Identify) xerror.IError {
-	return nil
-}
-
-func (s *session) DeletePointsFromRouters(ctx context.Context, points []string) xerror.IError {
-	pointMap := make(map[string]bool, len(points))
-	for _, point := range points {
-		pointMap[point] = true
-	}
-
+func (s *session) DeleteRoutersFromPlans(ctx context.Context, routers []string) xerror.IError {
 	// 查询涉及的department
 	var departments []string
-	err := s.db.Where("identify in ?", points).Distinct("department").Pluck("department", &departments).Error
+	err := s.db.Where("identify in ?", routers).Distinct("department").Pluck("department", &departments).Error
 	if err != nil {
 		return transError(err)
 	}
 
-	// 获取涉及的routers
-	routers, _, err := s.GetRouters(ctx, model.RouterCondition{Department: departments})
+	// 获取涉及的plans
+	plans, _, err := s.GetPlans(ctx, model.PlanCondition{Departments: departments, Routers: routers})
 	if err != nil {
 		return transError(err)
 	}
 
-	// 删除router中的point
-	for i, router := range routers {
-		tempPoints := make([]string, 0, len(router.Points))
-		for _, point := range router.Points {
-			if pointMap[point] {
-				continue
-			}
-			tempPoints = append(tempPoints, point)
-		}
-		routers[i].Points = tempPoints
+	// 删除plan中的router
+	for i := range plans {
+		plans[i].Router = ""
 	}
 
-	// 更新routers
-	for _, router := range routers {
-		err = s.UpdateRouter(ctx, router)
+	// 更新plans
+	for _, plan := range plans {
+		err = s.UpdatePlan(ctx, plan)
 		if err != nil {
 			return transError(err)
 		}
@@ -176,22 +206,143 @@ func (s *session) DeletePointsFromRouters(ctx context.Context, points []string) 
 	return nil
 }
 
-func (s *session) GetRouters(ctx context.Context, condition model.RouterCondition) ([]model.Router, model.PageInfo, xerror.IError) {
-	return nil, model.PageInfo{}, nil
-}
+func (s *session) DeleteRouters(ctx context.Context, identifies ...model.Identify) xerror.IError {
+	ids := make([]string, 0, len(identifies))
+	for _, identify := range identifies {
+		ids = append(ids, identify.ID)
+	}
 
-func (s *session) AddPlan(ctx context.Context, plan model.Plan) (int, xerror.IError) {
-	return 0, nil
-}
+	tx := s.getTransaction(ctx)
 
-func (s *session) UpdatePlan(ctx context.Context, plan model.Plan) xerror.IError {
+	// 更新plan
+	xerr := tx.DeleteRoutersFromPlans(ctx, ids)
+	if xerr != nil {
+		tx.Rollback(ctx)
+		return xerr
+	}
+
+	// 删除router
+	err := tx.db.Where("identify in ?", ids).Delete(&Router{}).Error
+	if err != nil {
+		tx.Rollback(ctx)
+		return transError(err)
+	}
+
+	tx.Commit(ctx)
 	return nil
 }
 
-func (s *session) DeletePlans(ctx context.Context, plans ...model.Identify) xerror.IError {
+func (s *session) GetRouters(ctx context.Context, condition model.RouterCondition) ([]model.Router, model.PageInfo, xerror.IError) {
+	db := s.db
+	if len(condition.IDs) > 0 {
+		db = db.Where("identify in ?", condition.IDs)
+	}
+	if len(condition.Departments) > 0 {
+		db = db.Where("department in ?", condition.Departments)
+	}
+	if len(condition.Types) > 0 {
+		db = db.Where("type in ?", condition.Types)
+	}
+	if condition.Name != "" {
+		db = db.Where("name like ?", "%"+condition.Name+"%")
+	}
+	total := int64(0)
+	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
+		err := db.Count(&total).Error
+		if err != nil {
+			return nil, model.PageInfo{}, transError(err)
+		}
+		offset := (condition.PageQuery.Num - 1) * condition.PageQuery.Size
+		db = db.Offset(offset).Limit(condition.PageQuery.Size)
+	}
+
+	var tables []Router
+	err := db.Find(&tables).Error
+	if err != nil {
+		return nil, model.PageInfo{}, transError(err)
+	}
+	routers := make([]model.Router, 0, len(tables))
+	for _, table := range tables {
+		routers = append(routers, table.ToModel())
+	}
+	return routers, model.PageInfo{
+		Count: len(tables),
+		Total: int(total),
+	}, nil
+}
+
+func (s *session) AddPlan(ctx context.Context, plan model.Plan) (int, xerror.IError) {
+	var table Plan
+	table.FromModel(plan)
+	err := s.db.Create(&table).Error
+	return table.ID, transError(err)
+}
+
+func (s *session) UpdatePlan(ctx context.Context, plan model.Plan) xerror.IError {
+	var table Plan
+	table.FromModel(plan)
+	err := s.db.Updates(&table).Error
+	return transError(err)
+}
+
+func (s *session) DeletePlans(ctx context.Context, identifies ...model.Identify) xerror.IError {
+	ids := make([]string, 0, len(identifies))
+	for _, identify := range identifies {
+		ids = append(ids, identify.ID)
+	}
+	// 删除plan
+	err := s.db.Where("identify in ?", ids).Delete(&Router{}).Error
+	if err != nil {
+		return transError(err)
+	}
 	return nil
 }
 
 func (s *session) GetPlans(ctx context.Context, condition model.PlanCondition) ([]model.Plan, model.PageInfo, xerror.IError) {
-	return nil, model.PageInfo{}, nil
+	db := s.db
+	if len(condition.IDs) > 0 {
+		db = db.Where("identify in ?", condition.IDs)
+	}
+	if len(condition.Departments) > 0 {
+		db = db.Where("department in ?", condition.Departments)
+	}
+	if len(condition.Routers) > 0 {
+		db = db.Where("router in ?", condition.Routers)
+	}
+	if len(condition.Types) > 0 {
+		db = db.Where("type in ?", condition.Types)
+	}
+	if condition.Name != "" {
+		db = db.Where("name like ?", "%"+condition.Name+"%")
+	}
+	if condition.Start != (time.Time{}) {
+		db = db.Where("start >= ?", condition.Start)
+	}
+	if condition.End != (time.Time{}) {
+		db = db.Where("end <= ?", condition.End)
+	}
+
+	total := int64(0)
+	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
+		err := db.Count(&total).Error
+		if err != nil {
+			return nil, model.PageInfo{}, transError(err)
+		}
+		offset := (condition.PageQuery.Num - 1) * condition.PageQuery.Size
+		db = db.Offset(offset).Limit(condition.PageQuery.Size)
+	}
+
+	var tables []Plan
+	err := db.Find(&tables).Error
+	if err != nil {
+		return nil, model.PageInfo{}, transError(err)
+	}
+	plans := make([]model.Plan, 0, len(tables))
+	for _, table := range tables {
+		plans = append(plans, table.ToModel())
+	}
+	return plans, model.PageInfo{
+		Count: len(tables),
+		Total: int(total),
+	}, nil
 }
