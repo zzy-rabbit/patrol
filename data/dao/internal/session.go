@@ -82,7 +82,45 @@ func (s *session) DeletePoints(ctx context.Context, identifies ...model.Identify
 }
 
 func (s *session) GetPoints(ctx context.Context, condition model.PointCondition) ([]model.Point, model.PageInfo, xerror.IError) {
-	return nil, model.PageInfo{}, nil
+	db := s.db
+	if len(condition.ID) > 0 {
+		db = db.Where("identify in ?", condition.ID)
+	}
+	if len(condition.Department) > 0 {
+		db = db.Where("department in ?", condition.Department)
+	}
+	if len(condition.Type) > 0 {
+		db = db.Where("type in ?", condition.Type)
+	}
+	if condition.Name != "" {
+		db = db.Where("name like ?", "%"+condition.Name+"%")
+	}
+	if len(condition.Serial) > 0 {
+		db = db.Where("serial in ?", condition.Serial)
+	}
+	total := int64(0)
+	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
+		err := db.Count(&total).Error
+		if err != nil {
+			return nil, model.PageInfo{}, transError(err)
+		}
+		offset := (condition.PageQuery.Num - 1) * condition.PageQuery.Size
+		db = db.Offset(offset).Limit(condition.PageQuery.Size)
+	}
+
+	var tables []Point
+	err := db.Find(&tables).Error
+	if err != nil {
+		return nil, model.PageInfo{}, transError(err)
+	}
+	points := make([]model.Point, 0, len(tables))
+	for _, table := range tables {
+		points = append(points, table.ToModel())
+	}
+	return points, model.PageInfo{
+		Count: len(tables),
+		Total: int(total),
+	}, nil
 }
 
 func (s *session) AddRouter(ctx context.Context, router model.Router) (int, xerror.IError) {

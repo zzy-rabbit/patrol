@@ -42,10 +42,11 @@ type Point struct {
 
 type PointCondition struct {
 	*PageQuery
-	ID         []string    `json:"id"`
-	Department []string    `json:"department"`
-	Type       []PointType `json:"type"`
-	Name       []string    `json:"name"`
+	ID         []string    `json:"ids"`
+	Department []string    `json:"departments"`
+	Type       []PointType `json:"types"`
+	Name       string      `json:"name"`
+	Serial     []string    `json:"serials"`
 }
 
 type RouterType int
@@ -63,7 +64,7 @@ type RouterCondition struct {
 	ID         []string     `json:"id"`
 	Department []string     `json:"department"`
 	Type       []RouterType `json:"type"`
-	Name       []string     `json:"name"`
+	Name       string       `json:"name"`
 }
 
 type PlanType int
@@ -153,7 +154,7 @@ type PlanCondition struct {
 	ID         []string   `json:"id"`
 	Department []string   `json:"department"`
 	Type       []PlanType `json:"type"`
-	Name       []string   `json:"name"`
+	Name       string     `json:"name"`
 	Start      string     `json:"start"`
 	End        string     `json:"end"`
 }
