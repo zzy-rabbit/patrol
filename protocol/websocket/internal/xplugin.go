@@ -4,10 +4,12 @@ import (
 	"context"
 	"github.com/zzy-rabbit/patrol/protocol/websocket/api"
 	logApi "github.com/zzy-rabbit/patrol/utils/log/api"
+	uniformApi "github.com/zzy-rabbit/patrol/utils/uniform/api"
 )
 
 type service struct {
-	ILogger logApi.IPlugin `xplugin:"patrol.utils.log"`
+	ILogger  logApi.IPlugin     `xplugin:"patrol.utils.log"`
+	IUniform uniformApi.IPlugin `xplugin:"patrol.utils.uniform"`
 }
 
 func New(ctx context.Context) api.IPlugin {
