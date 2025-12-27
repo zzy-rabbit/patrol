@@ -8,7 +8,7 @@
         },
         {
             "plugin_name": "patrol.data.dao",
-            "init_param": "",
+            "init_param": "{\"driver\":\"sqlite\",\"sqlite\":{\"file\":\"patrol.db\",\"user\":\"\",\"password\":\"\"}}",
             "run_param": "",
             "stop_param": ""
         },

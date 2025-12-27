@@ -4,14 +4,16 @@ import (
 	"context"
 	"github.com/zzy-rabbit/patrol/data/dao/api"
 	"github.com/zzy-rabbit/patrol/model"
+	logApi "github.com/zzy-rabbit/patrol/utils/log/api"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"gorm.io/gorm"
 	"time"
 )
 
 type session struct {
-	db *gorm.DB
-	tx bool
+	db     *gorm.DB
+	tx     bool
+	logger logApi.IPlugin
 }
 
 type transaction struct {
@@ -35,8 +37,9 @@ func (s *session) getTransaction(ctx context.Context) *transaction {
 		return &transaction{session: s}
 	}
 	return &transaction{session: &session{
-		db: s.db,
-		tx: true,
+		db:     s.db.Begin(),
+		tx:     true,
+		logger: s.logger,
 	}}
 }
 
@@ -44,14 +47,22 @@ func (s *session) AddPoint(ctx context.Context, point model.Point) (int, xerror.
 	var table Point
 	table.FromModel(point)
 	err := s.db.Create(&table).Error
-	return table.ID, transError(err)
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "add point %+v fail %v", point, err)
+		return 0, transError(err)
+	}
+	return table.ID, nil
 }
 
 func (s *session) UpdatePoint(ctx context.Context, point model.Point) xerror.IError {
 	var table Point
 	table.FromModel(point)
 	err := s.db.Updates(&table).Error
-	return transError(err)
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "update point %+v fail %v", point, err)
+		return transError(err)
+	}
+	return nil
 }
 
 func (s *session) DeletePointsFromRouters(ctx context.Context, points []string) xerror.IError {
@@ -64,12 +75,14 @@ func (s *session) DeletePointsFromRouters(ctx context.Context, points []string) 
 	var departments []string
 	err := s.db.Where("identify in ?", points).Distinct("department").Pluck("department", &departments).Error
 	if xerror.Error(err) {
+		s.logger.Error(ctx, "query departments by identify %+v fail %v", points, err)
 		return transError(err)
 	}
 
 	// 获取涉及的routers
 	routers, _, err := s.GetRouters(ctx, model.RouterCondition{Departments: departments})
 	if xerror.Error(err) {
+		s.logger.Error(ctx, "query routers by departments %+v fail %v", departments, err)
 		return transError(err)
 	}
 
@@ -89,6 +102,7 @@ func (s *session) DeletePointsFromRouters(ctx context.Context, points []string) 
 	for _, router := range routers {
 		err = s.UpdateRouter(ctx, router)
 		if xerror.Error(err) {
+			s.logger.Error(ctx, "update router %+v fail %v", router, err)
 			return transError(err)
 		}
 	}
@@ -107,6 +121,7 @@ func (s *session) DeletePoints(ctx context.Context, identifies ...model.Identify
 	xerr := tx.DeletePointsFromRouters(ctx, ids)
 	if xerror.Error(xerr) {
 		tx.Rollback(ctx)
+		s.logger.Error(ctx, "delete points %+v from routers fail %v", ids, xerr)
 		return xerr
 	}
 
@@ -114,6 +129,7 @@ func (s *session) DeletePoints(ctx context.Context, identifies ...model.Identify
 	err := tx.db.Where("identify in ?", ids).Delete(&Point{}).Error
 	if xerror.Error(err) {
 		tx.Rollback(ctx)
+		s.logger.Error(ctx, "delete points %+v fail %v", ids, err)
 		return transError(err)
 	}
 
@@ -142,6 +158,7 @@ func (s *session) GetPoints(ctx context.Context, condition model.PointCondition)
 	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
 		err := db.Count(&total).Error
 		if xerror.Error(err) {
+			s.logger.Error(ctx, "query points count by condition %+v fail %v", condition, err)
 			return nil, model.PageInfo{}, transError(err)
 		}
 		offset := (condition.PageQuery.Num - 1) * condition.PageQuery.Size
@@ -151,6 +168,7 @@ func (s *session) GetPoints(ctx context.Context, condition model.PointCondition)
 	var tables []Point
 	err := db.Find(&tables).Error
 	if xerror.Error(err) {
+		s.logger.Error(ctx, "query points by condition %+v fail %v", condition, err)
 		return nil, model.PageInfo{}, transError(err)
 	}
 	points := make([]model.Point, 0, len(tables))
@@ -167,14 +185,22 @@ func (s *session) AddRouter(ctx context.Context, router model.Router) (int, xerr
 	var table Router
 	table.FromModel(router)
 	err := s.db.Create(&table).Error
-	return table.ID, transError(err)
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "add router %+v fail %v", router, err)
+		return 0, transError(err)
+	}
+	return table.ID, nil
 }
 
 func (s *session) UpdateRouter(ctx context.Context, router model.Router) xerror.IError {
 	var table Router
 	table.FromModel(router)
 	err := s.db.Updates(&table).Error
-	return transError(err)
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "update router %+v fail %v", router, err)
+		return transError(err)
+	}
+	return nil
 }
 
 func (s *session) DeleteRoutersFromPlans(ctx context.Context, routers []string) xerror.IError {
@@ -182,12 +208,14 @@ func (s *session) DeleteRoutersFromPlans(ctx context.Context, routers []string) 
 	var departments []string
 	err := s.db.Where("identify in ?", routers).Distinct("department").Pluck("department", &departments).Error
 	if xerror.Error(err) {
+		s.logger.Error(ctx, "query departments by identify %+v fail %v", routers, err)
 		return transError(err)
 	}
 
 	// 获取涉及的plans
 	plans, _, err := s.GetPlans(ctx, model.PlanCondition{Departments: departments, Routers: routers})
 	if xerror.Error(err) {
+		s.logger.Error(ctx, "query plans by departments %+v fail %v", departments, err)
 		return transError(err)
 	}
 
@@ -200,6 +228,7 @@ func (s *session) DeleteRoutersFromPlans(ctx context.Context, routers []string) 
 	for _, plan := range plans {
 		err = s.UpdatePlan(ctx, plan)
 		if xerror.Error(err) {
+			s.logger.Error(ctx, "update plan %+v fail %v", plan, err)
 			return transError(err)
 		}
 	}
@@ -218,6 +247,7 @@ func (s *session) DeleteRouters(ctx context.Context, identifies ...model.Identif
 	xerr := tx.DeleteRoutersFromPlans(ctx, ids)
 	if xerror.Error(xerr) {
 		tx.Rollback(ctx)
+		s.logger.Error(ctx, "delete routers %+v from plans fail %v", ids, xerr)
 		return xerr
 	}
 
@@ -225,6 +255,7 @@ func (s *session) DeleteRouters(ctx context.Context, identifies ...model.Identif
 	err := tx.db.Where("identify in ?", ids).Delete(&Router{}).Error
 	if xerror.Error(err) {
 		tx.Rollback(ctx)
+		s.logger.Error(ctx, "delete routers %+v fail %v", ids, err)
 		return transError(err)
 	}
 
@@ -250,6 +281,7 @@ func (s *session) GetRouters(ctx context.Context, condition model.RouterConditio
 	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
 		err := db.Count(&total).Error
 		if xerror.Error(err) {
+			s.logger.Error(ctx, "query routers count by condition %+v fail %v", condition, err)
 			return nil, model.PageInfo{}, transError(err)
 		}
 		offset := (condition.PageQuery.Num - 1) * condition.PageQuery.Size
@@ -259,6 +291,7 @@ func (s *session) GetRouters(ctx context.Context, condition model.RouterConditio
 	var tables []Router
 	err := db.Find(&tables).Error
 	if xerror.Error(err) {
+		s.logger.Error(ctx, "query routers by condition %+v fail %v", condition, err)
 		return nil, model.PageInfo{}, transError(err)
 	}
 	routers := make([]model.Router, 0, len(tables))
@@ -275,14 +308,22 @@ func (s *session) AddPlan(ctx context.Context, plan model.Plan) (int, xerror.IEr
 	var table Plan
 	table.FromModel(plan)
 	err := s.db.Create(&table).Error
-	return table.ID, transError(err)
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "add plan %+v fail %v", plan, err)
+		return 0, transError(err)
+	}
+	return table.ID, nil
 }
 
 func (s *session) UpdatePlan(ctx context.Context, plan model.Plan) xerror.IError {
 	var table Plan
 	table.FromModel(plan)
 	err := s.db.Updates(&table).Error
-	return transError(err)
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "update plan %+v fail %v", plan, err)
+		return transError(err)
+	}
+	return nil
 }
 
 func (s *session) DeletePlans(ctx context.Context, identifies ...model.Identify) xerror.IError {
@@ -293,6 +334,7 @@ func (s *session) DeletePlans(ctx context.Context, identifies ...model.Identify)
 	// 删除plan
 	err := s.db.Where("identify in ?", ids).Delete(&Router{}).Error
 	if xerror.Error(err) {
+		s.logger.Error(ctx, "delete plans %+v fail %v", ids, err)
 		return transError(err)
 	}
 	return nil
@@ -326,6 +368,7 @@ func (s *session) GetPlans(ctx context.Context, condition model.PlanCondition) (
 	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
 		err := db.Count(&total).Error
 		if xerror.Error(err) {
+			s.logger.Error(ctx, "query plans count by condition %+v fail %v", condition, err)
 			return nil, model.PageInfo{}, transError(err)
 		}
 		offset := (condition.PageQuery.Num - 1) * condition.PageQuery.Size
@@ -335,6 +378,7 @@ func (s *session) GetPlans(ctx context.Context, condition model.PlanCondition) (
 	var tables []Plan
 	err := db.Find(&tables).Error
 	if xerror.Error(err) {
+		s.logger.Error(ctx, "query plans by condition %+v fail %v", condition, err)
 		return nil, model.PageInfo{}, transError(err)
 	}
 	plans := make([]model.Plan, 0, len(tables))

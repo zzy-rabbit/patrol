@@ -37,6 +37,7 @@ func (s *service) Init(ctx context.Context, initParam string) error {
 	s.fiberApp = fiber.New()
 	s.network = network
 	s.registerRouter()
+	s.ILogger.Info(ctx, "plugin %s init success", s.GetName(ctx))
 	return nil
 }
 
@@ -49,6 +50,7 @@ func (s *service) Run(ctx context.Context, runParam string) error {
 			return
 		}
 	}()
+	s.ILogger.Info(ctx, "plugin %s run success", s.GetName(ctx))
 	return nil
 }
 
@@ -58,5 +60,6 @@ func (s *service) Stop(ctx context.Context, stopParam string) error {
 		s.ILogger.Error(ctx, "plugin %s stop %s fail %v", s.GetName(ctx), stopParam, err)
 		return err
 	}
+	s.ILogger.Info(ctx, "plugin %s stop success", s.GetName(ctx))
 	return nil
 }

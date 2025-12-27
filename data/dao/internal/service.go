@@ -6,9 +6,13 @@ import (
 )
 
 func (s *service) GetDB(ctx context.Context) api.ISession {
-	return nil
+	return &session{
+		db:     s.db,
+		tx:     false,
+		logger: s.ILogger,
+	}
 }
 
 func (s *service) GetTransaction(ctx context.Context) api.ITransaction {
-	return nil
+	return s.GetDB(ctx).GetTransaction(ctx)
 }

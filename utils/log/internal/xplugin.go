@@ -31,13 +31,16 @@ func (s *service) Init(ctx context.Context, initParam string) error {
 		return err
 	}
 	s.ILogger = logger
+	s.ILogger.Info(ctx, "plugin %s init success", s.GetName(ctx))
 	return nil
 }
 
 func (s *service) Run(ctx context.Context, runParam string) error {
+	s.ILogger.Info(ctx, "plugin %s run success", s.GetName(ctx))
 	return nil
 }
 
 func (s *service) Stop(ctx context.Context, stopParam string) error {
+	s.ILogger.Info(ctx, "plugin %s stop success", s.GetName(ctx))
 	return nil
 }

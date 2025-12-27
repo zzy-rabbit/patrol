@@ -11,6 +11,17 @@ const (
 	PluginName = "patrol.data.dao"
 )
 
+type Config struct {
+	Driver string `json:"driver"`
+	Sqlite Sqlite `json:"sqlite"`
+}
+
+type Sqlite struct {
+	File     string `json:"file"`
+	User     string `json:"user"`
+	Password string `json:"password"`
+}
+
 type ISession interface {
 	GetTransaction(ctx context.Context) ITransaction
 

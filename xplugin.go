@@ -3,9 +3,10 @@ package main
 import (
 	"context"
 	"flag"
+	"os"
+
 	"github.com/zzy-rabbit/xtools/xerror"
 	"github.com/zzy-rabbit/xtools/xplugin"
-	"os"
 
 	_ "github.com/zzy-rabbit/patrol/data/dao"
 	_ "github.com/zzy-rabbit/patrol/hardware/nfc"
