@@ -7,7 +7,16 @@ import (
 )
 
 func (s *service) AddPoint(ctx context.Context, point model.Point) (int, xerror.IError) {
-	return s.IDao.GetDB(ctx).AddPoint(ctx, point)
+	id, err := s.IDao.GetDB(ctx).AddPoint(ctx, point)
+	if xerror.Error(err) {
+		s.ILogger.Error(ctx, "add point error", err)
+		return 0, err
+	}
+	//err = s.IReport.Broadcast(ctx, 0, point)
+	//if xerror.Error(err) {
+	//	s.ILogger.Error(ctx, "broadcast error", err)
+	//}
+	return id, nil
 }
 
 func (s *service) UpdatePoint(ctx context.Context, point model.Point) xerror.IError {

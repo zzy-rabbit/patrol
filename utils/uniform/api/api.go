@@ -15,6 +15,7 @@ type Header struct {
 	Sequence      uint64 `json:"sequence"`
 	Authorization string `json:"authorization"`
 	Timestamp     uint64 `json:"timestamp"`
+	Tag           uint32 `json:"tag"`
 }
 
 type FrameHead struct {

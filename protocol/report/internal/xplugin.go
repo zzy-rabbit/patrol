@@ -5,11 +5,18 @@ import (
 	"github.com/zzy-rabbit/patrol/protocol/report/api"
 	websocketApi "github.com/zzy-rabbit/patrol/protocol/websocket/api"
 	logApi "github.com/zzy-rabbit/patrol/utils/log/api"
+	uniformApi "github.com/zzy-rabbit/patrol/utils/uniform/api"
+	"sync"
 )
 
 type service struct {
 	ILogger    logApi.IPlugin       `xplugin:"patrol.utils.log"`
+	IUniform   uniformApi.IPlugin   `xplugin:"patrol.utils.uniform"`
 	IWebsocket websocketApi.IPlugin `xplugin:"patrol.protocol.websocket"`
+	IServer    websocketApi.IServer
+
+	mutex   sync.RWMutex
+	connMap map[string]websocketApi.IConn
 }
 
 func New(ctx context.Context) api.IPlugin {
