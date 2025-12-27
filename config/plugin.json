@@ -7,6 +7,18 @@
             "stop_param": ""
         },
         {
+            "plugin_name": "patrol.utils.encrypt",
+            "init_param": "",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
+            "plugin_name": "patrol.utils.uniform",
+            "init_param": "",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
             "plugin_name": "patrol.data.dao",
             "init_param": "{\"driver\":\"sqlite\",\"sqlite\":{\"file\":\"patrol.db\",\"user\":\"\",\"password\":\"\"}}",
             "run_param": "",
@@ -50,6 +62,12 @@
         },
         {
             "plugin_name": "patrol.protocol.websocket",
+            "init_param": "",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
+            "plugin_name": "patrol.protocol.report",
             "init_param": "{\"host\": \"0.0.0.0\", \"port\": 9901}",
             "run_param": "",
             "stop_param": ""
