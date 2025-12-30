@@ -79,6 +79,7 @@ type Plan struct {
 	Util       time.Time `json:"util"`
 	Start      time.Time `json:"start"`
 	End        time.Time `json:"end"`
+	Users      []string  `json:"users"`
 }
 
 func (p *Plan) UnmarshalJSON(data []byte) error {
@@ -91,6 +92,7 @@ func (p *Plan) UnmarshalJSON(data []byte) error {
 		Util       string   `json:"util"`
 		Start      string   `json:"start"`
 		End        string   `json:"end"`
+		Users      []string `json:"users"`
 	}
 
 	var aux planJSON
@@ -121,6 +123,7 @@ func (p *Plan) UnmarshalJSON(data []byte) error {
 	p.Util = util
 	p.Start = start
 	p.End = end
+	p.Users = aux.Users
 
 	return nil
 }
@@ -135,6 +138,7 @@ func (p *Plan) MarshalJSON() ([]byte, error) {
 		Util       string   `json:"util"`
 		Start      string   `json:"start"`
 		End        string   `json:"end"`
+		Users      []string `json:"users"`
 	}
 
 	aux := planJSON{
@@ -146,6 +150,7 @@ func (p *Plan) MarshalJSON() ([]byte, error) {
 		Util:       p.Util.Format("2006-01-02"),
 		Start:      p.Start.Format("15:04:05"),
 		End:        p.End.Format("15:04:05"),
+		Users:      p.Users,
 	}
 	return json.Marshal(aux)
 }
@@ -222,4 +227,69 @@ func (p *PlanCondition) MarshalJSON() ([]byte, error) {
 		End:         p.End.Format("15:04:05"),
 	}
 	return json.Marshal(aux)
+}
+
+type CheckPoint struct {
+	User   string    `json:"user"`
+	Serial string    `json:"serial"`
+	Time   time.Time `json:"time"`
+}
+
+func (p *CheckPoint) UnmarshalJSON(data []byte) error {
+	type checkPointJSON struct {
+		User   string `json:"user"`
+		Serial string `json:"serial"`
+		Time   string `json:"time"`
+	}
+	var aux checkPointJSON
+	if err := json.Unmarshal(data, &aux); xerror.Error(err) {
+		return err
+	}
+	t, err := time.ParseInLocation("2006-01-02 15:04:05", aux.Time, time.Local)
+	if xerror.Error(err) {
+		return err
+	}
+	p.User = aux.User
+	p.Serial = aux.Serial
+	p.Time = t
+	return nil
+}
+
+func (p *CheckPoint) MarshalJSON() ([]byte, error) {
+	type checkPointJSON struct {
+		User   string `json:"user"`
+		Serial string `json:"serial"`
+		Time   string `json:"time"`
+	}
+	aux := checkPointJSON{
+		User:   p.User,
+		Serial: p.Serial,
+		Time:   p.Time.Format("2006-01-02 15:04:05"),
+	}
+	return json.Marshal(aux)
+}
+
+type PointBak struct {
+	Point
+	ID int `json:"id"`
+}
+
+type RouterBak struct {
+	Router
+	ID int `json:"id"`
+}
+
+type PlanBak struct {
+	Plan
+	ID int `json:"id"`
+}
+
+type ExecutorParams struct {
+	Points []Point `json:"points"`
+	Router Router  `json:"router"`
+	Plan   Plan    `json:"plan"`
+}
+
+type ExecuteResult struct {
+	ID int `json:"id"`
 }

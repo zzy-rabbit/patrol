@@ -390,3 +390,36 @@ func (s *session) GetPlans(ctx context.Context, condition model.PlanCondition) (
 		Total: int(total),
 	}, nil
 }
+
+func (s *session) DeleteUsersFromPlans(ctx context.Context, users []string) xerror.IError {
+	// 获取涉及的plans
+	plans, _, err := s.GetPlans(ctx, model.PlanCondition{})
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "query all plans %+v fail %v", err)
+		return transError(err)
+	}
+
+	userMap := make(map[string]bool, len(users))
+	for _, user := range users {
+		userMap[user] = true
+	}
+
+	// 删除plan中的router
+	for i, plan := range plans {
+		for _, user := range plan.Users {
+			if userMap[user] {
+				plans[i].Users = append(plan.Users[:i], plan.Users[i+1:]...)
+			}
+		}
+	}
+
+	// 更新plans
+	for _, plan := range plans {
+		err = s.UpdatePlan(ctx, plan)
+		if xerror.Error(err) {
+			s.logger.Error(ctx, "update plan %+v fail %v", plan, err)
+			return transError(err)
+		}
+	}
+	return nil
+}

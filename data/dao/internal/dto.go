@@ -43,6 +43,9 @@ func (r *Router) ToModel() model.Router {
 }
 
 func (p *Plan) FromModel(m model.Plan) {
+	users := make([]string, len(p.Users))
+	copy(users, p.Users)
+
 	p.Identify = m.Identify.ID
 	p.Department = m.Department
 	p.Name = m.Name
@@ -51,9 +54,12 @@ func (p *Plan) FromModel(m model.Plan) {
 	p.Start = m.Start
 	p.End = m.End
 	p.Util = m.Util
+	p.Users = users
 }
 
 func (p *Plan) ToModel() model.Plan {
+	users := make([]string, len(p.Users))
+	copy(users, p.Users)
 	return model.Plan{
 		Identify: model.Identify{
 			ID: p.Identify,
@@ -65,5 +71,6 @@ func (p *Plan) ToModel() model.Plan {
 		Start:      p.Start,
 		End:        p.End,
 		Util:       p.Util,
+		Users:      users,
 	}
 }

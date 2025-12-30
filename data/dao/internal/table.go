@@ -34,10 +34,11 @@ type Plan struct {
 	Department string    `gorm:"column:department"`
 	Name       string    `gorm:"column:name"`
 	Type       int       `gorm:"column:type"`
-	Router     string    `json:"router"`
-	Util       time.Time `json:"util"`
-	Start      time.Time `json:"start"`
-	End        time.Time `json:"end"`
+	Router     string    `gorm:"column:router"`
+	Util       time.Time `gorm:"column:util"`
+	Start      time.Time `gorm:"column:start"`
+	End        time.Time `gorm:"column:end"`
+	Users      []string  `gorm:"column:users;serializer:json"`
 }
 
 func (*Plan) TableName() string {
