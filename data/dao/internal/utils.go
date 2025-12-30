@@ -2,7 +2,6 @@ package internal
 
 import (
 	"errors"
-	"github.com/mattn/go-sqlite3"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"gorm.io/gorm"
 )
@@ -17,7 +16,7 @@ func transError(err error) xerror.IError {
 		return xerror.ErrNotFound
 	}
 
-	if errors.Is(err, sqlite3.ErrConstraintUnique) {
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
 		return xerror.ErrAlreadyExists
 	}
 	return xerror.ErrFail
