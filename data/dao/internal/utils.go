@@ -17,11 +17,8 @@ func transError(err error) xerror.IError {
 		return xerror.ErrNotFound
 	}
 
-	var sqliteErr sqlite3.Error
-	if errors.As(err, &sqliteErr) {
-		if errors.Is(err, sqlite3.ErrConstraintUnique) {
-			return xerror.ErrAlreadyExists
-		}
+	if errors.Is(err, sqlite3.ErrConstraintUnique) {
+		return xerror.ErrAlreadyExists
 	}
 	return xerror.ErrFail
 }
