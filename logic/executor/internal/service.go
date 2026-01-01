@@ -6,7 +6,18 @@ import (
 	"github.com/zzy-rabbit/xtools/xerror"
 )
 
-func (s *service) Do(ctx context.Context, param model.ExecutorParams) (model.ExecuteResult, xerror.IError) {
+func (s *service) SyncDo(ctx context.Context, param model.ExecutorParams) (model.ExecuteResult, xerror.IError) {
 
 	return model.ExecuteResult{}, nil
+}
+
+func (s *service) ASyncDo(ctx context.Context, param model.ExecutorParams, after func(model.ExecuteResult, xerror.IError)) xerror.IError {
+	_, err := s.IThreadPool.Do(ctx, func() {
+		result, err := s.SyncDo(ctx, param)
+		if xerror.Error(err) {
+			s.ILogger.Error(ctx, "executor execute task %+v fail %v", param, err)
+		}
+		after(result, err)
+	})
+	return err
 }

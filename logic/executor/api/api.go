@@ -13,5 +13,6 @@ const (
 
 type IPlugin interface {
 	xplugin.IPlugin
-	Do(ctx context.Context, param model.ExecutorParams) (model.ExecuteResult, xerror.IError)
+	SyncDo(ctx context.Context, param model.ExecutorParams) (model.ExecuteResult, xerror.IError)
+	ASyncDo(ctx context.Context, param model.ExecutorParams, after func(model.ExecuteResult, xerror.IError)) xerror.IError
 }

@@ -5,11 +5,13 @@ import (
 	configApi "github.com/zzy-rabbit/patrol/logic/config/api"
 	"github.com/zzy-rabbit/patrol/logic/executor/api"
 	logApi "github.com/zzy-rabbit/patrol/utils/log/api"
+	"github.com/zzy-rabbit/xtools/xthread"
 )
 
 type service struct {
-	IConfig configApi.IPlugin `xplugin:"patrol.logic.config"`
-	ILogger logApi.IPlugin    `xplugin:"patrol.utils.log"`
+	IConfig     configApi.IPlugin `xplugin:"patrol.logic.config"`
+	ILogger     logApi.IPlugin    `xplugin:"patrol.utils.log"`
+	IThreadPool xthread.IPool
 }
 
 func New(ctx context.Context) api.IPlugin {
