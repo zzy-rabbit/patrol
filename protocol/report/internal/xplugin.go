@@ -10,8 +10,8 @@ import (
 )
 
 type service struct {
-	ILogger    logApi.IPlugin       `xplugin:"patrol.utils.log"`
-	IUniform   uniformApi.IPlugin   `xplugin:"patrol.utils.uniform"`
+	ILogger    logApi.IPlugin       `xplugin:"xtools.plugins.log"`
+	IUniform   uniformApi.IPlugin   `xplugin:"xtools.plugins.uniform"`
 	IWebsocket websocketApi.IPlugin `xplugin:"patrol.protocol.websocket"`
 	IServer    websocketApi.IServer
 

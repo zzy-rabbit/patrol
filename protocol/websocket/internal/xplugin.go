@@ -8,8 +8,8 @@ import (
 )
 
 type service struct {
-	ILogger  logApi.IPlugin     `xplugin:"patrol.utils.log"`
-	IUniform uniformApi.IPlugin `xplugin:"patrol.utils.uniform"`
+	ILogger  logApi.IPlugin     `xplugin:"xtools.plugins.log"`
+	IUniform uniformApi.IPlugin `xplugin:"xtools.plugins.uniform"`
 }
 
 func New(ctx context.Context) api.IPlugin {

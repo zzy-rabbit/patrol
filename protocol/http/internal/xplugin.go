@@ -16,7 +16,7 @@ type service struct {
 	network  model.Network
 	fiberApp *fiber.App
 	IConfig  configApi.IPlugin `xplugin:"patrol.logic.config"`
-	ILogger  logApi.IPlugin    `xplugin:"patrol.utils.log"`
+	ILogger  logApi.IPlugin    `xplugin:"xtools.plugins.log"`
 }
 
 func New(ctx context.Context) api.IPlugin {

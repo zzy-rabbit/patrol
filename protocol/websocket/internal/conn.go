@@ -14,7 +14,7 @@ import (
 type connection struct {
 	mutex    sync.RWMutex
 	conn     *websocket.Conn
-	IUniform uniformApi.IPlugin `xplugin:"patrol.utils.uniform"`
+	IUniform uniformApi.IPlugin `xplugin:"xtools.plugins.uniform"`
 	async    *async
 	callback api.OnReceiveCallbackFunc
 	sendChan chan []byte

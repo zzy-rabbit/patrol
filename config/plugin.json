@@ -1,19 +1,19 @@
 {
     "plugins": [
         {
-            "plugin_name": "patrol.utils.log",
+            "plugin_name": "xtools.plugins.log",
             "init_param": "{\"level\": 1,\"name\": \"patrol\",\"suffix\": \".log\",\"path\": \"\",\"max_size\": 10}",
             "run_param": "",
             "stop_param": ""
         },
         {
-            "plugin_name": "patrol.utils.encrypt",
+            "plugin_name": "xtools.plugins.encrypt",
             "init_param": "",
             "run_param": "",
             "stop_param": ""
         },
         {
-            "plugin_name": "patrol.utils.uniform",
+            "plugin_name": "xtools.plugins.uniform",
             "init_param": "",
             "run_param": "",
             "stop_param": ""

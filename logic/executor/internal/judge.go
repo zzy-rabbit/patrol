@@ -11,7 +11,7 @@ type auxiliary struct {
 }
 
 type Judge struct {
-	ILogger   logApi.IPlugin `xplugin:"patrol.utils.log"`
+	ILogger   logApi.IPlugin `xplugin:"xtools.plugins.log"`
 	params    model.ExecutorParams
 	auxiliary auxiliary
 }

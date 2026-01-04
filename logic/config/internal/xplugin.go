@@ -11,7 +11,7 @@ import (
 type service struct {
 	IDao    daoApi.IPlugin    `xplugin:"patrol.data.dao"`
 	IReport reportApi.IPlugin `xplugin:"patrol.protocol.report"`
-	ILogger logApi.IPlugin    `xplugin:"patrol.utils.log"`
+	ILogger logApi.IPlugin    `xplugin:"xtools.plugins.log"`
 }
 
 func New(ctx context.Context) api.IPlugin {

@@ -13,7 +13,7 @@ import (
 type service struct {
 	config      api.Config
 	IConfig     configApi.IPlugin `xplugin:"patrol.logic.config"`
-	ILogger     logApi.IPlugin    `xplugin:"patrol.utils.log"`
+	ILogger     logApi.IPlugin    `xplugin:"xtools.plugins.log"`
 	IThreadPool xthread.IPool
 }
 

@@ -11,7 +11,7 @@ import (
 type service struct {
 	IConfig   configApi.IPlugin   `xplugin:"patrol.logic.config"`
 	IExecutor executorApi.IPlugin `xplugin:"patrol.logic.executor"`
-	ILogger   logApi.IPlugin      `xplugin:"patrol.utils.log"`
+	ILogger   logApi.IPlugin      `xplugin:"xtools.plugins.log"`
 }
 
 func New(ctx context.Context) api.IPlugin {

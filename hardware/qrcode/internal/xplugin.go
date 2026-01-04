@@ -7,7 +7,7 @@ import (
 )
 
 type service struct {
-	ILogger logApi.IPlugin `xplugin:"patrol.utils.log"`
+	ILogger logApi.IPlugin `xplugin:"xtools.plugins.log"`
 }
 
 func New(ctx context.Context) api.IPlugin {

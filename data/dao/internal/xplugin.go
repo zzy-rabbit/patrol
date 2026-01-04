@@ -13,7 +13,7 @@ import (
 type service struct {
 	config  api.Config
 	db      *gorm.DB
-	ILogger logApi.IPlugin `xplugin:"patrol.utils.log"`
+	ILogger logApi.IPlugin `xplugin:"xtools.plugins.log"`
 }
 
 func New(ctx context.Context) api.IPlugin {
