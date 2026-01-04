@@ -1,6 +1,8 @@
 package internal
 
-import "time"
+import (
+	"time"
+)
 
 type Point struct {
 	ID         int    `gorm:"column:id;primaryKey;autoIncrement"`

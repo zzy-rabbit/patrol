@@ -47,7 +47,7 @@
             "init_param": "",
             "run_param": "",
             "stop_param": ""
-        },
+        },{"core_"},
         {
             "plugin_name": "patrol.logic.trigger",
             "init_param": "",

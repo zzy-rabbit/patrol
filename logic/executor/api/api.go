@@ -7,6 +7,11 @@ import (
 	"github.com/zzy-rabbit/xtools/xplugin"
 )
 
+type Config struct {
+	CoreSize int `json:"core_size"`
+	TaskSize int `json:"task_size"`
+}
+
 const (
 	PluginName = "patrol.logic.executor"
 )
