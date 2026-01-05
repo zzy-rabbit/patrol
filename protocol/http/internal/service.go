@@ -11,14 +11,14 @@ func (s *service) ParseQueryParams(ctx *fiber.Ctx, query any) error {
 	header := model.Header{}
 	err := ctx.ReqHeaderParser(&header)
 	if xerror.Error(err) {
-		return ctx.JSON(model.HttpResponse{
+		return ctx.JSON(&model.HttpResponse{
 			IError: xerror.Extend(xerror.ErrInvalidParam, "parse request header fail"),
 			Data:   json.RawMessage{},
 		})
 	}
 	err = ctx.QueryParser(query)
 	if xerror.Error(err) {
-		return ctx.JSON(model.HttpResponse{
+		return ctx.JSON(&model.HttpResponse{
 			IError: xerror.Extend(xerror.ErrInvalidParam, "parse request query fail"),
 		})
 	}
@@ -29,14 +29,14 @@ func (s *service) ParseBodyParams(ctx *fiber.Ctx, body any) error {
 	header := model.Header{}
 	err := ctx.ReqHeaderParser(&header)
 	if xerror.Error(err) {
-		return ctx.JSON(model.HttpResponse{
+		return ctx.JSON(&model.HttpResponse{
 			IError: xerror.Extend(xerror.ErrInvalidParam, "parse request header fail"),
 			Data:   json.RawMessage{},
 		})
 	}
 	err = ctx.BodyParser(body)
 	if xerror.Error(err) {
-		return ctx.JSON(model.HttpResponse{
+		return ctx.JSON(&model.HttpResponse{
 			IError: xerror.Extend(xerror.ErrInvalidParam, "parse request body fail"),
 		})
 	}
@@ -51,11 +51,11 @@ func (s *service) AddPoint(ctx *fiber.Ctx) error {
 	}
 	_, xerr := s.IConfig.AddPoint(ctx.UserContext(), point)
 	if xerror.Error(xerr) {
-		return ctx.JSON(model.HttpResponse{
+		return ctx.JSON(&model.HttpResponse{
 			IError: xerr,
 		})
 	}
-	return ctx.JSON(model.HttpResponse{
+	return ctx.JSON(&model.HttpResponse{
 		IError: xerror.ErrSuccess,
 	})
 }
@@ -68,11 +68,11 @@ func (s *service) UpdatePoint(ctx *fiber.Ctx) error {
 	}
 	xerr := s.IConfig.UpdatePoint(ctx.UserContext(), point)
 	if xerror.Error(xerr) {
-		return ctx.JSON(model.HttpResponse{
+		return ctx.JSON(&model.HttpResponse{
 			IError: xerr,
 		})
 	}
-	return ctx.JSON(model.HttpResponse{
+	return ctx.JSON(&model.HttpResponse{
 		IError: xerror.ErrSuccess,
 	})
 }
@@ -85,11 +85,11 @@ func (s *service) DeletePoints(ctx *fiber.Ctx) error {
 	}
 	xerr := s.IConfig.DeletePoints(ctx.UserContext(), points...)
 	if xerror.Error(xerr) {
-		return ctx.JSON(model.HttpResponse{
+		return ctx.JSON(&model.HttpResponse{
 			IError: xerr,
 		})
 	}
-	return ctx.JSON(model.HttpResponse{
+	return ctx.JSON(&model.HttpResponse{
 		IError: xerror.ErrSuccess,
 	})
 }
@@ -102,11 +102,11 @@ func (s *service) GetPoints(ctx *fiber.Ctx) error {
 	}
 	points, page, xerr := s.IConfig.GetPoints(ctx.UserContext(), condition)
 	if xerror.Error(xerr) {
-		return ctx.JSON(model.HttpResponse{
+		return ctx.JSON(&model.HttpResponse{
 			IError: xerr,
 		})
 	}
-	return ctx.JSON(model.HttpResponse{
+	return ctx.JSON(&model.HttpResponse{
 		IError: xerror.ErrSuccess,
 		Data: model.PaginatedData[model.Point]{
 			PageInfo: page,
@@ -123,11 +123,11 @@ func (s *service) AddRouter(ctx *fiber.Ctx) error {
 	}
 	_, xerr := s.IConfig.AddRouter(ctx.UserContext(), router)
 	if xerror.Error(xerr) {
-		return ctx.JSON(model.HttpResponse{
+		return ctx.JSON(&model.HttpResponse{
 			IError: xerr,
 		})
 	}
-	return ctx.JSON(model.HttpResponse{
+	return ctx.JSON(&model.HttpResponse{
 		IError: xerror.ErrSuccess,
 	})
 }
@@ -140,11 +140,11 @@ func (s *service) UpdateRouter(ctx *fiber.Ctx) error {
 	}
 	xerr := s.IConfig.UpdateRouter(ctx.UserContext(), router)
 	if xerror.Error(xerr) {
-		return ctx.JSON(model.HttpResponse{
+		return ctx.JSON(&model.HttpResponse{
 			IError: xerr,
 		})
 	}
-	return ctx.JSON(model.HttpResponse{
+	return ctx.JSON(&model.HttpResponse{
 		IError: xerror.ErrSuccess,
 	})
 }
@@ -157,11 +157,11 @@ func (s *service) DeleteRouters(ctx *fiber.Ctx) error {
 	}
 	xerr := s.IConfig.DeleteRouters(ctx.UserContext(), routers...)
 	if xerror.Error(xerr) {
-		return ctx.JSON(model.HttpResponse{
+		return ctx.JSON(&model.HttpResponse{
 			IError: xerr,
 		})
 	}
-	return ctx.JSON(model.HttpResponse{
+	return ctx.JSON(&model.HttpResponse{
 		IError: xerror.ErrSuccess,
 	})
 }
@@ -174,11 +174,11 @@ func (s *service) GetRouters(ctx *fiber.Ctx) error {
 	}
 	routers, page, xerr := s.IConfig.GetRouters(ctx.UserContext(), condition)
 	if xerror.Error(xerr) {
-		return ctx.JSON(model.HttpResponse{
+		return ctx.JSON(&model.HttpResponse{
 			IError: xerr,
 		})
 	}
-	return ctx.JSON(model.HttpResponse{
+	return ctx.JSON(&model.HttpResponse{
 		IError: xerror.ErrSuccess,
 		Data: model.PaginatedData[model.Router]{
 			PageInfo: page,
@@ -195,11 +195,11 @@ func (s *service) AddPlan(ctx *fiber.Ctx) error {
 	}
 	_, xerr := s.IConfig.AddPlan(ctx.UserContext(), plan)
 	if xerror.Error(xerr) {
-		return ctx.JSON(model.HttpResponse{
+		return ctx.JSON(&model.HttpResponse{
 			IError: xerr,
 		})
 	}
-	return ctx.JSON(model.HttpResponse{
+	return ctx.JSON(&model.HttpResponse{
 		IError: xerror.ErrSuccess,
 	})
 }
@@ -212,11 +212,11 @@ func (s *service) UpdatePlan(ctx *fiber.Ctx) error {
 	}
 	xerr := s.IConfig.UpdatePlan(ctx.UserContext(), plan)
 	if xerror.Error(xerr) {
-		return ctx.JSON(model.HttpResponse{
+		return ctx.JSON(&model.HttpResponse{
 			IError: xerr,
 		})
 	}
-	return ctx.JSON(model.HttpResponse{
+	return ctx.JSON(&model.HttpResponse{
 		IError: xerror.ErrSuccess,
 	})
 }
@@ -229,11 +229,11 @@ func (s *service) DeletePlans(ctx *fiber.Ctx) error {
 	}
 	xerr := s.IConfig.DeletePlans(ctx.UserContext(), plans...)
 	if xerror.Error(xerr) {
-		return ctx.JSON(model.HttpResponse{
+		return ctx.JSON(&model.HttpResponse{
 			IError: xerr,
 		})
 	}
-	return ctx.JSON(model.HttpResponse{
+	return ctx.JSON(&model.HttpResponse{
 		IError: xerror.ErrSuccess,
 	})
 }
@@ -246,11 +246,11 @@ func (s *service) GetPlans(ctx *fiber.Ctx) error {
 	}
 	plans, page, xerr := s.IConfig.GetPlans(ctx.UserContext(), condition)
 	if xerror.Error(xerr) {
-		return ctx.JSON(model.HttpResponse{
+		return ctx.JSON(&model.HttpResponse{
 			IError: xerr,
 		})
 	}
-	return ctx.JSON(model.HttpResponse{
+	return ctx.JSON(&model.HttpResponse{
 		IError: xerror.ErrSuccess,
 		Data: model.PaginatedData[model.Plan]{
 			PageInfo: page,
