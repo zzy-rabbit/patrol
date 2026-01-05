@@ -2,8 +2,8 @@ package internal
 
 import (
 	"context"
+	logApi "github.com/zzy-rabbit/bp/log/api"
 	"github.com/zzy-rabbit/patrol/model"
-	logApi "github.com/zzy-rabbit/xtools/plugins/log/api"
 )
 
 type auxiliary struct {
@@ -11,7 +11,7 @@ type auxiliary struct {
 }
 
 type Judge struct {
-	ILogger   logApi.IPlugin `xplugin:"xtools.plugins.log"`
+	ILogger   logApi.IPlugin `xplugin:"bp.log"`
 	params    model.ExecutorParams
 	auxiliary auxiliary
 }

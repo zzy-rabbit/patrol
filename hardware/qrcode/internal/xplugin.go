@@ -2,12 +2,12 @@ package internal
 
 import (
 	"context"
+	logApi "github.com/zzy-rabbit/bp/log/api"
 	"github.com/zzy-rabbit/patrol/hardware/qrcode/api"
-	logApi "github.com/zzy-rabbit/xtools/plugins/log/api"
 )
 
 type service struct {
-	ILogger logApi.IPlugin `xplugin:"xtools.plugins.log"`
+	ILogger logApi.IPlugin `xplugin:"bp.log"`
 }
 
 func New(ctx context.Context) api.IPlugin {

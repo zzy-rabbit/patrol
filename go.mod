@@ -5,6 +5,7 @@ go 1.24.0
 require (
 	github.com/gofiber/fiber/v2 v2.52.10
 	github.com/gorilla/websocket v1.5.3
+	github.com/zzy-rabbit/bp v0.0.0-20260105075557-f1f01b7ad05e
 	github.com/zzy-rabbit/xtools v0.0.0-20260105033627-2a91af8db85b
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.1

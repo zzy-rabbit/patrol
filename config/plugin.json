@@ -1,19 +1,19 @@
 {
     "plugins": [
         {
-            "plugin_name": "xtools.plugins.log",
+            "plugin_name": "bp.log",
             "init_param": "{\"level\": 1,\"name\": \"patrol\",\"suffix\": \".log\",\"path\": \"\",\"max_size\": 10}",
             "run_param": "",
             "stop_param": ""
         },
         {
-            "plugin_name": "xtools.plugins.encrypt",
+            "plugin_name": "bp.encrypt",
             "init_param": "",
             "run_param": "",
             "stop_param": ""
         },
         {
-            "plugin_name": "xtools.plugins.uniform",
+            "plugin_name": "bp.uniform",
             "init_param": "",
             "run_param": "",
             "stop_param": ""

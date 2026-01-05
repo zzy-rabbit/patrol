@@ -2,16 +2,16 @@ package internal
 
 import (
 	"context"
+	logApi "github.com/zzy-rabbit/bp/log/api"
 	daoApi "github.com/zzy-rabbit/patrol/data/dao/api"
 	"github.com/zzy-rabbit/patrol/logic/config/api"
 	reportApi "github.com/zzy-rabbit/patrol/protocol/report/api"
-	logApi "github.com/zzy-rabbit/xtools/plugins/log/api"
 )
 
 type service struct {
 	IDao    daoApi.IPlugin    `xplugin:"patrol.data.dao"`
 	IReport reportApi.IPlugin `xplugin:"patrol.protocol.report"`
-	ILogger logApi.IPlugin    `xplugin:"xtools.plugins.log"`
+	ILogger logApi.IPlugin    `xplugin:"bp.log"`
 }
 
 func New(ctx context.Context) api.IPlugin {

@@ -8,7 +8,7 @@ import (
 	configApi "github.com/zzy-rabbit/patrol/logic/config/api"
 	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/patrol/protocol/http/api"
-	logApi "github.com/zzy-rabbit/xtools/plugins/log/api"
+	logApi "github.com/zzy-rabbit/bp/log/api"
 	"github.com/zzy-rabbit/xtools/xerror"
 )
 
@@ -16,7 +16,7 @@ type service struct {
 	network  model.Network
 	fiberApp *fiber.App
 	IConfig  configApi.IPlugin `xplugin:"patrol.logic.config"`
-	ILogger  logApi.IPlugin    `xplugin:"xtools.plugins.log"`
+	ILogger  logApi.IPlugin    `xplugin:"bp.log"`
 }
 
 func New(ctx context.Context) api.IPlugin {

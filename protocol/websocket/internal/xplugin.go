@@ -3,13 +3,13 @@ package internal
 import (
 	"context"
 	"github.com/zzy-rabbit/patrol/protocol/websocket/api"
-	logApi "github.com/zzy-rabbit/xtools/plugins/log/api"
-	uniformApi "github.com/zzy-rabbit/xtools/plugins/uniform/api"
+	logApi "github.com/zzy-rabbit/bp/log/api"
+	uniformApi "github.com/zzy-rabbit/bp/uniform/api"
 )
 
 type service struct {
-	ILogger  logApi.IPlugin     `xplugin:"xtools.plugins.log"`
-	IUniform uniformApi.IPlugin `xplugin:"xtools.plugins.uniform"`
+	ILogger  logApi.IPlugin     `xplugin:"bp.log"`
+	IUniform uniformApi.IPlugin `xplugin:"bp.uniform"`
 }
 
 func New(ctx context.Context) api.IPlugin {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/gorilla/websocket"
 	"github.com/zzy-rabbit/patrol/protocol/websocket/api"
-	uniformApi "github.com/zzy-rabbit/xtools/plugins/uniform/api"
+	uniformApi "github.com/zzy-rabbit/bp/uniform/api"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"net"
 	"sync"
@@ -14,7 +14,7 @@ import (
 type connection struct {
 	mutex    sync.RWMutex
 	conn     *websocket.Conn
-	IUniform uniformApi.IPlugin `xplugin:"xtools.plugins.uniform"`
+	IUniform uniformApi.IPlugin `xplugin:"bp.uniform"`
 	async    *async
 	callback api.OnReceiveCallbackFunc
 	sendChan chan []byte

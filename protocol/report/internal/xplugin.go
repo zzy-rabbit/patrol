@@ -4,14 +4,14 @@ import (
 	"context"
 	"github.com/zzy-rabbit/patrol/protocol/report/api"
 	websocketApi "github.com/zzy-rabbit/patrol/protocol/websocket/api"
-	logApi "github.com/zzy-rabbit/xtools/plugins/log/api"
-	uniformApi "github.com/zzy-rabbit/xtools/plugins/uniform/api"
+	logApi "github.com/zzy-rabbit/bp/log/api"
+	uniformApi "github.com/zzy-rabbit/bp/uniform/api"
 	"sync"
 )
 
 type service struct {
-	ILogger    logApi.IPlugin       `xplugin:"xtools.plugins.log"`
-	IUniform   uniformApi.IPlugin   `xplugin:"xtools.plugins.uniform"`
+	ILogger    logApi.IPlugin       `xplugin:"bp.log"`
+	IUniform   uniformApi.IPlugin   `xplugin:"bp.uniform"`
 	IWebsocket websocketApi.IPlugin `xplugin:"patrol.protocol.websocket"`
 	IServer    websocketApi.IServer
 

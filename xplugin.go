@@ -8,6 +8,10 @@ import (
 	"github.com/zzy-rabbit/xtools/xerror"
 	"github.com/zzy-rabbit/xtools/xplugin"
 
+	_ "github.com/zzy-rabbit/bp/encrypt"
+	_ "github.com/zzy-rabbit/bp/log"
+	_ "github.com/zzy-rabbit/bp/uniform"
+
 	_ "github.com/zzy-rabbit/patrol/data/dao"
 	_ "github.com/zzy-rabbit/patrol/hardware/nfc"
 	_ "github.com/zzy-rabbit/patrol/hardware/qrcode"
@@ -16,7 +20,6 @@ import (
 	_ "github.com/zzy-rabbit/patrol/logic/trigger"
 	_ "github.com/zzy-rabbit/patrol/protocol/http"
 	_ "github.com/zzy-rabbit/patrol/protocol/websocket"
-	_ "github.com/zzy-rabbit/xtools/plugins/log"
 )
 
 func ParseStartParams(ctx context.Context) xerror.IError {
