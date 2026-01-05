@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/gorilla/websocket"
 	"github.com/zzy-rabbit/patrol/protocol/websocket/api"
-	uniformApi "github.com/zzy-rabbit/patrol/utils/uniform/api"
+	uniformApi "github.com/zzy-rabbit/xtools/plugins/uniform/api"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"net"
 	"sync"

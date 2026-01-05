@@ -3,7 +3,7 @@ package internal
 import (
 	"context"
 	"github.com/zzy-rabbit/patrol/hardware/qrcode/api"
-	logApi "github.com/zzy-rabbit/patrol/utils/log/api"
+	logApi "github.com/zzy-rabbit/xtools/plugins/log/api"
 )
 
 type service struct {

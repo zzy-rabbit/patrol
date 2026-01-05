@@ -5,7 +5,7 @@ import (
 	configApi "github.com/zzy-rabbit/patrol/logic/config/api"
 	executorApi "github.com/zzy-rabbit/patrol/logic/executor/api"
 	"github.com/zzy-rabbit/patrol/logic/trigger/api"
-	logApi "github.com/zzy-rabbit/patrol/utils/log/api"
+	logApi "github.com/zzy-rabbit/xtools/plugins/log/api"
 )
 
 type service struct {

@@ -16,7 +16,7 @@ import (
 	_ "github.com/zzy-rabbit/patrol/logic/trigger"
 	_ "github.com/zzy-rabbit/patrol/protocol/http"
 	_ "github.com/zzy-rabbit/patrol/protocol/websocket"
-	_ "github.com/zzy-rabbit/patrol/utils/log"
+	_ "github.com/zzy-rabbit/xtools/plugins/log"
 )
 
 func ParseStartParams(ctx context.Context) xerror.IError {

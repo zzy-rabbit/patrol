@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/zzy-rabbit/patrol/protocol/report/api"
 	websocketApi "github.com/zzy-rabbit/patrol/protocol/websocket/api"
-	logApi "github.com/zzy-rabbit/patrol/utils/log/api"
-	uniformApi "github.com/zzy-rabbit/patrol/utils/uniform/api"
+	logApi "github.com/zzy-rabbit/xtools/plugins/log/api"
+	uniformApi "github.com/zzy-rabbit/xtools/plugins/uniform/api"
 	"sync"
 )
 

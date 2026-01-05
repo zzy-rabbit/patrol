@@ -5,7 +5,7 @@ import (
 	daoApi "github.com/zzy-rabbit/patrol/data/dao/api"
 	"github.com/zzy-rabbit/patrol/logic/config/api"
 	reportApi "github.com/zzy-rabbit/patrol/protocol/report/api"
-	logApi "github.com/zzy-rabbit/patrol/utils/log/api"
+	logApi "github.com/zzy-rabbit/xtools/plugins/log/api"
 )
 
 type service struct {

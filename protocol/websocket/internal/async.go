@@ -3,7 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
-	uniformApi "github.com/zzy-rabbit/patrol/utils/uniform/api"
+	uniformApi "github.com/zzy-rabbit/xtools/plugins/uniform/api"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"sync"
 	"time"

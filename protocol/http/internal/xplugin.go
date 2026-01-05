@@ -4,11 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gofiber/fiber/v2"
 	configApi "github.com/zzy-rabbit/patrol/logic/config/api"
 	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/patrol/protocol/http/api"
-	logApi "github.com/zzy-rabbit/patrol/utils/log/api"
+	logApi "github.com/zzy-rabbit/xtools/plugins/log/api"
 	"github.com/zzy-rabbit/xtools/xerror"
 )
 

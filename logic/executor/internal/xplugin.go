@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	configApi "github.com/zzy-rabbit/patrol/logic/config/api"
 	"github.com/zzy-rabbit/patrol/logic/executor/api"
-	logApi "github.com/zzy-rabbit/patrol/utils/log/api"
+	logApi "github.com/zzy-rabbit/xtools/plugins/log/api"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"github.com/zzy-rabbit/xtools/xthread"
 )

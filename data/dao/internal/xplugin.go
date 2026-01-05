@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/zzy-rabbit/patrol/data/dao/api"
-	logApi "github.com/zzy-rabbit/patrol/utils/log/api"
+	logApi "github.com/zzy-rabbit/xtools/plugins/log/api"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

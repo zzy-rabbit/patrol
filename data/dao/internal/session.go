@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/zzy-rabbit/patrol/data/dao/api"
 	"github.com/zzy-rabbit/patrol/model"
-	logApi "github.com/zzy-rabbit/patrol/utils/log/api"
+	logApi "github.com/zzy-rabbit/xtools/plugins/log/api"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"gorm.io/gorm"
 	"time"

@@ -2,7 +2,7 @@ package api
 
 import (
 	"context"
-	uniformApi "github.com/zzy-rabbit/patrol/utils/uniform/api"
+	uniformApi "github.com/zzy-rabbit/xtools/plugins/uniform/api"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"github.com/zzy-rabbit/xtools/xplugin"
 	"net"
