@@ -3,9 +3,9 @@ module github.com/zzy-rabbit/patrol
 go 1.24.0
 
 require (
-	github.com/gofiber/fiber/v2 v2.52.10
+	github.com/gofiber/fiber/v2 v2.52.12
 	github.com/gorilla/websocket v1.5.3
-	github.com/zzy-rabbit/bp v0.0.0-20260105075557-f1f01b7ad05e
+	github.com/zzy-rabbit/bp v0.0.0-20260226090004-a26f0b43f452
 	github.com/zzy-rabbit/xtools v0.0.0-20260105080145-57d0a206dcd7
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.1

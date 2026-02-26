@@ -1,20 +1,38 @@
 {
     "plugins": [
         {
-            "plugin_name": "bp.log",
+            "plugin_name": "bp.tool.log",
             "init_param": "{\"level\": 1,\"name\": \"patrol\",\"suffix\": \".log\",\"path\": \"\",\"max_size\": 10}",
             "run_param": "",
             "stop_param": ""
         },
         {
-            "plugin_name": "bp.encrypt",
+            "plugin_name": "bp.tool.encrypt",
             "init_param": "",
             "run_param": "",
             "stop_param": ""
         },
         {
-            "plugin_name": "bp.uniform",
+            "plugin_name": "bp.tool.uniform",
             "init_param": "",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
+            "plugin_name": "bp.protocol.http",
+            "init_param": "{\"host\": \"0.0.0.0\", \"port\": 9900}",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
+            "plugin_name": "bp.protocol.websocket",
+            "init_param": "",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
+            "plugin_name": "bp.protocol.report",
+            "init_param": "{\"host\": \"0.0.0.0\", \"port\": 9901}",
             "run_param": "",
             "stop_param": ""
         },
@@ -56,19 +74,7 @@
         },
         {
             "plugin_name": "patrol.protocol.http",
-            "init_param": "{\"host\": \"0.0.0.0\", \"port\": 9900}",
-            "run_param": "",
-            "stop_param": ""
-        },
-        {
-            "plugin_name": "patrol.protocol.websocket",
             "init_param": "",
-            "run_param": "",
-            "stop_param": ""
-        },
-        {
-            "plugin_name": "patrol.protocol.report",
-            "init_param": "{\"host\": \"0.0.0.0\", \"port\": 9901}",
             "run_param": "",
             "stop_param": ""
         }

@@ -2,16 +2,16 @@ package internal
 
 import (
 	"context"
+	logApi "github.com/zzy-rabbit/bp/tool/log/api"
 	configApi "github.com/zzy-rabbit/patrol/logic/config/api"
 	executorApi "github.com/zzy-rabbit/patrol/logic/executor/api"
 	"github.com/zzy-rabbit/patrol/logic/trigger/api"
-	logApi "github.com/zzy-rabbit/bp/log/api"
 )
 
 type service struct {
 	IConfig   configApi.IPlugin   `xplugin:"patrol.logic.config"`
 	IExecutor executorApi.IPlugin `xplugin:"patrol.logic.executor"`
-	ILogger   logApi.IPlugin      `xplugin:"bp.log"`
+	ILogger   logApi.IPlugin      `xplugin:"bp.tool.log"`
 }
 
 func New(ctx context.Context) api.IPlugin {

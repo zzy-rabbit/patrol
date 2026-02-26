@@ -3,9 +3,9 @@ package internal
 import (
 	"context"
 	"encoding/json"
+	logApi "github.com/zzy-rabbit/bp/tool/log/api"
 	configApi "github.com/zzy-rabbit/patrol/logic/config/api"
 	"github.com/zzy-rabbit/patrol/logic/executor/api"
-	logApi "github.com/zzy-rabbit/bp/log/api"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"github.com/zzy-rabbit/xtools/xthread"
 )
@@ -13,7 +13,7 @@ import (
 type service struct {
 	config      api.Config
 	IConfig     configApi.IPlugin `xplugin:"patrol.logic.config"`
-	ILogger     logApi.IPlugin    `xplugin:"bp.log"`
+	ILogger     logApi.IPlugin    `xplugin:"bp.tool.log"`
 	IThreadPool xthread.IPool
 }
 

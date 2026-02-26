@@ -2,7 +2,7 @@ package internal
 
 import (
 	"context"
-	logApi "github.com/zzy-rabbit/bp/log/api"
+	logApi "github.com/zzy-rabbit/bp/tool/log/api"
 	"github.com/zzy-rabbit/patrol/data/dao/api"
 	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/xtools/xerror"

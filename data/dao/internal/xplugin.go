@@ -3,7 +3,7 @@ package internal
 import (
 	"context"
 	"encoding/json"
-	logApi "github.com/zzy-rabbit/bp/log/api"
+	logApi "github.com/zzy-rabbit/bp/tool/log/api"
 	"github.com/zzy-rabbit/patrol/data/dao/api"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"gorm.io/driver/sqlite"
@@ -13,7 +13,7 @@ import (
 type service struct {
 	config  api.Config
 	db      *gorm.DB
-	ILogger logApi.IPlugin `xplugin:"bp.log"`
+	ILogger logApi.IPlugin `xplugin:"bp.tool.log"`
 }
 
 func New(ctx context.Context) api.IPlugin {
