@@ -28,7 +28,6 @@ func (s *service) NewJudge(_ context.Context, param model.ExecutorParams) *Judge
 		checkPointUsedMap: make(map[int]bool, len(param.CheckPoints)),
 		userMap:           make(map[string]bool, len(param.Plan.Users)),
 	}
-	// 路线+计划要求的点位信息
 
 	// 打卡记录
 	for i, checkPoint := range param.CheckPoints {
