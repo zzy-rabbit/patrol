@@ -58,5 +58,5 @@ type IDatabase interface {
 
 type IPlugin interface {
 	xplugin.IPlugin
-	OpenDatabase(ctx context.Context, config Config) (IDatabase, error)
+	OpenDatabase(ctx context.Context, config Config) (IDatabase, xerror.IError)
 }

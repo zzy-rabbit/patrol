@@ -3,10 +3,11 @@ package internal
 import (
 	"context"
 	daoApi "github.com/zzy-rabbit/patrol/data/dao/api"
+	"github.com/zzy-rabbit/xtools/xerror"
 	"path/filepath"
 )
 
-func (s *service) New(ctx context.Context, unique string) (daoApi.IDatabase, error) {
+func (s *service) New(ctx context.Context, unique string) (daoApi.IDatabase, xerror.IError) {
 	database, ok := s.Get(ctx, unique)
 	if ok {
 		return database, nil
@@ -42,7 +43,17 @@ func (s *service) Get(ctx context.Context, unique string) (daoApi.IDatabase, boo
 	return s.get(ctx, unique)
 }
 
-func (s *service) Delete(ctx context.Context, unique string) error {
+func (s *service) GetAll(ctx context.Context) []daoApi.IDatabase {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	databases := make([]daoApi.IDatabase, 0, len(s.databaseMap))
+	for _, database := range s.databaseMap {
+		databases = append(databases, database)
+	}
+	return databases
+}
+
+func (s *service) Delete(ctx context.Context, unique string) xerror.IError {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	database, ok := s.get(ctx, unique)

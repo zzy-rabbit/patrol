@@ -7,6 +7,78 @@ import (
 	"github.com/zzy-rabbit/xtools/xerror"
 )
 
+func (s *service) AddDepartment(ctx *fiber.Ctx) error {
+	var department model.Department
+	err := s.IHttp.ParseBodyParams(ctx, &department)
+	if xerror.Error(err) {
+		return err
+	}
+	xerr := s.IConfig.AddDepartment(ctx.UserContext(), department)
+	if xerror.Error(xerr) {
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+	})
+}
+
+func (s *service) UpdateDepartment(ctx *fiber.Ctx) error {
+	var department model.Department
+	err := s.IHttp.ParseBodyParams(ctx, &department)
+	if xerror.Error(err) {
+		return err
+	}
+	xerr := s.IConfig.UpdateDepartment(ctx.UserContext(), department)
+	if xerror.Error(xerr) {
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+	})
+}
+
+func (s *service) DeleteDepartments(ctx *fiber.Ctx) error {
+	var departments []model.Identify
+	err := s.IHttp.ParseBodyParams(ctx, &departments)
+	if xerror.Error(err) {
+		return err
+	}
+	xerr := s.IConfig.DeleteDepartments(ctx.UserContext(), departments...)
+	if xerror.Error(xerr) {
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+	})
+}
+
+func (s *service) GetDepartments(ctx *fiber.Ctx) error {
+	var condition model.DepartmentCondition
+	err := s.IHttp.ParseQueryParams(ctx, &condition)
+	if xerror.Error(err) {
+		return err
+	}
+	departments, page, xerr := s.IConfig.GetDepartments(ctx.UserContext(), condition)
+	if xerror.Error(xerr) {
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+		Data: model.PaginatedData[model.Department]{
+			PageInfo: page,
+			List:     departments,
+		},
+	})
+}
+
 func (s *service) AddPoint(ctx *fiber.Ctx) error {
 	var point model.Point
 	err := s.IHttp.ParseBodyParams(ctx, &point)

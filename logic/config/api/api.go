@@ -14,6 +14,11 @@ const (
 type IPlugin interface {
 	xplugin.IPlugin
 
+	AddDepartment(ctx context.Context, department model.Department) xerror.IError
+	UpdateDepartment(ctx context.Context, department model.Department) xerror.IError
+	DeleteDepartments(ctx context.Context, departments ...model.Identify) xerror.IError
+	GetDepartments(ctx context.Context, condition model.DepartmentCondition) ([]model.Department, model.PageInfo, xerror.IError)
+
 	AddPoint(ctx context.Context, department string, point model.Point) (int, xerror.IError)
 	UpdatePoint(ctx context.Context, department string, point model.Point) xerror.IError
 	DeletePoints(ctx context.Context, department string, points ...model.Identify) xerror.IError

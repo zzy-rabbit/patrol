@@ -3,6 +3,12 @@ package internal
 import "github.com/gofiber/fiber/v2"
 
 func (s *service) registerRouter(fiberApp *fiber.App) {
+	departmentGroup := fiberApp.Group("/api/v1/department")
+	departmentGroup.Post("add", s.AddDepartment)
+	departmentGroup.Post("update", s.UpdateDepartment)
+	departmentGroup.Delete("", s.DeleteDepartments)
+	departmentGroup.Get("", s.GetDepartments)
+
 	pointGroup := fiberApp.Group("/api/v1/point")
 	pointGroup.Post("add", s.AddPoint)
 	pointGroup.Post("update", s.UpdatePoint)

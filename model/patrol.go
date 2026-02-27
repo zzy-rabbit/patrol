@@ -17,6 +17,39 @@ type PageInfo struct {
 	Total int `json:"total"`
 }
 
+func Paginate[T any](data []T, query *PageQuery) ([]T, PageInfo) {
+	total := len(data)
+
+	// 无分页条件 → 全部作为一页
+	if query == nil || query.Num <= 0 || query.Size <= 0 {
+		return data, PageInfo{
+			Count: total,
+			Total: total,
+		}
+	}
+
+	start := (query.Num - 1) * query.Size
+	if start >= total {
+		// 页码超出范围
+		return []T{}, PageInfo{
+			Count: 0,
+			Total: total,
+		}
+	}
+
+	end := start + query.Size
+	if end > total {
+		end = total
+	}
+
+	result := data[start:end]
+
+	return result, PageInfo{
+		Count: len(result),
+		Total: total,
+	}
+}
+
 type PaginatedData[T any] struct {
 	PageInfo
 	List []T `json:"list"`
@@ -31,6 +64,12 @@ type Department struct {
 	Name        string `json:"name"`
 	Detail      string `json:"detail"`
 	Description string `json:"description"`
+}
+
+type DepartmentCondition struct {
+	*PageQuery
+	IDs  []string `json:"ids"`
+	Name string   `json:"name"`
 }
 
 type PointType int
