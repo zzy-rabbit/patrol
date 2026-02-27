@@ -57,7 +57,7 @@ func (s *session) getTransaction(ctx context.Context) *transaction {
 func (s *session) SetDepartment(ctx context.Context, department model.Department) xerror.IError {
 	tx := s.getTransaction(ctx)
 
-	err := tx.db.Where("1 = 1").Delete(&model.Department{}).Error
+	err := tx.db.Where("1 = 1").Delete(&Department{}).Error
 	if xerror.Error(err) {
 		tx.Rollback(ctx)
 		s.logger.Error(ctx, "delete department fail %v", err)
