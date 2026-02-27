@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/zzy-rabbit/xtools/xcontext"
 	"github.com/zzy-rabbit/xtools/xerror"
+	"github.com/zzy-rabbit/xtools/xlog"
 	"github.com/zzy-rabbit/xtools/xplugin"
 	"os"
 	"os/signal"
@@ -11,6 +12,9 @@ import (
 
 func main() {
 	ctx := xcontext.Background()
+	logger := xlog.GetDefaultLogger(ctx)
+
+	logger.Info(ctx, "==========================%s start==========================", os.Args[0])
 
 	err := ParseStartParams(ctx)
 	if xerror.Error(err) {
