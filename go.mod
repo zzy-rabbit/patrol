@@ -6,7 +6,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.12
 	github.com/gorilla/websocket v1.5.3
 	github.com/zzy-rabbit/bp v0.0.0-20260226090004-a26f0b43f452
-	github.com/zzy-rabbit/xtools v0.0.0-20260105080145-57d0a206dcd7
+	github.com/zzy-rabbit/xtools v0.0.0-20260227034431-66b2697c915c
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.1
 )

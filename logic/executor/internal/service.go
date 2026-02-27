@@ -7,7 +7,8 @@ import (
 )
 
 func (s *service) SyncDo(ctx context.Context, param model.ExecutorParams) (model.ExecuteResult, xerror.IError) {
-
+	judge := s.NewJudge(ctx, param)
+	judge.Exec(ctx)
 	return model.ExecuteResult{}, nil
 }
 

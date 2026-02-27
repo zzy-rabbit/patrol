@@ -13,7 +13,8 @@ func (s *service) AddPoint(ctx *fiber.Ctx) error {
 	if xerror.Error(err) {
 		return err
 	}
-	_, xerr := s.IConfig.AddPoint(ctx.UserContext(), point)
+	department := ctx.Get("department")
+	_, xerr := s.IConfig.AddPoint(ctx.UserContext(), department, point)
 	if xerror.Error(xerr) {
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
@@ -30,7 +31,8 @@ func (s *service) UpdatePoint(ctx *fiber.Ctx) error {
 	if xerror.Error(err) {
 		return err
 	}
-	xerr := s.IConfig.UpdatePoint(ctx.UserContext(), point)
+	department := ctx.Get("department")
+	xerr := s.IConfig.UpdatePoint(ctx.UserContext(), department, point)
 	if xerror.Error(xerr) {
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
@@ -47,7 +49,8 @@ func (s *service) DeletePoints(ctx *fiber.Ctx) error {
 	if xerror.Error(err) {
 		return err
 	}
-	xerr := s.IConfig.DeletePoints(ctx.UserContext(), points...)
+	department := ctx.Get("department")
+	xerr := s.IConfig.DeletePoints(ctx.UserContext(), department, points...)
 	if xerror.Error(xerr) {
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
@@ -64,7 +67,8 @@ func (s *service) GetPoints(ctx *fiber.Ctx) error {
 	if xerror.Error(err) {
 		return err
 	}
-	points, page, xerr := s.IConfig.GetPoints(ctx.UserContext(), condition)
+	department := ctx.Get("department")
+	points, page, xerr := s.IConfig.GetPoints(ctx.UserContext(), department, condition)
 	if xerror.Error(xerr) {
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
@@ -85,7 +89,8 @@ func (s *service) AddRouter(ctx *fiber.Ctx) error {
 	if xerror.Error(err) {
 		return err
 	}
-	_, xerr := s.IConfig.AddRouter(ctx.UserContext(), router)
+	department := ctx.Get("department")
+	_, xerr := s.IConfig.AddRouter(ctx.UserContext(), department, router)
 	if xerror.Error(xerr) {
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
@@ -102,7 +107,8 @@ func (s *service) UpdateRouter(ctx *fiber.Ctx) error {
 	if xerror.Error(err) {
 		return err
 	}
-	xerr := s.IConfig.UpdateRouter(ctx.UserContext(), router)
+	department := ctx.Get("department")
+	xerr := s.IConfig.UpdateRouter(ctx.UserContext(), department, router)
 	if xerror.Error(xerr) {
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
@@ -119,7 +125,8 @@ func (s *service) DeleteRouters(ctx *fiber.Ctx) error {
 	if xerror.Error(err) {
 		return err
 	}
-	xerr := s.IConfig.DeleteRouters(ctx.UserContext(), routers...)
+	department := ctx.Get("department")
+	xerr := s.IConfig.DeleteRouters(ctx.UserContext(), department, routers...)
 	if xerror.Error(xerr) {
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
@@ -136,7 +143,8 @@ func (s *service) GetRouters(ctx *fiber.Ctx) error {
 	if xerror.Error(err) {
 		return err
 	}
-	routers, page, xerr := s.IConfig.GetRouters(ctx.UserContext(), condition)
+	department := ctx.Get("department")
+	routers, page, xerr := s.IConfig.GetRouters(ctx.UserContext(), department, condition)
 	if xerror.Error(xerr) {
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
@@ -157,7 +165,8 @@ func (s *service) AddPlan(ctx *fiber.Ctx) error {
 	if xerror.Error(err) {
 		return err
 	}
-	_, xerr := s.IConfig.AddPlan(ctx.UserContext(), plan)
+	department := ctx.Get("department")
+	_, xerr := s.IConfig.AddPlan(ctx.UserContext(), department, plan)
 	if xerror.Error(xerr) {
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
@@ -174,7 +183,8 @@ func (s *service) UpdatePlan(ctx *fiber.Ctx) error {
 	if xerror.Error(err) {
 		return err
 	}
-	xerr := s.IConfig.UpdatePlan(ctx.UserContext(), plan)
+	department := ctx.Get("department")
+	xerr := s.IConfig.UpdatePlan(ctx.UserContext(), department, plan)
 	if xerror.Error(xerr) {
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
@@ -191,7 +201,8 @@ func (s *service) DeletePlans(ctx *fiber.Ctx) error {
 	if xerror.Error(err) {
 		return err
 	}
-	xerr := s.IConfig.DeletePlans(ctx.UserContext(), plans...)
+	department := ctx.Get("department")
+	xerr := s.IConfig.DeletePlans(ctx.UserContext(), department, plans...)
 	if xerror.Error(xerr) {
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
@@ -208,7 +219,8 @@ func (s *service) GetPlans(ctx *fiber.Ctx) error {
 	if xerror.Error(err) {
 		return err
 	}
-	plans, page, xerr := s.IConfig.GetPlans(ctx.UserContext(), condition)
+	department := ctx.Get("department")
+	plans, page, xerr := s.IConfig.GetPlans(ctx.UserContext(), department, condition)
 	if xerror.Error(xerr) {
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,

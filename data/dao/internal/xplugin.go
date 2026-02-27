@@ -2,17 +2,11 @@ package internal
 
 import (
 	"context"
-	"encoding/json"
 	logApi "github.com/zzy-rabbit/bp/tool/log/api"
 	"github.com/zzy-rabbit/patrol/data/dao/api"
-	"github.com/zzy-rabbit/xtools/xerror"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
 
 type service struct {
-	config  api.Config
-	db      *gorm.DB
 	ILogger logApi.IPlugin `xplugin:"bp.tool.log"`
 }
 
@@ -25,22 +19,22 @@ func (s *service) GetName(ctx context.Context) string {
 }
 
 func (s *service) Init(ctx context.Context, initParam string) error {
-	err := json.Unmarshal([]byte(initParam), &s.config)
-	if xerror.Error(err) {
-		s.ILogger.Error(ctx, "plugin %s init error: %s", s.GetName(ctx), err.Error())
-		return err
-	}
-	s.ILogger.Info(ctx, "plugin %s init by config %+v success", s.GetName(ctx), s.config)
+	//err := json.Unmarshal([]byte(initParam), &s.config)
+	//if xerror.Error(err) {
+	//	s.ILogger.Error(ctx, "plugin %s init error: %s", s.GetName(ctx), err.Error())
+	//	return err
+	//}
+	s.ILogger.Info(ctx, "plugin %s init success", s.GetName(ctx))
 	return nil
 }
 
 func (s *service) Run(ctx context.Context, runParam string) error {
-	db, err := gorm.Open(sqlite.Open(s.config.Sqlite.File), &gorm.Config{})
-	if err != nil {
-		s.ILogger.Error(ctx, "plugin %s open database by config %+v fail %v", s.GetName(ctx), s.config, err)
-		return err
-	}
-	s.db = db
+	//db, err := gorm.Open(sqlite.Open(s.config.Sqlite.File), &gorm.Config{})
+	//if err != nil {
+	//	s.ILogger.Error(ctx, "plugin %s open database by config %+v fail %v", s.GetName(ctx), s.config, err)
+	//	return err
+	//}
+	//s.db = db
 	s.ILogger.Info(ctx, "plugin %s run success", s.GetName(ctx))
 	return nil
 }

@@ -4,14 +4,14 @@ import (
 	"context"
 	reportApi "github.com/zzy-rabbit/bp/protocol/report/api"
 	logApi "github.com/zzy-rabbit/bp/tool/log/api"
-	daoApi "github.com/zzy-rabbit/patrol/data/dao/api"
+	databaseApi "github.com/zzy-rabbit/patrol/data/database/api"
 	"github.com/zzy-rabbit/patrol/logic/config/api"
 )
 
 type service struct {
-	IDao    daoApi.IPlugin    `xplugin:"patrol.data.dao"`
-	IReport reportApi.IPlugin `xplugin:"bp.protocol.report"`
-	ILogger logApi.IPlugin    `xplugin:"bp.tool.log"`
+	IDatabase databaseApi.IPlugin `xplugin:"patrol.data.database"`
+	IReport   reportApi.IPlugin   `xplugin:"bp.protocol.report"`
+	ILogger   logApi.IPlugin      `xplugin:"bp.tool.log"`
 }
 
 func New(ctx context.Context) api.IPlugin {

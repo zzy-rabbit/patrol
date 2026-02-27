@@ -2,6 +2,24 @@ package internal
 
 import "github.com/zzy-rabbit/patrol/model"
 
+func (d *Department) FromModel(m model.Department) {
+	d.Identify = m.Identify.ID
+	d.Name = m.Name
+	d.Detail = m.Detail
+	d.Description = m.Description
+}
+
+func (p *Department) ToModel() model.Department {
+	return model.Department{
+		Identify: model.Identify{
+			ID: p.Identify,
+		},
+		Name:        p.Name,
+		Detail:      p.Detail,
+		Description: p.Description,
+	}
+}
+
 func (p *Point) FromModel(m model.Point) {
 	p.Identify = m.Identify.ID
 	p.Department = m.Department

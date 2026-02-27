@@ -18,14 +18,19 @@ type session struct {
 
 type transaction struct {
 	*session
+	commit bool
 }
 
 func (t *transaction) Commit(ctx context.Context) {
-	t.db.Commit()
+	if t.commit {
+		t.db.Commit()
+	}
 }
 
 func (t *transaction) Rollback(ctx context.Context) {
-	t.db.Rollback()
+	if t.commit {
+		t.db.Rollback()
+	}
 }
 
 func (s *session) GetTransaction(ctx context.Context) api.ITransaction {
@@ -34,13 +39,51 @@ func (s *session) GetTransaction(ctx context.Context) api.ITransaction {
 
 func (s *session) getTransaction(ctx context.Context) *transaction {
 	if s.tx {
-		return &transaction{session: s}
+		return &transaction{
+			session: s,
+			commit:  false,
+		}
 	}
-	return &transaction{session: &session{
-		db:     s.db.Begin(),
-		tx:     true,
-		logger: s.logger,
-	}}
+	return &transaction{
+		session: &session{
+			db:     s.db.Begin(),
+			tx:     true,
+			logger: s.logger,
+		},
+		commit: true,
+	}
+}
+
+func (s *session) SetDepartment(ctx context.Context, department model.Department) xerror.IError {
+	tx := s.getTransaction(ctx)
+
+	err := tx.db.Where("1 = 1").Delete(&model.Department{}).Error
+	if xerror.Error(err) {
+		tx.Rollback(ctx)
+		s.logger.Error(ctx, "delete department fail %v", err)
+		return transError(err)
+	}
+
+	var table Department
+	table.FromModel(department)
+	err = tx.db.Create(&table).Error
+	if xerror.Error(err) {
+		tx.Rollback(ctx)
+		s.logger.Error(ctx, "add department %+v fail %v", department, err)
+		return transError(err)
+	}
+	tx.Commit(ctx)
+	return nil
+}
+
+func (s *session) GetDepartment(ctx context.Context) (model.Department, xerror.IError) {
+	var table Department
+	err := s.db.Where("1 = 1").First(&table).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "query department fail %v", err)
+		return model.Department{}, transError(err)
+	}
+	return table.ToModel(), nil
 }
 
 func (s *session) AddPoint(ctx context.Context, point model.Point) (int, xerror.IError) {
@@ -71,18 +114,10 @@ func (s *session) DeletePointsFromRouters(ctx context.Context, points []string) 
 		pointMap[point] = true
 	}
 
-	// 查询涉及的department
-	var departments []string
-	err := s.db.Where("identify in ?", points).Distinct("department").Pluck("department", &departments).Error
-	if xerror.Error(err) {
-		s.logger.Error(ctx, "query departments by identify %+v fail %v", points, err)
-		return transError(err)
-	}
-
 	// 获取涉及的routers
-	routers, _, err := s.GetRouters(ctx, model.RouterCondition{Departments: departments})
+	routers, _, err := s.GetRouters(ctx, model.RouterCondition{})
 	if xerror.Error(err) {
-		s.logger.Error(ctx, "query routers by departments %+v fail %v", departments, err)
+		s.logger.Error(ctx, "query routers fail %v", err)
 		return transError(err)
 	}
 
@@ -141,9 +176,6 @@ func (s *session) GetPoints(ctx context.Context, condition model.PointCondition)
 	db := s.db
 	if len(condition.IDs) > 0 {
 		db = db.Where("identify in ?", condition.IDs)
-	}
-	if len(condition.Departments) > 0 {
-		db = db.Where("department in ?", condition.Departments)
 	}
 	if len(condition.Types) > 0 {
 		db = db.Where("type in ?", condition.Types)
@@ -204,18 +236,10 @@ func (s *session) UpdateRouter(ctx context.Context, router model.Router) xerror.
 }
 
 func (s *session) DeleteRoutersFromPlans(ctx context.Context, routers []string) xerror.IError {
-	// 查询涉及的department
-	var departments []string
-	err := s.db.Where("identify in ?", routers).Distinct("department").Pluck("department", &departments).Error
-	if xerror.Error(err) {
-		s.logger.Error(ctx, "query departments by identify %+v fail %v", routers, err)
-		return transError(err)
-	}
-
 	// 获取涉及的plans
-	plans, _, err := s.GetPlans(ctx, model.PlanCondition{Departments: departments, Routers: routers})
+	plans, _, err := s.GetPlans(ctx, model.PlanCondition{Routers: routers})
 	if xerror.Error(err) {
-		s.logger.Error(ctx, "query plans by departments %+v fail %v", departments, err)
+		s.logger.Error(ctx, "query plans fail %v", err)
 		return transError(err)
 	}
 
@@ -267,9 +291,6 @@ func (s *session) GetRouters(ctx context.Context, condition model.RouterConditio
 	db := s.db
 	if len(condition.IDs) > 0 {
 		db = db.Where("identify in ?", condition.IDs)
-	}
-	if len(condition.Departments) > 0 {
-		db = db.Where("department in ?", condition.Departments)
 	}
 	if len(condition.Types) > 0 {
 		db = db.Where("type in ?", condition.Types)
@@ -344,9 +365,6 @@ func (s *session) GetPlans(ctx context.Context, condition model.PlanCondition) (
 	db := s.db
 	if len(condition.IDs) > 0 {
 		db = db.Where("identify in ?", condition.IDs)
-	}
-	if len(condition.Departments) > 0 {
-		db = db.Where("department in ?", condition.Departments)
 	}
 	if len(condition.Routers) > 0 {
 		db = db.Where("router in ?", condition.Routers)

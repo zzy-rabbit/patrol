@@ -25,6 +25,9 @@ type Sqlite struct {
 type ISession interface {
 	GetTransaction(ctx context.Context) ITransaction
 
+	SetDepartment(ctx context.Context, department model.Department) xerror.IError
+	GetDepartment(ctx context.Context) (model.Department, xerror.IError)
+
 	AddPoint(ctx context.Context, point model.Point) (int, xerror.IError)
 	UpdatePoint(ctx context.Context, point model.Point) xerror.IError
 	DeletePoints(ctx context.Context, points ...model.Identify) xerror.IError
@@ -47,8 +50,13 @@ type ITransaction interface {
 	Rollback(ctx context.Context)
 }
 
-type IPlugin interface {
-	xplugin.IPlugin
+type IDatabase interface {
 	GetDB(ctx context.Context) ISession
 	GetTransaction(ctx context.Context) ITransaction
+	Close(ctx context.Context) error
+}
+
+type IPlugin interface {
+	xplugin.IPlugin
+	OpenDatabase(ctx context.Context, config Config) (IDatabase, error)
 }

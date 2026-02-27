@@ -26,6 +26,13 @@ type Identify struct {
 	ID string `json:"id"`
 }
 
+type Department struct {
+	Identify
+	Name        string `json:"name"`
+	Detail      string `json:"detail"`
+	Description string `json:"description"`
+}
+
 type PointType int
 
 const (
@@ -43,29 +50,26 @@ type Point struct {
 
 type PointCondition struct {
 	*PageQuery
-	IDs         []string    `json:"ids"`
-	Departments []string    `json:"departments"`
-	Types       []PointType `json:"types"`
-	Name        string      `json:"name"`
-	Serials     []string    `json:"serials"`
+	IDs     []string    `json:"ids"`
+	Types   []PointType `json:"types"`
+	Name    string      `json:"name"`
+	Serials []string    `json:"serials"`
 }
 
 type RouterType int
 
 type Router struct {
 	Identify
-	Department string     `json:"department"`
-	Name       string     `json:"name"`
-	Type       RouterType `json:"type"`
-	Points     []string   `json:"points"`
+	Name   string     `json:"name"`
+	Type   RouterType `json:"type"`
+	Points []string   `json:"points"`
 }
 
 type RouterCondition struct {
 	*PageQuery
-	IDs         []string     `json:"ids"`
-	Departments []string     `json:"departments"`
-	Types       []RouterType `json:"types"`
-	Name        string       `json:"name"`
+	IDs   []string     `json:"ids"`
+	Types []RouterType `json:"types"`
+	Name  string       `json:"name"`
 }
 
 type PlanType int
@@ -77,27 +81,25 @@ const (
 
 type Plan struct {
 	Identify
-	Department string    `json:"department"`
-	Name       string    `json:"name"`
-	Type       PlanType  `json:"type"`
-	Router     string    `json:"router"`
-	Util       time.Time `json:"util"`
-	Start      time.Time `json:"start"`
-	End        time.Time `json:"end"`
-	Users      []string  `json:"users"`
+	Name   string    `json:"name"`
+	Type   PlanType  `json:"type"`
+	Router string    `json:"router"`
+	Util   time.Time `json:"util"`
+	Start  time.Time `json:"start"`
+	End    time.Time `json:"end"`
+	Users  []string  `json:"users"`
 }
 
 func (p *Plan) UnmarshalJSON(data []byte) error {
 	type planJSON struct {
 		Identify
-		Department string   `json:"department"`
-		Name       string   `json:"name"`
-		Type       PlanType `json:"type"`
-		Router     string   `json:"router"`
-		Util       string   `json:"util"`
-		Start      string   `json:"start"`
-		End        string   `json:"end"`
-		Users      []string `json:"users"`
+		Name   string   `json:"name"`
+		Type   PlanType `json:"type"`
+		Router string   `json:"router"`
+		Util   string   `json:"util"`
+		Start  string   `json:"start"`
+		End    string   `json:"end"`
+		Users  []string `json:"users"`
 	}
 
 	var aux planJSON
@@ -121,7 +123,6 @@ func (p *Plan) UnmarshalJSON(data []byte) error {
 	}
 
 	p.Identify = aux.Identify
-	p.Department = aux.Department
 	p.Name = aux.Name
 	p.Type = aux.Type
 	p.Router = aux.Router
@@ -147,28 +148,26 @@ func (p *Plan) MarshalJSON() ([]byte, error) {
 	}
 
 	aux := planJSON{
-		Identify:   p.Identify,
-		Department: p.Department,
-		Name:       p.Name,
-		Type:       p.Type,
-		Router:     p.Router,
-		Util:       p.Util.Format("2006-01-02"),
-		Start:      p.Start.Format("15:04:05"),
-		End:        p.End.Format("15:04:05"),
-		Users:      p.Users,
+		Identify: p.Identify,
+		Name:     p.Name,
+		Type:     p.Type,
+		Router:   p.Router,
+		Util:     p.Util.Format("2006-01-02"),
+		Start:    p.Start.Format("15:04:05"),
+		End:      p.End.Format("15:04:05"),
+		Users:    p.Users,
 	}
 	return json.Marshal(aux)
 }
 
 type PlanCondition struct {
 	*PageQuery
-	IDs         []string   `json:"ids"`
-	Departments []string   `json:"departments"`
-	Types       []PlanType `json:"types"`
-	Routers     []string   `json:"routers"`
-	Name        string     `json:"name"`
-	Start       time.Time  `json:"start"`
-	End         time.Time  `json:"end"`
+	IDs     []string   `json:"ids"`
+	Types   []PlanType `json:"types"`
+	Routers []string   `json:"routers"`
+	Name    string     `json:"name"`
+	Start   time.Time  `json:"start"`
+	End     time.Time  `json:"end"`
 }
 
 func (p *PlanCondition) UnmarshalJSON(data []byte) error {
@@ -200,7 +199,6 @@ func (p *PlanCondition) UnmarshalJSON(data []byte) error {
 
 	p.PageQuery = aux.PageQuery
 	p.IDs = aux.IDs
-	p.Departments = aux.Departments
 	p.Types = aux.Types
 	p.Routers = aux.Routers
 	p.Name = aux.Name
@@ -212,24 +210,22 @@ func (p *PlanCondition) UnmarshalJSON(data []byte) error {
 func (p *PlanCondition) MarshalJSON() ([]byte, error) {
 	type planJSON struct {
 		*PageQuery
-		IDs         []string   `json:"ids"`
-		Departments []string   `json:"departments"`
-		Types       []PlanType `json:"types"`
-		Routers     []string   `json:"routers"`
-		Name        string     `json:"name"`
-		Start       string     `json:"start"`
-		End         string     `json:"end"`
+		IDs     []string   `json:"ids"`
+		Types   []PlanType `json:"types"`
+		Routers []string   `json:"routers"`
+		Name    string     `json:"name"`
+		Start   string     `json:"start"`
+		End     string     `json:"end"`
 	}
 
 	aux := planJSON{
-		PageQuery:   p.PageQuery,
-		IDs:         p.IDs,
-		Departments: p.Departments,
-		Types:       p.Types,
-		Routers:     p.Routers,
-		Name:        p.Name,
-		Start:       p.Start.Format("15:04:05"),
-		End:         p.End.Format("15:04:05"),
+		PageQuery: p.PageQuery,
+		IDs:       p.IDs,
+		Types:     p.Types,
+		Routers:   p.Routers,
+		Name:      p.Name,
+		Start:     p.Start.Format("15:04:05"),
+		End:       p.End.Format("15:04:05"),
 	}
 	return json.Marshal(aux)
 }
