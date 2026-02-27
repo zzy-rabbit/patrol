@@ -9,7 +9,7 @@ import (
 func (s *service) SyncDo(ctx context.Context, param model.ExecutorParams) (model.ExecuteResult, xerror.IError) {
 	judge := s.NewJudge(ctx, param)
 	judge.Exec(ctx)
-	return model.ExecuteResult{}, nil
+	return judge.result, nil
 }
 
 func (s *service) ASyncDo(ctx context.Context, param model.ExecutorParams, after func(model.ExecuteResult, xerror.IError)) xerror.IError {

@@ -29,11 +29,12 @@ func (*Point) TableName() string {
 }
 
 type Router struct {
-	ID       int      `gorm:"column:id;primaryKey;autoIncrement"`
-	Identify string   `gorm:"column:identify;unique"`
-	Name     string   `gorm:"column:name"`
-	Type     int      `gorm:"column:type"`
-	Points   []string `gorm:"column:points;serializer:json"`
+	ID        int      `gorm:"column:id;primaryKey;autoIncrement"`
+	Identify  string   `gorm:"column:identify;unique"`
+	Name      string   `gorm:"column:name"`
+	Type      int      `gorm:"column:type"`
+	Points    []string `gorm:"column:points;serializer:json"`
+	Deviation int      `gorm:"column:deviation"`
 }
 
 func (*Router) TableName() string {

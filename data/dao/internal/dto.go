@@ -43,6 +43,7 @@ func (r *Router) FromModel(m model.Router) {
 	r.Name = m.Name
 	r.Type = int(m.Type)
 	r.Points = m.Points
+	r.Deviation = m.Deviation
 }
 
 func (r *Router) ToModel() model.Router {
@@ -50,9 +51,10 @@ func (r *Router) ToModel() model.Router {
 		Identify: model.Identify{
 			ID: r.Identify,
 		},
-		Name:   r.Name,
-		Type:   model.RouterType(r.Type),
-		Points: r.Points,
+		Name:      r.Name,
+		Type:      model.RouterType(r.Type),
+		Points:    r.Points,
+		Deviation: r.Deviation,
 	}
 }
 

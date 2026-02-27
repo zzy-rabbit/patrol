@@ -99,9 +99,10 @@ type RouterType int
 
 type Router struct {
 	Identify
-	Name   string     `json:"name"`
-	Type   RouterType `json:"type"`
-	Points []string   `json:"points"`
+	Name      string     `json:"name"`
+	Type      RouterType `json:"type"`
+	Points    []string   `json:"points"`
+	Deviation int        `json:"deviation"`
 }
 
 type RouterCondition struct {
@@ -325,12 +326,33 @@ type PlanBak struct {
 }
 
 type ExecutorParams struct {
+	StartDate   time.Time    `json:"start_date"`
 	Points      []Point      `json:"points"`
 	Router      Router       `json:"router"`
 	Plan        Plan         `json:"plan"`
 	CheckPoints []CheckPoint `json:"check_points"`
 }
 
+type ExecuteStatus int
+
+const (
+	ExecuteStatusNotStart ExecuteStatus = iota // 未开始
+	ExecuteStatusRunning                       // 巡更中
+	ExecuteStatusWaiting                       // 等待结果
+	ExecuteStatusAbnormal                      // 异常
+	ExecuteStatusNormal                        // 正常
+)
+
+type ExecutorPoint struct {
+	Point  string        `json:"point"`
+	Status ExecuteStatus `json:"status"`
+	Time   time.Time     `json:"time"`
+}
+
 type ExecuteResult struct {
-	ID int `json:"id"`
+	ID     int             `json:"id"`
+	Status ExecuteStatus   `json:"status"`
+	Start  time.Time       `json:"start"`
+	End    time.Time       `json:"end"`
+	Points []ExecutorPoint `json:"points"`
 }
