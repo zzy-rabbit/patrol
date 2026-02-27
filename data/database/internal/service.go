@@ -4,6 +4,7 @@ import (
 	"context"
 	daoApi "github.com/zzy-rabbit/patrol/data/dao/api"
 	"github.com/zzy-rabbit/xtools/xerror"
+	"os"
 	"path/filepath"
 )
 
@@ -65,6 +66,12 @@ func (s *service) Delete(ctx context.Context, unique string) xerror.IError {
 		err := database.Close(ctx)
 		if err != nil {
 			s.ILogger.Error(ctx, "close database %+v fail %v", unique, err)
+			return
+		}
+		databasePath := filepath.Join(s.config.Path, unique+".db")
+		err = os.RemoveAll(databasePath)
+		if err != nil {
+			s.ILogger.Error(ctx, "remove database %s fail %v", databasePath, err)
 			return
 		}
 	}()
