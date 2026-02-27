@@ -62,7 +62,7 @@
         },
         {
             "plugin_name": "patrol.logic.executor",
-            "init_param": "",
+            "init_param": "{\"core_size\":10,\"task_size\":100}",
             "run_param": "",
             "stop_param": ""
         },
