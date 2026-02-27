@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/xtools/xerror"
+	"github.com/zzy-rabbit/xtools/xtrace"
 )
 
 func (s *service) AddPoint(ctx context.Context, department string, point model.Point) (int, xerror.IError) {
@@ -34,6 +35,7 @@ func (s *service) DeletePoints(ctx context.Context, department string, points ..
 }
 
 func (s *service) GetPoints(ctx context.Context, department string, condition model.PointCondition) ([]model.Point, model.PageInfo, xerror.IError) {
+	defer xtrace.Trace(ctx)(department, condition)
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
