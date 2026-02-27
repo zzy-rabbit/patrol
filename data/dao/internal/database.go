@@ -29,6 +29,13 @@ func (s *service) OpenDatabase(ctx context.Context, config api.Config) (api.IDat
 		return nil, err
 	}
 	s.ILogger.Info(ctx, "open database by config %+v success", config)
+
+	err = db.AutoMigrate(&Department{}, &Point{}, &Router{}, &Plan{})
+	if err != nil {
+		s.ILogger.Error(ctx, "plugin %s auto migrate fail %v", s.GetName(ctx), err)
+		return nil, err
+	}
+
 	return &database{
 		config:   config,
 		db:       db,
