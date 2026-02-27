@@ -52,12 +52,12 @@ func (s *service) GetDepartments(ctx context.Context, condition model.Department
 
 	databases := s.IDatabase.GetAll(ctx)
 
-	departments := make([]model.Department, 0, len(databases))
 	conditionIDMap := make(map[string]bool, len(condition.IDs))
 	for _, id := range condition.IDs {
 		conditionIDMap[id] = true
 	}
 
+	departments := make([]model.Department, 0, len(databases))
 	for _, database := range databases {
 		department, err := database.GetDB(ctx).GetDepartment(ctx)
 		if xerror.Error(err) {
@@ -65,13 +65,16 @@ func (s *service) GetDepartments(ctx context.Context, condition model.Department
 			return nil, model.PageInfo{}, err
 		}
 
-		if len(condition.IDs) > 0 && conditionIDMap[department.ID] {
-			departments = append(departments, department)
+		if len(condition.IDs) > 0 && !conditionIDMap[department.ID] {
+			continue
 		}
-		if condition.Name != "" && strings.Contains(department.Name, department.Name) {
-			departments = append(departments, department)
+		if condition.Name != "" && !strings.Contains(department.Name, condition.Name) {
+			continue
 		}
+		departments = append(departments, department)
 	}
+
+	s.ILogger.Info(ctx, "get departments %+v", departments)
 	results, page := model.Paginate(departments, condition.PageQuery)
 	return results, page, nil
 }
