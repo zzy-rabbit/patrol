@@ -7,6 +7,7 @@ import (
 	daoApi "github.com/zzy-rabbit/patrol/data/dao/api"
 	"github.com/zzy-rabbit/patrol/data/database/api"
 	"github.com/zzy-rabbit/xtools/xerror"
+	"github.com/zzy-rabbit/xtools/xexecutable"
 	"os"
 	"path/filepath"
 	"strings"
@@ -42,7 +43,8 @@ func (s *service) Init(ctx context.Context, initParam string) error {
 }
 
 func (s *service) Run(ctx context.Context, runParam string) error {
-	err := filepath.Walk(s.config.Path, func(path string, info os.FileInfo, err error) error {
+	databasePath := filepath.Join(xexecutable.GetProcessAbsPath(), s.config.Path)
+	err := filepath.Walk(databasePath, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
 		}
@@ -53,7 +55,11 @@ func (s *service) Run(ctx context.Context, runParam string) error {
 			s.ILogger.Error(ctx, "filepath walk %s fail %v", path, err)
 			return err
 		}
+
 		filename := strings.TrimSuffix(info.Name(), filepath.Ext(info.Name()))
+
+		s.ILogger.Info(ctx, "reopen database %s", filename)
+
 		_, err = s.New(ctx, filename)
 		if xerror.Error(err) {
 			s.ILogger.Error(ctx, "new database connect %s fail %v", path, err)

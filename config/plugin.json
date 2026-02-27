@@ -43,6 +43,12 @@
             "stop_param": ""
         },
         {
+            "plugin_name": "patrol.data.database",
+            "init_param": "{\"path\":\"\"}}",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
             "plugin_name": "patrol.hardware.qrcode",
             "init_param": "",
             "run_param": "",

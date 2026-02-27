@@ -16,6 +16,7 @@ import (
 	_ "github.com/zzy-rabbit/bp/tool/uniform"
 
 	_ "github.com/zzy-rabbit/patrol/data/dao"
+	_ "github.com/zzy-rabbit/patrol/data/database"
 	_ "github.com/zzy-rabbit/patrol/hardware/nfc"
 	_ "github.com/zzy-rabbit/patrol/hardware/qrcode"
 	_ "github.com/zzy-rabbit/patrol/logic/config"
