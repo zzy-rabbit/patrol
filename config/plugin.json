@@ -44,7 +44,7 @@
         },
         {
             "plugin_name": "patrol.data.database",
-            "init_param": "{\"path\":\"\"}",
+            "init_param": "{\"path\":\"departments\"}",
             "run_param": "",
             "stop_param": ""
         },

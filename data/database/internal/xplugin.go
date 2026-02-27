@@ -8,6 +8,7 @@ import (
 	"github.com/zzy-rabbit/patrol/data/database/api"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"github.com/zzy-rabbit/xtools/xexecutable"
+	"github.com/zzy-rabbit/xtools/xfile"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,11 +16,12 @@ import (
 )
 
 type service struct {
-	config      api.Config
-	ILogger     logApi.IPlugin `xplugin:"bp.tool.log"`
-	IDao        daoApi.IPlugin `xplugin:"patrol.data.dao"`
-	mutex       sync.RWMutex
-	databaseMap map[string]daoApi.IDatabase
+	config       api.Config
+	databasePath string
+	ILogger      logApi.IPlugin `xplugin:"bp.tool.log"`
+	IDao         daoApi.IPlugin `xplugin:"patrol.data.dao"`
+	mutex        sync.RWMutex
+	databaseMap  map[string]daoApi.IDatabase
 }
 
 func New(ctx context.Context) api.IPlugin {
@@ -38,13 +40,21 @@ func (s *service) Init(ctx context.Context, initParam string) error {
 		s.ILogger.Error(ctx, "plugin %s init error: %s", s.GetName(ctx), err.Error())
 		return err
 	}
+	s.databasePath = filepath.Join(xexecutable.GetProcessAbsPath(), s.config.Path)
+	if !xfile.IsExist(ctx, s.databasePath) {
+		s.ILogger.Info(ctx, "database path %s not exist, create it", s.databasePath)
+		err = os.MkdirAll(s.databasePath, os.ModePerm)
+		if xerror.Error(err) {
+			s.ILogger.Error(ctx, "create path %s fail %v", s.databasePath, err)
+			return err
+		}
+	}
 	s.ILogger.Info(ctx, "plugin %s init by config %+v success", s.GetName(ctx), s.config)
 	return nil
 }
 
 func (s *service) Run(ctx context.Context, runParam string) error {
-	databasePath := filepath.Join(xexecutable.GetProcessAbsPath(), s.config.Path)
-	err := filepath.Walk(databasePath, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(s.databasePath, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
 		}
