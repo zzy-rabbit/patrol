@@ -326,6 +326,7 @@ type PlanBak struct {
 }
 
 type ExecutorParams struct {
+	Department  string       `json:"department"`
 	StartDate   time.Time    `json:"start_date"`
 	Points      []Point      `json:"points"`
 	Router      Router       `json:"router"`
