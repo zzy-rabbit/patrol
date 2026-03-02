@@ -3,19 +3,29 @@ package internal
 import (
 	"context"
 	logApi "github.com/zzy-rabbit/bp/tool/log/api"
+	timerApi "github.com/zzy-rabbit/bp/tool/timer/api"
+	databaseApi "github.com/zzy-rabbit/patrol/data/database/api"
 	configApi "github.com/zzy-rabbit/patrol/logic/config/api"
 	executorApi "github.com/zzy-rabbit/patrol/logic/executor/api"
 	"github.com/zzy-rabbit/patrol/logic/trigger/api"
+	"sync"
 )
 
 type service struct {
 	IConfig   configApi.IPlugin   `xplugin:"patrol.logic.config"`
 	IExecutor executorApi.IPlugin `xplugin:"patrol.logic.executor"`
 	ILogger   logApi.IPlugin      `xplugin:"bp.tool.log"`
+	ITimer    timerApi.IPlugin    `xplugin:"bp.tool.timer"`
+	IDatabase databaseApi.IPlugin `xplugin:"patrol.data.database"`
+
+	mutex         sync.RWMutex
+	departmentMap map[string]*departmentTrigger
 }
 
 func New(ctx context.Context) api.IPlugin {
-	return &service{}
+	return &service{
+		departmentMap: make(map[string]*departmentTrigger),
+	}
 }
 
 func (s *service) GetName(ctx context.Context) string {

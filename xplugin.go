@@ -13,6 +13,7 @@ import (
 	_ "github.com/zzy-rabbit/bp/protocol/websocket"
 	_ "github.com/zzy-rabbit/bp/tool/encrypt"
 	_ "github.com/zzy-rabbit/bp/tool/log"
+	_ "github.com/zzy-rabbit/bp/tool/timer"
 	_ "github.com/zzy-rabbit/bp/tool/uniform"
 
 	_ "github.com/zzy-rabbit/patrol/data/dao"

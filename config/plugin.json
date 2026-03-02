@@ -13,6 +13,12 @@
             "stop_param": ""
         },
         {
+            "plugin_name": "bp.tool.timer",
+            "init_param": "",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
             "plugin_name": "bp.tool.uniform",
             "init_param": "",
             "run_param": "",
