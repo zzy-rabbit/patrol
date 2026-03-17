@@ -1,0 +1,44 @@
+package internal
+
+import (
+	"context"
+	"github.com/zzy-rabbit/xtools/xerror"
+)
+
+func (s *service) AddDepartment(ctx context.Context, department string) xerror.IError {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	ctx, cancel := context.WithCancel(ctx)
+	trigger := &departmentTrigger{
+		ILogger:    s.ILogger,
+		IConfig:    s.IConfig,
+		IExecutor:  s.IExecutor,
+		ITimer:     s.ITimer,
+		IDatabase:  s.IDatabase,
+		department: department,
+		cancel:     cancel,
+	}
+	err := trigger.init(ctx)
+	if xerror.Error(err) {
+		s.ILogger.Error(ctx, "add department %s fail", department)
+		return err
+	}
+	trigger.startScanMonitor(ctx)
+
+	s.departmentMap[department] = trigger
+	return nil
+}
+
+func (s *service) DeleteDepartment(ctx context.Context, department string) xerror.IError {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	trigger, ok := s.departmentMap[department]
+	if !ok {
+		s.ILogger.Info(ctx, "department %s not exist", department)
+		return nil
+	}
+	trigger.stop(ctx)
+	return nil
+}
