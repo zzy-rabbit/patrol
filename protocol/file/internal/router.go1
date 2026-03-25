@@ -1,0 +1,11 @@
+package internal
+
+import "github.com/gofiber/fiber/v2"
+
+func (s *service) registerRouter(fiberApp *fiber.App) {
+	fileGroup := fiberApp.Group("/patrol/api/v1/file")
+	fileGroup.Post("upload", s.UploadFile)
+	fileGroup.Post("download", s.DownloadFile)
+	fileGroup.Get("", s.GetFiles)
+	fileGroup.Delete("", s.DeleteFiles)
+}

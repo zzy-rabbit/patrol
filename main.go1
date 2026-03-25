@@ -1,14 +1,33 @@
 package main
 
 import (
+	"context"
+	"flag"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/zzy-rabbit/xtools/xcontext"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"github.com/zzy-rabbit/xtools/xlog"
 	"github.com/zzy-rabbit/xtools/xplugin"
-	"os"
-	"os/signal"
-	"syscall"
 )
+
+func ParseStartParams(ctx context.Context) xerror.IError {
+	var configPath string
+	flag.StringVar(&configPath, "config", "config/plugin.json", "config file path")
+	flag.Parse()
+
+	content, err := os.ReadFile(configPath)
+	if xerror.Error(err) {
+		return xerror.Extend(xerror.ErrFileOperationFail, err.Error())
+	}
+	xerr := xplugin.ParseConfig(ctx, content)
+	if xerror.Error(xerr) {
+		return xerr
+	}
+	return nil
+}
 
 func main() {
 	ctx := xcontext.Background()

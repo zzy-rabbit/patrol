@@ -1,0 +1,98 @@
+package internal
+
+import (
+	"context"
+	"fmt"
+	"image"
+	"image/draw"
+	"image/gif"
+	"image/jpeg"
+	"image/png"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/nfnt/resize"
+	"github.com/skip2/go-qrcode"
+)
+
+func (s *service) Build(ctx context.Context, content string, size int) (image.Image, error) {
+	qr, err := qrcode.New(content, qrcode.Highest)
+	if err != nil {
+		s.ILogger.Error(ctx, "build content %s qrcode fail %v", content, err)
+		return nil, err
+	}
+	return qr.Image(size), nil
+}
+
+func (s *service) Resize(ctx context.Context, img image.Image, width, height int) image.Image {
+	return resize.Resize(uint(width), uint(height), img, resize.Lanczos3)
+}
+
+func (s *service) CoverICon(ctx context.Context, bg image.Image, cover image.Image) image.Image {
+	qrImageBounds := bg.Bounds()
+	offset := image.Pt((qrImageBounds.Max.X-cover.Bounds().Max.X)/2, (qrImageBounds.Max.Y-cover.Bounds().Max.Y)/2)
+	img := image.NewRGBA(qrImageBounds)
+	draw.Draw(img, qrImageBounds, bg, image.Point{X: 0, Y: 0}, draw.Src)
+	draw.Draw(img, cover.Bounds().Add(offset), cover, image.Point{X: 0, Y: 0}, draw.Over)
+	return img
+}
+
+func (s *service) Save(ctx context.Context, img image.Image, path string) error {
+	ext := filepath.Ext(path)
+	if ext == "" {
+		ext = ".png"
+		path += ext
+	}
+	f, err := os.OpenFile(path, os.O_SYNC|os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		s.ILogger.Error(ctx, "open file %s fail %v", path, err)
+		return err
+	}
+	defer f.Close()
+
+	if strings.EqualFold(ext, ".jpg") || strings.EqualFold(ext, ".jpeg") {
+		err = jpeg.Encode(f, img, &jpeg.Options{Quality: 80})
+	} else if strings.EqualFold(ext, ".png") {
+		err = png.Encode(f, img)
+	} else if strings.EqualFold(ext, ".gif") {
+		err = gif.Encode(f, img, &gif.Options{NumColors: 256})
+	} else {
+		err = fmt.Errorf("picture format %s not support", ext)
+	}
+	if err != nil {
+		s.ILogger.Error(ctx, "save qrcode fail %v", err)
+		return err
+	}
+	return nil
+}
+
+func (s *service) BuildAndSave(ctx context.Context, content string, size int, iconPath string, iconWidth, iconHeight int) error {
+	file, err := os.Open(iconPath)
+	if err != nil {
+		s.ILogger.Error(ctx, "open icon file %s fail %v", iconPath, err)
+		return err
+	}
+	defer file.Close()
+
+	icon, err := jpeg.Decode(file)
+	if err != nil {
+		s.ILogger.Error(ctx, "decode icon file %s fail %v", iconPath, err)
+		return err
+	}
+	icon = s.Resize(ctx, icon, iconWidth, iconHeight)
+
+	qr, err := s.Build(ctx, content, size)
+	if err != nil {
+		s.ILogger.Error(ctx, "build qrcode fail %v", err)
+		return err
+	}
+
+	qr = s.CoverICon(ctx, qr, icon)
+	err = s.Save(ctx, qr, iconPath)
+	if err != nil {
+		s.ILogger.Error(ctx, "save qrcode fail %v", err)
+		return err
+	}
+	return nil
+}

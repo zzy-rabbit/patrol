@@ -1,7 +1,9 @@
 package api
 
 import (
+	"context"
 	"github.com/zzy-rabbit/xtools/xplugin"
+	"image"
 )
 
 const (
@@ -10,4 +12,9 @@ const (
 
 type IPlugin interface {
 	xplugin.IPlugin
+	Build(ctx context.Context, content string, size int) (image.Image, error)
+	Resize(ctx context.Context, img image.Image, width, height int) image.Image
+	CoverICon(ctx context.Context, img image.Image, icon image.Image) image.Image
+	Save(ctx context.Context, img image.Image, path string) error
+	BuildAndSave(ctx context.Context, content string, size int, iconPath string, iconWidth, iconHeight int) error
 }

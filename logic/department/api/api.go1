@@ -1,0 +1,21 @@
+package api
+
+import (
+	"context"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+	"github.com/zzy-rabbit/xtools/xplugin"
+)
+
+const (
+	PluginName = "patrol.logic.department"
+)
+
+type IPlugin interface {
+	xplugin.IPlugin
+
+	AddDepartment(ctx context.Context, department model.Department) xerror.IError
+	UpdateDepartment(ctx context.Context, department model.Department) xerror.IError
+	DeleteDepartments(ctx context.Context, departments ...model.Identify) xerror.IError
+	GetDepartments(ctx context.Context, condition model.DepartmentCondition) ([]model.Department, model.PageInfo, xerror.IError)
+}
