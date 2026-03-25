@@ -5,15 +5,15 @@ import (
 	bpModel "github.com/zzy-rabbit/bp/model"
 	httpApi "github.com/zzy-rabbit/bp/protocol/http/api"
 	logApi "github.com/zzy-rabbit/bp/tool/log/api"
-	configApi "github.com/zzy-rabbit/patrol/logic/config/api"
+	departmentApi "github.com/zzy-rabbit/patrol/logic/department/api"
 	"github.com/zzy-rabbit/patrol/protocol/department/api"
 )
 
 type service struct {
-	network bpModel.Network
-	IConfig configApi.IPlugin `xplugin:"patrol.logic.config"`
-	ILogger logApi.IPlugin    `xplugin:"bp.tool.log"`
-	IHttp   httpApi.IPlugin   `xplugin:"bp.protocol.http"`
+	network     bpModel.Network
+	IDepartment departmentApi.IPlugin `xplugin:"patrol.logic.department"`
+	ILogger     logApi.IPlugin        `xplugin:"bp.tool.log"`
+	IHttp       httpApi.IPlugin       `xplugin:"bp.protocol.http"`
 }
 
 func New(ctx context.Context) api.IPlugin {

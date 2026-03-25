@@ -14,7 +14,7 @@ func (s *service) AddPoint(ctx *fiber.Ctx) error {
 		return err
 	}
 	department := ctx.Get("department")
-	_, xerr := s.IConfig.AddPoint(ctx.UserContext(), department, point)
+	identify, xerr := s.IConfig.AddPoint(ctx.UserContext(), department, point)
 	if xerror.Error(xerr) {
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
@@ -22,6 +22,7 @@ func (s *service) AddPoint(ctx *fiber.Ctx) error {
 	}
 	return ctx.JSON(&bpmodel.HttpResponse{
 		IError: xerror.ErrSuccess,
+		Data:   identify,
 	})
 }
 
@@ -90,7 +91,7 @@ func (s *service) AddRouter(ctx *fiber.Ctx) error {
 		return err
 	}
 	department := ctx.Get("department")
-	_, xerr := s.IConfig.AddRouter(ctx.UserContext(), department, router)
+	identify, xerr := s.IConfig.AddRouter(ctx.UserContext(), department, router)
 	if xerror.Error(xerr) {
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
@@ -98,6 +99,7 @@ func (s *service) AddRouter(ctx *fiber.Ctx) error {
 	}
 	return ctx.JSON(&bpmodel.HttpResponse{
 		IError: xerror.ErrSuccess,
+		Data:   identify,
 	})
 }
 
@@ -166,7 +168,7 @@ func (s *service) AddPlan(ctx *fiber.Ctx) error {
 		return err
 	}
 	department := ctx.Get("department")
-	_, xerr := s.IConfig.AddPlan(ctx.UserContext(), department, plan)
+	identify, xerr := s.IConfig.AddPlan(ctx.UserContext(), department, plan)
 	if xerror.Error(xerr) {
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
@@ -174,6 +176,7 @@ func (s *service) AddPlan(ctx *fiber.Ctx) error {
 	}
 	return ctx.JSON(&bpmodel.HttpResponse{
 		IError: xerror.ErrSuccess,
+		Data:   identify,
 	})
 }
 

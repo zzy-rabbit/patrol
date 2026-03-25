@@ -2,91 +2,28 @@ package internal
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"github.com/zzy-rabbit/xtools/xtrace"
-	"strings"
 )
 
-func (s *service) AddDepartment(ctx context.Context, department model.Department) xerror.IError {
-	database, err := s.IDatabase.New(ctx, department.ID)
-	if xerror.Error(err) {
-		s.ILogger.Error(ctx, "new department database %s fail", department.ID)
-		return err
-	}
-	err = database.GetDB(ctx).SetDepartment(ctx, department)
-	if xerror.Error(err) {
-		s.ILogger.Error(ctx, "set department %+v fail", department)
-		return err
-	}
-	return nil
-}
-
-func (s *service) UpdateDepartment(ctx context.Context, department model.Department) xerror.IError {
-	database, ok := s.IDatabase.Get(ctx, department.ID)
-	if !ok {
-		s.ILogger.Error(ctx, "department %s database not found", department.ID)
-		return xerror.Extend(xerror.ErrNotFound, "department "+department.ID)
-	}
-	err := database.GetDB(ctx).SetDepartment(ctx, department)
-	if xerror.Error(err) {
-		s.ILogger.Error(ctx, "set department %+v fail", department)
-		return err
-	}
-	return nil
-}
-
-func (s *service) DeleteDepartments(ctx context.Context, departments ...model.Identify) xerror.IError {
-	for _, department := range departments {
-		err := s.IDatabase.Delete(ctx, department.ID)
-		if xerror.Error(err) {
-			s.ILogger.Error(ctx, "delete department %s fail", department.ID)
-			return err
-		}
-	}
-	return nil
-}
-
-func (s *service) GetDepartments(ctx context.Context, condition model.DepartmentCondition) ([]model.Department, model.PageInfo, xerror.IError) {
-	defer xtrace.Trace(ctx)(condition)
-
-	databases := s.IDatabase.GetAll(ctx)
-
-	conditionIDMap := make(map[string]bool, len(condition.IDs))
-	for _, id := range condition.IDs {
-		conditionIDMap[id] = true
-	}
-
-	departments := make([]model.Department, 0, len(databases))
-	for _, database := range databases {
-		department, err := database.GetDB(ctx).GetDepartment(ctx)
-		if xerror.Error(err) {
-			s.ILogger.Error(ctx, "get department %s fail", department.ID)
-			return nil, model.PageInfo{}, err
-		}
-
-		if len(condition.IDs) > 0 && !conditionIDMap[department.ID] {
-			continue
-		}
-		if condition.Name != "" && !strings.Contains(department.Name, condition.Name) {
-			continue
-		}
-		departments = append(departments, department)
-	}
-
-	s.ILogger.Info(ctx, "get departments %+v", departments)
-	results, page := model.Paginate(departments, condition.PageQuery)
-	return results, page, nil
-}
-
-func (s *service) AddPoint(ctx context.Context, department string, point model.Point) (int, xerror.IError) {
+func (s *service) AddPoint(ctx context.Context, department string, point model.Point) (model.Identify, xerror.IError) {
 	defer xtrace.Trace(ctx)(department, point)
+	if point.ID == "" {
+		point.ID = uuid.New().String()
+	}
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return 0, xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return model.Identify{}, xerror.Extend(xerror.ErrNotFound, "department "+department)
 	}
-	return database.GetDB(ctx).AddPoint(ctx, point)
+	_, xerr := database.GetDB(ctx).AddPoint(ctx, point)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "department %s add point %+v fail %v", department, point, xerr)
+		return model.Identify{}, xerr
+	}
+	return point.Identify, nil
 }
 
 func (s *service) UpdatePoint(ctx context.Context, department string, point model.Point) xerror.IError {
@@ -119,14 +56,22 @@ func (s *service) GetPoints(ctx context.Context, department string, condition mo
 	return database.GetDB(ctx).GetPoints(ctx, condition)
 }
 
-func (s *service) AddRouter(ctx context.Context, department string, router model.Router) (int, xerror.IError) {
+func (s *service) AddRouter(ctx context.Context, department string, router model.Router) (model.Identify, xerror.IError) {
 	defer xtrace.Trace(ctx)(department, router)
+	if router.ID == "" {
+		router.ID = uuid.New().String()
+	}
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return 0, xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return model.Identify{}, xerror.Extend(xerror.ErrNotFound, "department "+department)
 	}
-	return database.GetDB(ctx).AddRouter(ctx, router)
+	_, xerr := database.GetDB(ctx).AddRouter(ctx, router)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "department %s add router %+v fail %v", department, router, xerr)
+		return model.Identify{}, xerr
+	}
+	return router.Identify, nil
 }
 
 func (s *service) UpdateRouter(ctx context.Context, department string, router model.Router) xerror.IError {
@@ -159,14 +104,22 @@ func (s *service) GetRouters(ctx context.Context, department string, condition m
 	return database.GetDB(ctx).GetRouters(ctx, condition)
 }
 
-func (s *service) AddPlan(ctx context.Context, department string, plan model.Plan) (int, xerror.IError) {
+func (s *service) AddPlan(ctx context.Context, department string, plan model.Plan) (model.Identify, xerror.IError) {
 	defer xtrace.Trace(ctx)(department, plan)
+	if plan.ID == "" {
+		plan.ID = uuid.New().String()
+	}
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return 0, xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return model.Identify{}, xerror.Extend(xerror.ErrNotFound, "department "+department)
 	}
-	return database.GetDB(ctx).AddPlan(ctx, plan)
+	_, xerr := database.GetDB(ctx).AddPlan(ctx, plan)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "department %s add plan %+v fail %v", department, plan, xerr)
+		return model.Identify{}, xerr
+	}
+	return plan.Identify, nil
 }
 
 func (s *service) UpdatePlan(ctx context.Context, department string, plan model.Plan) xerror.IError {
