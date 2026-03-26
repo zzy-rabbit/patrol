@@ -16,12 +16,12 @@ type auxiliary struct {
 
 type Judge struct {
 	ILogger   logApi.IPlugin `xplugin:"bp.tool.log"`
-	params    model.ExecutorParams
+	params    model.TaskParam
 	auxiliary auxiliary
-	result    model.ExecuteResult
+	result    model.TaskResult
 }
 
-func (s *service) NewJudge(_ context.Context, param model.ExecutorParams) *Judge {
+func (s *service) NewJudge(_ context.Context, param model.TaskParam) *Judge {
 	aux := auxiliary{
 		pointMap:          make(map[string][]time.Time, len(param.Points)),
 		checkPointMap:     make(map[string][]int, len(param.CheckPoints)),
@@ -41,12 +41,11 @@ func (s *service) NewJudge(_ context.Context, param model.ExecutorParams) *Judge
 		params:    param,
 		ILogger:   s.ILogger,
 		auxiliary: aux,
-		result: model.ExecuteResult{
-			ID:     0,
-			Status: model.ExecuteStatusWaiting,
-			Start:  param.StartDate.Add(param.Plan.Start.Sub(time.Time{})),
-			End:    param.StartDate.Add(param.Plan.End.Sub(time.Time{})),
-			Points: make([]model.ExecutorPoint, 0, len(param.Points)),
+		result: model.TaskResult{
+			Start:   model.NewDateTime(param.Date.Add(time.Second * time.Duration(param.Plan.Start))),
+			End:     model.NewDateTime(param.Date.Add(time.Second * time.Duration(param.Plan.End))),
+			Status:  model.TaskStatusWaiting,
+			Results: make([]model.TaskPointResult, 0, len(param.Points)),
 		},
 	}
 }
@@ -67,28 +66,33 @@ POINT:
 				continue
 			}
 			checkPoint := j.params.CheckPoints[checkPointIndex]
+
 			// 用户符合、时间符合，认为该记录有效，正常
 			if j.auxiliary.userMap[checkPoint.User] && checkPoint.Time.After(start) && checkPoint.Time.Before(end) {
-				j.auxiliary.checkPointUsedMap[checkPointIndex] = true
-				j.result.Points = append(j.result.Points, model.ExecutorPoint{
-					Point:  point.Name,
-					Status: model.ExecuteStatusNormal,
-					Time:   checkPoint.Time,
+				// 有效的点位打卡数据
+				j.result.Results = append(j.result.Results, model.TaskPointResult{
+					Identify: point.Identify,
+					Time:     model.NewDateTime(time.Time{}),
+					Status:   model.TaskPointStatusLeak,
+					User: model.TaskPointUserResult{
+						Time: checkPoint.Time,
+						User: checkPoint.User,
+					},
 				})
 				continue POINT
 			}
 		}
 
 		// 该点位下没有符合要求的打卡记录，认为该点位没有被正常打卡
-		j.result.Points = append(j.result.Points, model.ExecutorPoint{
-			Point:  point.Name,
-			Status: model.ExecuteStatusAbnormal,
-			Time:   time.Time{},
+		j.result.Results = append(j.result.Results, model.TaskPointResult{
+			Identify: point.Identify,
+			Time:     model.NewDateTime(time.Time{}),
+			Status:   model.TaskPointStatusLeak,
 		})
-		j.result.Status = model.ExecuteStatusAbnormal
+		j.result.Status = model.TaskStatusAbnormal
 	}
 
-	if j.result.Status == model.ExecuteStatusRunning {
-		j.result.Status = model.ExecuteStatusNormal
+	if j.result.Status == model.TaskStatusRunning {
+		j.result.Status = model.TaskStatusNormal
 	}
 }

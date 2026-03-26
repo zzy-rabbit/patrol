@@ -18,6 +18,6 @@ const (
 
 type IPlugin interface {
 	xplugin.IPlugin
-	SyncDo(ctx context.Context, param model.ExecutorParams) (model.ExecuteResult, xerror.IError)
-	ASyncDo(ctx context.Context, param model.ExecutorParams, after func(model.ExecuteResult, xerror.IError)) xerror.IError
+	SyncDo(ctx context.Context, param model.TaskParam) (model.TaskResult, xerror.IError)
+	ASyncDo(ctx context.Context, param model.TaskParam, after func(model.TaskResult, xerror.IError)) xerror.IError
 }

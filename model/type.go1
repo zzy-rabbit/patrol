@@ -1,0 +1,65 @@
+package model
+
+import (
+	"encoding/json"
+	"time"
+)
+
+type BastTime struct {
+	time.Time
+	format string
+}
+
+func NewBastTime(t time.Time, format string) BastTime {
+	return BastTime{
+		Time:   t,
+		format: format,
+	}
+}
+
+func (t *BastTime) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.Time.Format(t.format))
+}
+
+func (t *BastTime) UnmarshalJSON(data []byte) error {
+	var str string
+	if err := json.Unmarshal(data, &str); err != nil {
+		return err
+	}
+	tt, err := time.ParseInLocation(t.format, str, time.Local)
+	if err != nil {
+		return err
+	}
+	t.Time = tt
+	return nil
+}
+
+type Time struct {
+	BastTime
+}
+
+func NewTime(t time.Time) Time {
+	return Time{
+		BastTime: NewBastTime(t, "15:04:05"),
+	}
+}
+
+type Date struct {
+	BastTime
+}
+
+func NewDate(t time.Time) Date {
+	return Date{
+		BastTime: NewBastTime(t, "2006-01-02"),
+	}
+}
+
+type DateTime struct {
+	BastTime
+}
+
+func NewDateTime(t time.Time) DateTime {
+	return DateTime{
+		BastTime: NewBastTime(t, "2006-01-02 15:04:05"),
+	}
+}

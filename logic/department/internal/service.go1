@@ -25,11 +25,21 @@ func (s *service) AddDepartment(ctx context.Context, department model.Department
 		s.ILogger.Error(ctx, "set department %+v fail", department)
 		return model.Identify{}, err
 	}
+	err = s.ITrigger.AddDepartment(ctx, department.ID)
+	if xerror.Error(err) {
+		_ = s.IDatabase.Delete(ctx, department.ID)
+		s.ILogger.Error(ctx, "add department trigger %s fail", department.ID)
+		return model.Identify{}, err
+	}
 	return department.Identify, nil
 }
 
 func (s *service) UpdateDepartment(ctx context.Context, department model.Department) xerror.IError {
 	defer xtrace.Trace(ctx)(department)
+	if department.ID == "" {
+		s.ILogger.Error(ctx, "update department %+v fail", department)
+		return xerror.Extend(xerror.ErrInvalidParam, "department id is empty")
+	}
 	database, ok := s.IDatabase.Get(ctx, department.ID)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department.ID)
@@ -46,10 +56,15 @@ func (s *service) UpdateDepartment(ctx context.Context, department model.Departm
 func (s *service) DeleteDepartments(ctx context.Context, departments ...model.Identify) xerror.IError {
 	defer xtrace.Trace(ctx)(departments)
 	for _, department := range departments {
-		err := s.IDatabase.Delete(ctx, department.ID)
-		if xerror.Error(err) {
+		xerr := s.ITrigger.DeleteDepartment(ctx, department.ID)
+		if xerror.Error(xerr) {
+			s.ILogger.Error(ctx, "delete department trigger %s fail", department.ID)
+			//return xerr
+		}
+		xerr = s.IDatabase.Delete(ctx, department.ID)
+		if xerror.Error(xerr) {
 			s.ILogger.Error(ctx, "delete department %s fail", department.ID)
-			return err
+			return xerr
 		}
 	}
 	return nil

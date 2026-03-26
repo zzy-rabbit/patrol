@@ -6,10 +6,12 @@ import (
 	logApi "github.com/zzy-rabbit/bp/tool/log/api"
 	databaseApi "github.com/zzy-rabbit/patrol/data/database/api"
 	"github.com/zzy-rabbit/patrol/logic/department/api"
+	triggerApi "github.com/zzy-rabbit/patrol/logic/trigger/api"
 )
 
 type service struct {
 	IDatabase databaseApi.IPlugin `xplugin:"patrol.data.database"`
+	ITrigger  triggerApi.IPlugin  `xplugin:"patrol.logic.trigger"`
 	IReport   reportApi.IPlugin   `xplugin:"bp.protocol.report"`
 	ILogger   logApi.IPlugin      `xplugin:"bp.tool.log"`
 }

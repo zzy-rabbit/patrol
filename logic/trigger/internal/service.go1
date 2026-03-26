@@ -2,7 +2,9 @@ package internal
 
 import (
 	"context"
+	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/xtools/xerror"
+	"time"
 )
 
 func (s *service) AddDepartment(ctx context.Context, department string) xerror.IError {
@@ -11,13 +13,16 @@ func (s *service) AddDepartment(ctx context.Context, department string) xerror.I
 
 	ctx, cancel := context.WithCancel(ctx)
 	trigger := &departmentTrigger{
-		ILogger:    s.ILogger,
-		IConfig:    s.IConfig,
-		IExecutor:  s.IExecutor,
-		ITimer:     s.ITimer,
-		IDatabase:  s.IDatabase,
-		department: department,
-		cancel:     cancel,
+		ILogger:         s.ILogger,
+		IConfig:         s.IConfig,
+		IExecutor:       s.IExecutor,
+		ITimer:          s.ITimer,
+		IDatabase:       s.IDatabase,
+		department:      department,
+		cancel:          cancel,
+		scanInterval:    time.Hour,
+		registerPlanMap: make(map[string]model.Plan, 16),
+		overlap:         time.Minute * 5,
 	}
 	err := trigger.init(ctx)
 	if xerror.Error(err) {
@@ -40,5 +45,7 @@ func (s *service) DeleteDepartment(ctx context.Context, department string) xerro
 		return nil
 	}
 	trigger.stop(ctx)
+
+	delete(s.departmentMap, department)
 	return nil
 }

@@ -10,7 +10,10 @@ import (
 	executorApi "github.com/zzy-rabbit/patrol/logic/executor/api"
 	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/xtools/xerror"
+	"github.com/zzy-rabbit/xtools/xtrace"
 	"runtime/debug"
+	"sync"
+	"time"
 )
 
 type departmentTrigger struct {
@@ -20,9 +23,14 @@ type departmentTrigger struct {
 	ITimer    timerApi.IPlugin    `xplugin:"bp.tool.timer"`
 	IDatabase databaseApi.IPlugin `xplugin:"patrol.data.database"`
 
-	database   daoApi.IDatabase
-	department string
-	cancel     context.CancelFunc
+	database     daoApi.IDatabase
+	department   string
+	cancel       context.CancelFunc
+	scanInterval time.Duration
+
+	registerPlanMutex sync.RWMutex
+	registerPlanMap   map[string]model.Plan
+	overlap           time.Duration
 }
 
 func (d *departmentTrigger) init(ctx context.Context) xerror.IError {
@@ -35,26 +43,110 @@ func (d *departmentTrigger) init(ctx context.Context) xerror.IError {
 	return nil
 }
 
+func (d *departmentTrigger) initPlans(ctx context.Context) ([]model.Plan, xerror.IError) {
+	defer xtrace.Trace(ctx)(d.department)
+
+	d.registerPlanMutex.Lock()
+	defer d.registerPlanMutex.Unlock()
+
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	nowSeconds := int(now.Sub(today).Seconds())
+
+	// 查找运行中的计划
+	runnings, _, xerr := d.database.GetDB(ctx).GetPlans(ctx, model.PlanCondition{
+		UtilAfter:  model.NewDate(now),
+		StartAfter: nowSeconds,
+		EndBefore:  nowSeconds,
+	})
+	if xerror.Error(xerr) {
+		d.ILogger.Error(ctx, "department %s scan plans fail %v", d.department, xerr)
+		return nil, xerr
+	}
+	return runnings, nil
+}
+
+func (d *departmentTrigger) scanPlans(ctx context.Context) ([]model.Plan, xerror.IError) {
+	defer xtrace.Trace(ctx)(d.department)
+
+	d.registerPlanMutex.Lock()
+	defer d.registerPlanMutex.Unlock()
+
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+
+	nowSeconds := int(now.Sub(today).Seconds())
+	overlapSeconds := int(now.Add(d.scanInterval).Add(d.overlap).Sub(today).Seconds())
+
+	// 查找未来的计划
+	features, _, xerr := d.database.GetDB(ctx).GetPlans(ctx, model.PlanCondition{
+		UtilAfter:   model.NewDate(now),
+		StartBefore: overlapSeconds,
+		StartAfter:  nowSeconds,
+	})
+	if xerror.Error(xerr) {
+		d.ILogger.Error(ctx, "department %s scan plans fail %v", d.department, xerr)
+		return nil, xerr
+	}
+	return features, nil
+}
+
 func (d *departmentTrigger) startScanMonitor(ctx context.Context) {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
 				d.ILogger.Error(ctx, "scan monitor panic %v stack %s", err, debug.Stack())
 			}
+			d.startScanMonitor(ctx)
 		}()
+
+		for {
+			// 已经开始，但未结束的计划
+			runnings, xerr := d.initPlans(ctx)
+			if xerror.Error(xerr) {
+				d.ILogger.Error(ctx, "department %s init plans to trigger fail %v", d.department, xerr)
+				time.Sleep(time.Second * 5)
+				continue
+			}
+			_ = runnings
+			break
+		}
+
+		const scanRetryMaxCount = 3
+
+		scanChan := make(chan int, 16)
+		defer close(scanChan)
+		scanChan <- scanRetryMaxCount
+
+		ticker := time.NewTicker(d.scanInterval)
+		defer ticker.Stop()
+
 		for {
 			select {
 			case <-ctx.Done():
 				return
-
+			case <-ticker.C:
+				scanChan <- scanRetryMaxCount
+			case retry := <-scanChan:
+				if retry <= 0 {
+					continue
+				}
+				features, xerr := d.scanPlans(ctx)
+				if xerror.Error(xerr) {
+					d.ILogger.Error(ctx, "department %s scan plans fail %v", d.department, xerr)
+					scanChan <- retry - 1
+					continue
+				}
+				// 添加到定时器
+				_ = features
 			}
 		}
 	}()
 }
 
-func (d *departmentTrigger) prepareExecuteParams(ctx context.Context, plan string) (model.ExecutorParams, xerror.IError) {
+func (d *departmentTrigger) prepareTaskParams(ctx context.Context, plan string) (model.TaskParam, xerror.IError) {
 
-	return model.ExecutorParams{}, nil
+	return model.TaskParam{}, nil
 }
 
 func (d *departmentTrigger) stop(ctx context.Context) {

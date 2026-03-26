@@ -7,7 +7,6 @@ import (
 	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"gorm.io/gorm"
-	"time"
 )
 
 type session struct {
@@ -375,11 +374,23 @@ func (s *session) GetPlans(ctx context.Context, condition model.PlanCondition) (
 	if condition.Name != "" {
 		db = db.Where("name like ?", "%"+condition.Name+"%")
 	}
-	if condition.Start != (time.Time{}) {
-		db = db.Where("start >= ?", condition.Start)
+	if !condition.UtilBefore.IsZero() {
+		db = db.Where("util <= ?", condition.UtilBefore.Format("2006-01-02"))
 	}
-	if condition.End != (time.Time{}) {
-		db = db.Where("end <= ?", condition.End)
+	if !condition.UtilAfter.IsZero() {
+		db = db.Where("util >= ?", condition.UtilAfter.Format("2006-01-02"))
+	}
+	if condition.StartBefore > 0 {
+		db = db.Where("start <= ?", condition.StartBefore)
+	}
+	if condition.StartAfter > 0 {
+		db = db.Where("start >= ?", condition.StartAfter)
+	}
+	if condition.EndBefore > 0 {
+		db = db.Where("end <= ?", condition.EndBefore)
+	}
+	if condition.EndAfter > 0 {
+		db = db.Where("end >= ?", condition.EndAfter)
 	}
 
 	total := int64(0)
