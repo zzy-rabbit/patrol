@@ -1,53 +1,58 @@
 package internal
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"context"
+	"github.com/tus/tusd/pkg/handler"
+	"github.com/zzy-rabbit/patrol/protocol/file/api"
+	"github.com/zzy-rabbit/xtools/xerror"
 )
 
-func (s *service) UploadFile(ctx *fiber.Ctx) error {
-
-	return nil
+func (t *Tus) SetNotifyCreatedCallback(ctx context.Context, callback api.NotifyCreatedCallback) {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+	t.NotifyCreatedCallback = callback
 }
 
-func (s *service) DownloadFile(ctx *fiber.Ctx) error {
-	//var file model.Identify
-	//err := s.IHttp.ParseBodyParams(ctx, &file)
-	//if xerror.Error(err) {
-	//	return err
-	//}
-	//department := ctx.Get("department")
-	//xerr := s.IFile.GetFile(ctx.UserContext(), department, file)
-	//if xerror.Error(xerr) {
-	//	return ctx.JSON(&bpmodel.HttpResponse{
-	//		IError: xerr,
-	//	})
-	//}
-	//return ctx.JSON(&bpmodel.HttpResponse{
-	//	IError: xerror.ErrSuccess,
-	//})
-	return nil
+func (t *Tus) SetNotifyCompletedCallback(ctx context.Context, callback api.NotifyCompletedCallback) {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+	t.NotifyCompletedCallback = callback
 }
 
-func (s *service) DeleteFiles(ctx *fiber.Ctx) error {
-	//var files []model.Identify
-	//err := s.IHttp.ParseBodyParams(ctx, &files)
-	//if xerror.Error(err) {
-	//	return err
-	//}
-	//department := ctx.Get("department")
-	//xerr := s.IFile.DeleteFiles(ctx.UserContext(), department, files...)
-	//if xerror.Error(xerr) {
-	//	return ctx.JSON(&bpmodel.HttpResponse{
-	//		IError: xerr,
-	//	})
-	//}
-	//return ctx.JSON(&bpmodel.HttpResponse{
-	//	IError: xerror.ErrSuccess,
-	//})
-	return nil
+func (t *Tus) SetNotifyTerminatedCallback(ctx context.Context, callback api.NotifyTerminatedCallback) {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+	t.NotifyTerminatedCallback = callback
 }
 
-func (s *service) GetFiles(ctx *fiber.Ctx) error {
+func (t *Tus) SetNotifyProgressChangedCallback(ctx context.Context, callback api.NotifyProgressChangedCallback) {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+	t.NotifyProgressChangedCallback = callback
+}
 
-	return nil
+func eventCallback(callbacks ...func(context.Context, handler.HookEvent) error) func(context.Context, handler.HookEvent) error {
+	return func(ctx context.Context, event handler.HookEvent) error {
+		for _, cb := range callbacks {
+			if cb != nil {
+				err := cb(ctx, event)
+				if xerror.Error(err) {
+					return err
+				}
+			}
+		}
+		return nil
+	}
+}
+
+func (t *Tus) SetPreCreateCallback(ctx context.Context, callback api.PreCreateCallback) {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+	t.PreCreateCallback = eventCallback(t.PreCreateCallback, callback)
+}
+
+func (t *Tus) SetPreCompleteCallback(ctx context.Context, callback api.PreCompleteCallback) {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+	t.PreCompleteCallback = eventCallback(t.PreCompleteCallback, callback)
 }

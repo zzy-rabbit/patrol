@@ -2,18 +2,20 @@ package internal
 
 import (
 	"context"
-	bpModel "github.com/zzy-rabbit/bp/model"
+	"encoding/json"
 	httpApi "github.com/zzy-rabbit/bp/protocol/http/api"
 	logApi "github.com/zzy-rabbit/bp/tool/log/api"
 	fileApi "github.com/zzy-rabbit/patrol/logic/file/api"
 	"github.com/zzy-rabbit/patrol/protocol/file/api"
+	"github.com/zzy-rabbit/xtools/xerror"
 )
 
 type service struct {
-	network bpModel.Network
 	IFile   fileApi.IPlugin `xplugin:"patrol.logic.file"`
 	ILogger logApi.IPlugin  `xplugin:"bp.tool.log"`
 	IHttp   httpApi.IPlugin `xplugin:"bp.protocol.http"`
+	config  api.Config
+	*Tus
 }
 
 func New(ctx context.Context) api.IPlugin {
@@ -25,7 +27,21 @@ func (s *service) GetName(ctx context.Context) string {
 }
 
 func (s *service) Init(ctx context.Context, initParam string) error {
+	err := json.Unmarshal([]byte(initParam), &s.config)
+	if xerror.Error(err) {
+		s.ILogger.Error(ctx, "plugin %s init fail %v", s.GetName(ctx), err)
+		return err
+	}
+
+	tusHandler, xerr := s.NewTusHandler(ctx)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "plugin %s init tus handler fail %v", s.GetName(ctx), err)
+		return xerr
+	}
+	s.Tus = tusHandler
+
 	s.IHttp.Register(s.registerRouter)
+
 	s.ILogger.Info(ctx, "plugin %s init success", s.GetName(ctx))
 	return nil
 }

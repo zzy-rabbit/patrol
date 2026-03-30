@@ -1,4 +1,18 @@
 package model
 
-type File struct {
+type FileType int
+
+const (
+	FileTypeImage FileType = iota + 1
+	FileTypeVideo
+	FileTypeAudio
+)
+
+type FileUpload struct {
+	Type      FileType `json:"type"`
+	Name      string   `json:"name"`
+	MD5       string   `json:"md5"`
+	TotalSize int      `json:"totalSize"`
+	PackSize  int      `json:"packSize"`
+	PackNum   int      `json:"packNum"`
 }

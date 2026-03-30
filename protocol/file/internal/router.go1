@@ -1,11 +1,21 @@
 package internal
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
+)
 
 func (s *service) registerRouter(fiberApp *fiber.App) {
-	fileGroup := fiberApp.Group("/patrol/api/v1/file")
-	fileGroup.Post("upload", s.UploadFile)
-	fileGroup.Post("download", s.DownloadFile)
-	fileGroup.Get("", s.GetFiles)
-	fileGroup.Delete("", s.DeleteFiles)
+	fiberTusHandler := fasthttpadaptor.NewFastHTTPHandler(s.Tus)
+	fiberApp.All(s.config.BaseURL+"*", func(ctx *fiber.Ctx) error {
+		fiberTusHandler(ctx.Context())
+		return nil
+	})
+
+	//fileGroup := fiberApp.Group("/patrol/api/v1/file")
+	//fileGroup.Post("upload", s.UploadFile)
+	//fileGroup.Post("upload/cancel", s.UploadFileCancel)
+	//fileGroup.Post("download", s.DownloadFile)
+	//fileGroup.Get("", s.GetFiles)
+	//fileGroup.Delete("", s.DeleteFiles)
 }

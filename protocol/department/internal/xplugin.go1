@@ -2,7 +2,6 @@ package internal
 
 import (
 	"context"
-	bpModel "github.com/zzy-rabbit/bp/model"
 	httpApi "github.com/zzy-rabbit/bp/protocol/http/api"
 	logApi "github.com/zzy-rabbit/bp/tool/log/api"
 	departmentApi "github.com/zzy-rabbit/patrol/logic/department/api"
@@ -10,7 +9,6 @@ import (
 )
 
 type service struct {
-	network     bpModel.Network
 	IDepartment departmentApi.IPlugin `xplugin:"patrol.logic.department"`
 	ILogger     logApi.IPlugin        `xplugin:"bp.tool.log"`
 	IHttp       httpApi.IPlugin       `xplugin:"bp.protocol.http"`
