@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.12
-	github.com/zzy-rabbit/bp v0.0.0-20260228071750-c4b63c0876d3
+	github.com/zzy-rabbit/bp v0.0.0-20260330024651-ca72560d9516
 	github.com/zzy-rabbit/xtools v0.0.0-20260227154022-fe8024aa1d60
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.1
@@ -25,6 +25,7 @@ require (
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/robfig/cron/v3 v3.0.0 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e // indirect
+	github.com/tus/tusd v1.13.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.51.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
