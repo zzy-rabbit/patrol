@@ -1,49 +1,31 @@
 package internal
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber/v2"
-	"github.com/valyala/fasthttp/fasthttpadaptor"
-	"github.com/zzy-rabbit/xtools/xcontext"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
 )
 
 func (s *service) registerRouter(fiberApp *fiber.App) {
-	//http.Handle("/files/", http.StripPrefix("/files/", s.Tus.Handler))
-	//go func() {
-	//	err := http.ListenAndServe(":8089", nil)
-	//	if err != nil {
-	//		panic(fmt.Errorf("Unable to listen: %s", err))
-	//	}
-	//}()
-	//
-	//fiberTusHandler := fasthttpadaptor.NewFastHTTPHandler(s.Tus)
-	//fiberApp.All(s.config.BaseURL+"/", func(ctx *fiber.Ctx) error {
-	//	fiberTusHandler(ctx.Context())
-	//	return nil
-	//})
-
-	fiberTusHandler := fasthttpadaptor.NewFastHTTPHandler(s.Tus)
-	//fiberApp.All(s.config.BaseURL, func(ctx *fiber.Ctx) error {
-	//	s.ILogger.Info(xcontext.Background(), "11111111111111")
-	//	fiberTusHandler(ctx.Context())
-	//	return nil
-	//})
-	//fiberApp.All(s.config.BaseURL+"/", func(ctx *fiber.Ctx) error {
-	//	s.ILogger.Info(xcontext.Background(), "33333333333333 %s %s %s", ctx.Method(), ctx.Path(), ctx.Context().RequestURI())
-	//	fmt.Println("Tus-Resumable:", ctx.Get("Tus-Resumable"))
-	//	fmt.Println("Upload-Length:", ctx.Get("Upload-Length"))
-	//	fmt.Println("Upload-Metadata:", ctx.Get("Upload-Metadata"))
-	//	ctx.Request().SetRequestURI(strings.TrimPrefix(string(ctx.Request().RequestURI()), s.config.BaseURL))
-	//	s.ILogger.Info(xcontext.Background(), "333333333333331111 %s %s %s", ctx.Method(), ctx.Path(), ctx.Context().RequestURI())
-	//	fiberTusHandler(ctx.Context())
-	//	return nil
-	//})
-	fiberApp.All("/files/*", func(ctx *fiber.Ctx) error {
-		s.ILogger.Info(xcontext.Background(), "222222222222222 %s %s %s", ctx.Method(), ctx.Path(), ctx.Context().RequestURI())
-		fmt.Println("Tus-Resumable:", ctx.Get("Tus-Resumable"))
-		fmt.Println("Upload-Length:", ctx.Get("Upload-Length"))
-		fmt.Println("Upload-Metadata:", ctx.Get("Upload-Metadata"))
-		fiberTusHandler(ctx.Context())
-		return nil
-	})
+	group := fiberApp.Group(
+		"/patrol/api/v1/file",
+		func(c *fiber.Ctx) error {
+			err := c.Next() // 先执行 tus
+			c.Response().Header.Del("Access-Control-Allow-Origin")
+			c.Set("Access-Control-Allow-Origin", "*")
+			c.Set("Access-Control-Allow-Methods", "GET,POST,HEAD,PATCH,DELETE,OPTIONS")
+			c.Set("Access-Control-Allow-Headers", "*")
+			c.Set("Access-Control-Expose-Headers", "Location,Upload-Offset,Upload-Length,Tus-Resumable")
+			return err
+		},
+		adaptor.HTTPMiddleware(s.Tus.Middleware),
+	)
+	group.Post("", adaptor.HTTPHandlerFunc(s.Tus.PostFile))
+	group.Head(":id", adaptor.HTTPHandlerFunc(s.Tus.HeadFile))
+	group.Patch(":id", adaptor.HTTPHandlerFunc(s.Tus.PatchFile))
+	if !s.Tus.Config.DisableDownload {
+		group.Get(":id", adaptor.HTTPHandlerFunc(s.Tus.GetFile))
+	}
+	if s.Tus.Config.StoreComposer.UsesTerminater && !s.Tus.Config.DisableTermination {
+		group.Delete(":id", adaptor.HTTPHandlerFunc(s.Tus.DelFile))
+	}
 }
