@@ -104,9 +104,9 @@
         },
         {
             "plugin_name": "patrol.protocol.file",
-            "init_param": "",
+            "init_param": "{\"base_url\": \"/files\",\"root_path\":\"~/testfile/\"}",
             "run_param": "",
-            "stop_param": "{\"baseURL\": \"/file/\",\"rootPath\":\"~/testfile/\"}"
+            "stop_param": ""
         },
         {
             "plugin_name": "patrol.protocol.config",

@@ -12,7 +12,7 @@ type FileUpload struct {
 	Type      FileType `json:"type"`
 	Name      string   `json:"name"`
 	MD5       string   `json:"md5"`
-	TotalSize int      `json:"totalSize"`
-	PackSize  int      `json:"packSize"`
-	PackNum   int      `json:"packNum"`
+	TotalSize int      `json:"total_size"`
+	PackSize  int      `json:"pack_size"`
+	PackNum   int      `json:"pack_num"`
 }

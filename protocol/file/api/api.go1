@@ -39,6 +39,6 @@ type IPlugin interface {
 }
 
 type Config struct {
-	RootPath string `json:"rootPath"`
-	BaseURL  string `json:"baseURL"`
+	RootPath string `json:"root_path"`
+	BaseURL  string `json:"base_url"`
 }

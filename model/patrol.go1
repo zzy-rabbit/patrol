@@ -129,12 +129,12 @@ type PlanCondition struct {
 	Types       []PlanType `json:"types"`
 	Routers     []string   `json:"routers"`
 	Name        string     `json:"name"`
-	UtilBefore  Date       `json:"utilBefore"`
-	UtilAfter   Date       `json:"utilAfter"`
-	StartBefore int        `json:"startBefore"`
-	StartAfter  int        `json:"startAfter"`
-	EndBefore   int        `json:"endBefore"`
-	EndAfter    int        `json:"endAfter"`
+	UtilBefore  Date       `json:"util_before"`
+	UtilAfter   Date       `json:"util_after"`
+	StartBefore int        `json:"start_before"`
+	StartAfter  int        `json:"start_after"`
+	EndBefore   int        `json:"end_before"`
+	EndAfter    int        `json:"end_after"`
 }
 
 type CheckPoint struct {

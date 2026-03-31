@@ -9,13 +9,13 @@ func (s *service) registerRouter(fiberApp *fiber.App) {
 	pointGroup.Delete("", s.DeletePoints)
 	pointGroup.Get("", s.GetPoints)
 
-	routerGroup := fiberApp.Group("/api/v1/config/router")
+	routerGroup := fiberApp.Group("/patrol/api/v1/config/router")
 	routerGroup.Post("add", s.AddRouter)
 	routerGroup.Post("update", s.UpdateRouter)
 	routerGroup.Delete("", s.DeleteRouters)
 	routerGroup.Get("", s.GetRouters)
 
-	planGroup := fiberApp.Group("/api/v1/config/plan")
+	planGroup := fiberApp.Group("/patrol/api/v1/config/plan")
 	planGroup.Post("add", s.AddPlan)
 	planGroup.Post("update", s.UpdatePlan)
 	planGroup.Delete("", s.DeletePlans)

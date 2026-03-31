@@ -1,21 +1,49 @@
 package internal
 
 import (
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
+	"github.com/zzy-rabbit/xtools/xcontext"
 )
 
 func (s *service) registerRouter(fiberApp *fiber.App) {
+	//http.Handle("/files/", http.StripPrefix("/files/", s.Tus.Handler))
+	//go func() {
+	//	err := http.ListenAndServe(":8089", nil)
+	//	if err != nil {
+	//		panic(fmt.Errorf("Unable to listen: %s", err))
+	//	}
+	//}()
+	//
+	//fiberTusHandler := fasthttpadaptor.NewFastHTTPHandler(s.Tus)
+	//fiberApp.All(s.config.BaseURL+"/", func(ctx *fiber.Ctx) error {
+	//	fiberTusHandler(ctx.Context())
+	//	return nil
+	//})
+
 	fiberTusHandler := fasthttpadaptor.NewFastHTTPHandler(s.Tus)
-	fiberApp.All(s.config.BaseURL+"*", func(ctx *fiber.Ctx) error {
+	//fiberApp.All(s.config.BaseURL, func(ctx *fiber.Ctx) error {
+	//	s.ILogger.Info(xcontext.Background(), "11111111111111")
+	//	fiberTusHandler(ctx.Context())
+	//	return nil
+	//})
+	//fiberApp.All(s.config.BaseURL+"/", func(ctx *fiber.Ctx) error {
+	//	s.ILogger.Info(xcontext.Background(), "33333333333333 %s %s %s", ctx.Method(), ctx.Path(), ctx.Context().RequestURI())
+	//	fmt.Println("Tus-Resumable:", ctx.Get("Tus-Resumable"))
+	//	fmt.Println("Upload-Length:", ctx.Get("Upload-Length"))
+	//	fmt.Println("Upload-Metadata:", ctx.Get("Upload-Metadata"))
+	//	ctx.Request().SetRequestURI(strings.TrimPrefix(string(ctx.Request().RequestURI()), s.config.BaseURL))
+	//	s.ILogger.Info(xcontext.Background(), "333333333333331111 %s %s %s", ctx.Method(), ctx.Path(), ctx.Context().RequestURI())
+	//	fiberTusHandler(ctx.Context())
+	//	return nil
+	//})
+	fiberApp.All("/files/*", func(ctx *fiber.Ctx) error {
+		s.ILogger.Info(xcontext.Background(), "222222222222222 %s %s %s", ctx.Method(), ctx.Path(), ctx.Context().RequestURI())
+		fmt.Println("Tus-Resumable:", ctx.Get("Tus-Resumable"))
+		fmt.Println("Upload-Length:", ctx.Get("Upload-Length"))
+		fmt.Println("Upload-Metadata:", ctx.Get("Upload-Metadata"))
 		fiberTusHandler(ctx.Context())
 		return nil
 	})
-
-	//fileGroup := fiberApp.Group("/patrol/api/v1/file")
-	//fileGroup.Post("upload", s.UploadFile)
-	//fileGroup.Post("upload/cancel", s.UploadFileCancel)
-	//fileGroup.Post("download", s.DownloadFile)
-	//fileGroup.Get("", s.GetFiles)
-	//fileGroup.Delete("", s.DeleteFiles)
 }
