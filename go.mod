@@ -7,8 +7,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
-	github.com/tus/tusd v1.13.0
-	github.com/zzy-rabbit/bp v0.0.0-20260401044528-8d5e53bf1cda
+	github.com/zzy-rabbit/bp v0.0.0-20260401060443-32575f0e94ec
 	github.com/zzy-rabbit/xtools v0.0.0-20260401020547-e83484b35bd5
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.1
@@ -27,6 +26,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/robfig/cron/v3 v3.0.0 // indirect
+	github.com/tus/tusd v1.13.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.51.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
