@@ -1,1 +1,15 @@
 package internal
+
+import (
+	"context"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+)
+
+func (s *service) CommitFile(ctx context.Context, session model.FileCommit) (model.File, xerror.IError) {
+	return model.File{}, nil
+}
+
+func (s *service) DeleteFile(ctx context.Context, sessions ...string) xerror.IError {
+	return nil
+}

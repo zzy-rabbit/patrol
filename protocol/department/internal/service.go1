@@ -8,13 +8,18 @@ import (
 )
 
 func (s *service) AddDepartment(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
 	var department model.Department
-	err := s.IHttp.ParseBodyParams(ctx, &department)
-	if xerror.Error(err) {
-		return err
+	xerr := s.IHttp.ParseBodyParams(ctx, &header, &department)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse body params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
 	}
 	identify, xerr := s.IDepartment.AddDepartment(ctx.UserContext(), department)
 	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "add department %+v fail %v", department, xerr)
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
 		})
@@ -26,13 +31,18 @@ func (s *service) AddDepartment(ctx *fiber.Ctx) error {
 }
 
 func (s *service) UpdateDepartment(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
 	var department model.Department
-	err := s.IHttp.ParseBodyParams(ctx, &department)
-	if xerror.Error(err) {
-		return err
-	}
-	xerr := s.IDepartment.UpdateDepartment(ctx.UserContext(), department)
+	xerr := s.IHttp.ParseBodyParams(ctx, &header, &department)
 	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse body params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	xerr = s.IDepartment.UpdateDepartment(ctx.UserContext(), department)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "update department %+v fail %v", department, xerr)
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
 		})
@@ -43,13 +53,18 @@ func (s *service) UpdateDepartment(ctx *fiber.Ctx) error {
 }
 
 func (s *service) DeleteDepartments(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
 	var departments []model.Identify
-	err := s.IHttp.ParseBodyParams(ctx, &departments)
-	if xerror.Error(err) {
-		return err
-	}
-	xerr := s.IDepartment.DeleteDepartments(ctx.UserContext(), departments...)
+	xerr := s.IHttp.ParseBodyParams(ctx, &header, &departments)
 	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse body params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	xerr = s.IDepartment.DeleteDepartments(ctx.UserContext(), departments...)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "delete departments %+v fail %v", departments, xerr)
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
 		})
@@ -60,13 +75,18 @@ func (s *service) DeleteDepartments(ctx *fiber.Ctx) error {
 }
 
 func (s *service) GetDepartments(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
 	var condition model.DepartmentCondition
-	err := s.IHttp.ParseQueryParams(ctx, &condition)
-	if xerror.Error(err) {
-		return err
+	xerr := s.IHttp.ParseQueryParams(ctx, &header, &condition)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse query params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
 	}
 	departments, page, xerr := s.IDepartment.GetDepartments(ctx.UserContext(), condition)
 	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "get departments %+v fail %v", condition, xerr)
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
 		})

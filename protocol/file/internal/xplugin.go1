@@ -2,6 +2,8 @@ package internal
 
 import (
 	"context"
+	"github.com/tus/tusd/pkg/handler"
+	httpApi "github.com/zzy-rabbit/bp/protocol/http/api"
 	uploadApi "github.com/zzy-rabbit/bp/protocol/upload/api"
 	logApi "github.com/zzy-rabbit/bp/tool/log/api"
 	fileApi "github.com/zzy-rabbit/patrol/logic/file/api"
@@ -11,6 +13,7 @@ import (
 type service struct {
 	IFile   fileApi.IPlugin   `xplugin:"patrol.logic.file"`
 	ILogger logApi.IPlugin    `xplugin:"bp.tool.log"`
+	IHttp   httpApi.IPlugin   `xplugin:"bp.protocol.http"`
 	IUpload uploadApi.IPlugin `xplugin:"bp.protocol.upload"`
 }
 
@@ -29,6 +32,12 @@ func (s *service) Init(ctx context.Context, initParam string) error {
 
 func (s *service) Run(ctx context.Context, runParam string) error {
 	s.ILogger.Info(ctx, "plugin %s run success", s.GetName(ctx))
+	s.IUpload.SetNotifyCreatedCallback(ctx, func(ctx context.Context, event handler.HookEvent) {
+		s.ILogger.Info(ctx, "upload created %+v", event)
+	})
+	s.IUpload.SetNotifyCompletedCallback(ctx, func(ctx context.Context, event handler.HookEvent) {
+		s.ILogger.Info(ctx, "upload created %+v", event)
+	})
 	return nil
 }
 

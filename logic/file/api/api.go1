@@ -1,6 +1,9 @@
 package api
 
 import (
+	"context"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
 	"github.com/zzy-rabbit/xtools/xplugin"
 )
 
@@ -10,4 +13,6 @@ const (
 
 type IPlugin interface {
 	xplugin.IPlugin
+	CommitFile(ctx context.Context, session model.FileCommit) (model.File, xerror.IError)
+	DeleteFile(ctx context.Context, sessions ...string) xerror.IError
 }
