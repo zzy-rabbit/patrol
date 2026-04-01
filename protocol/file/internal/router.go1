@@ -8,6 +8,9 @@ import (
 func (s *service) registerRouter(fiberApp *fiber.App) {
 	group := fiberApp.Group(
 		"/patrol/api/v1/file",
+		s.IHttp.TimingMiddleware(func(ctx *fiber.Ctx) bool {
+			return true
+		}),
 		func(c *fiber.Ctx) error {
 			err := c.Next() // 先执行 tus
 			c.Response().Header.Del("Access-Control-Allow-Origin")
