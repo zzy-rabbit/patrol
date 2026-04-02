@@ -8,7 +8,7 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/tus/tusd v1.13.0
-	github.com/zzy-rabbit/bp v0.0.0-20260401160600-776f6d6d8df1
+	github.com/zzy-rabbit/bp v0.0.0-20260402035440-ec2a3114f995
 	github.com/zzy-rabbit/xtools v0.0.0-20260401020547-e83484b35bd5
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.1
