@@ -11,6 +11,7 @@ const (
 type FileCommit struct {
 	Session string   `json:"session"`
 	Type    FileType `json:"type"`
+	Ext     string   `json:"ext"`
 }
 
 type File struct {

@@ -6,7 +6,7 @@ import (
 	"github.com/zzy-rabbit/xtools/xerror"
 )
 
-func (s *service) CommitFile(ctx context.Context, session model.FileCommit) (model.File, xerror.IError) {
+func (s *service) CommitFile(ctx context.Context, session model.FileCommit, filePath string) (model.File, xerror.IError) {
 	return model.File{}, nil
 }
 

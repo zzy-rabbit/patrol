@@ -8,6 +8,10 @@ const (
 	PluginName = "patrol.protocol.file"
 )
 
+type Config struct {
+	Path string `json:"path"`
+}
+
 type IPlugin interface {
 	xplugin.IPlugin
 }

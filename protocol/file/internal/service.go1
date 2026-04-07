@@ -2,9 +2,11 @@ package internal
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	bpmodel "github.com/zzy-rabbit/bp/model"
 	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/xtools/xerror"
+	"path/filepath"
 )
 
 func (s *service) CommitFile(ctx *fiber.Ctx) error {
@@ -17,9 +19,19 @@ func (s *service) CommitFile(ctx *fiber.Ctx) error {
 			IError: xerr,
 		})
 	}
-	file, xerr := s.IFile.CommitFile(ctx.UserContext(), commit)
+
+	filePath := filepath.Join(s.config.Path, uuid.New().String()+commit.Ext)
+	xerr = s.IUpload.MoveFile(ctx.UserContext(), commit.Session, filePath)
 	if xerror.Error(xerr) {
-		s.ILogger.Error(ctx.UserContext(), "commit file %+v fail %v", commit, xerr)
+		s.ILogger.Error(ctx.UserContext(), "move file %+v fail %v", commit, xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+
+	file, xerr := s.IFile.CommitFile(ctx.UserContext(), commit, filePath)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "commit file %+v from %s fail %v", commit, filePath, xerr)
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
 		})
