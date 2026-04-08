@@ -1161,8 +1161,8 @@ github.com/yuin/goldmark v1.4.1/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 github.com/zeebo/assert v1.3.0/go.mod h1:Pq9JiuJQpG8JLJdtkwrJESF0Foym2/D9XMU5ciN/wJ0=
 github.com/zeebo/xxh3 v1.0.2/go.mod h1:5NWz9Sef7zIDm2JHfFlcQvNekmcEl9ekUZQQKCYaDcA=
-github.com/zzy-rabbit/bp v0.0.0-20260407131111-66192c4545e5 h1:W++qKosfFfHa13i/fDNOStt6bkXo3p+AtUsImWCPzs0=
-github.com/zzy-rabbit/bp v0.0.0-20260407131111-66192c4545e5/go.mod h1:2syuSeDGzgSPfVZy8MIFeJXFa2XU2S6kLIvaL3g/VPk=
+github.com/zzy-rabbit/bp v0.0.0-20260408062617-4882f6acb303 h1:Ri9BQWDgeFKXFk6s9GQkl8l5GSGjVhW2aFZBeReNCZE=
+github.com/zzy-rabbit/bp v0.0.0-20260408062617-4882f6acb303/go.mod h1:2syuSeDGzgSPfVZy8MIFeJXFa2XU2S6kLIvaL3g/VPk=
 github.com/zzy-rabbit/xtools v0.0.0-20260407125636-05ca754442e8 h1:2+sT2X00A2MCN/6ZhjZfoxBmco65uz5FZ4U/Ny+vxjw=
 github.com/zzy-rabbit/xtools v0.0.0-20260407125636-05ca754442e8/go.mod h1:bk5kXq9yVoc9Ibj63cd6y7Bjt3VDjeSnmTwXAhAJo84=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
