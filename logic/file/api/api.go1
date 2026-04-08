@@ -13,6 +13,7 @@ const (
 
 type IPlugin interface {
 	xplugin.IPlugin
-	CommitFile(ctx context.Context, session model.FileCommit, filePath string) (model.File, xerror.IError)
-	DeleteFile(ctx context.Context, sessions ...string) xerror.IError
+	CommitFile(ctx context.Context, department string, identify model.Identify, basic model.FileBasic) (model.File, xerror.IError)
+	DeleteFiles(ctx context.Context, department string, files ...model.Identify) xerror.IError
+	GetFiles(ctx context.Context, department string, condition model.FileCondition) ([]model.File, model.PageInfo, xerror.IError)
 }

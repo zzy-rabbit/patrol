@@ -1,0 +1,93 @@
+package internal
+
+import (
+	"context"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+)
+
+func (s *session) AddFile(ctx context.Context, file model.File) (int, xerror.IError) {
+	var table File
+	table.FromModel(file)
+	err := s.db.Create(&table).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "add file %+v fail %v", file, err)
+		return 0, transError(err)
+	}
+	return table.ID, nil
+}
+
+func (s *session) UpdateFile(ctx context.Context, file model.File) xerror.IError {
+	var table File
+	table.FromModel(file)
+	err := s.db.Updates(&table).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "update file %+v fail %v", file, err)
+		return transError(err)
+	}
+	return nil
+}
+
+func (s *session) DeleteFiles(ctx context.Context, identifies ...model.Identify) xerror.IError {
+	ids := make([]string, 0, len(identifies))
+	for _, identify := range identifies {
+		ids = append(ids, identify.ID)
+	}
+
+	tx := s.getTransaction(ctx)
+
+	// 删除file
+	err := tx.db.Where("identify in ?", ids).Delete(&File{}).Error
+	if xerror.Error(err) {
+		tx.Rollback(ctx)
+		s.logger.Error(ctx, "delete files %+v fail %v", ids, err)
+		return transError(err)
+	}
+
+	tx.Commit(ctx)
+	return nil
+}
+
+func (s *session) GetFiles(ctx context.Context, condition model.FileCondition) ([]model.File, model.PageInfo, xerror.IError) {
+	db := s.db
+	if len(condition.IDs) > 0 {
+		db = db.Where("identify in ?", condition.IDs)
+	}
+	if condition.Name != "" {
+		db = db.Where("name like ?", "%"+condition.Name+"%")
+	}
+	if len(condition.Types) > 0 {
+		db = db.Where("type in ?", condition.Types)
+	}
+	if len(condition.Mimes) > 0 {
+		db = db.Where("mime in ?", condition.Mimes)
+	}
+	if len(condition.Path) > 0 {
+		db = db.Where("path like ?", condition.Name+"%")
+	}
+	total := int64(0)
+	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
+		err := db.Count(&total).Error
+		if xerror.Error(err) {
+			s.logger.Error(ctx, "query files count by condition %+v fail %v", condition, err)
+			return nil, model.PageInfo{}, transError(err)
+		}
+		offset := (condition.PageQuery.Num - 1) * condition.PageQuery.Size
+		db = db.Offset(offset).Limit(condition.PageQuery.Size)
+	}
+
+	var tables []File
+	err := db.Find(&tables).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "query files by condition %+v fail %v", condition, err)
+		return nil, model.PageInfo{}, transError(err)
+	}
+	files := make([]model.File, 0, len(tables))
+	for _, table := range tables {
+		files = append(files, table.ToModel())
+	}
+	return files, model.PageInfo{
+		Count: len(tables),
+		Total: int(total),
+	}, nil
+}

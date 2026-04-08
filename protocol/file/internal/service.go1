@@ -20,7 +20,16 @@ func (s *service) CommitFile(ctx *fiber.Ctx) error {
 		})
 	}
 
-	filePath := filepath.Join(s.config.Path, uuid.New().String()+commit.Ext)
+	fileInfo, xerr := s.IUpload.GetFileInfo(ctx.UserContext(), commit.Session)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "get file info %s fail %v", commit.Session, xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+
+	identify := model.Identify{ID: uuid.New().String()}
+	filePath := filepath.Join(s.config.Path, identify.ID)
 	xerr = s.IUpload.MoveFile(ctx.UserContext(), commit.Session, filePath)
 	if xerror.Error(xerr) {
 		s.ILogger.Error(ctx.UserContext(), "move file %+v fail %v", commit, xerr)
@@ -29,9 +38,18 @@ func (s *service) CommitFile(ctx *fiber.Ctx) error {
 		})
 	}
 
-	file, xerr := s.IFile.CommitFile(ctx.UserContext(), commit, filePath)
+	basic := model.FileBasic{
+		Name: fileInfo.Name,
+		Type: commit.Type,
+		Size: int64(fileInfo.Size),
+		Mime: fileInfo.Type,
+		Path: filePath,
+	}
+
+	department := ctx.Get("department")
+	file, xerr := s.IFile.CommitFile(ctx.UserContext(), department, identify, basic)
 	if xerror.Error(xerr) {
-		s.ILogger.Error(ctx.UserContext(), "commit file %+v from %s fail %v", commit, filePath, xerr)
+		s.ILogger.Error(ctx.UserContext(), "commit file basic %+v fail %v", basic, xerr)
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
 		})
@@ -42,7 +60,7 @@ func (s *service) CommitFile(ctx *fiber.Ctx) error {
 	})
 }
 
-func (s *service) DeleteFile(ctx *fiber.Ctx) error {
+func (s *service) RevertFile(ctx *fiber.Ctx) error {
 	var header bpmodel.Header
 	var sessions []string
 	xerr := s.IHttp.ParseBodyParams(ctx, &header, &sessions)
@@ -52,14 +70,62 @@ func (s *service) DeleteFile(ctx *fiber.Ctx) error {
 			IError: xerr,
 		})
 	}
-	xerr = s.IFile.DeleteFile(ctx.UserContext(), sessions...)
+	for _, session := range sessions {
+		xerr = s.IUpload.DeleteFile(ctx.UserContext(), session)
+		if xerror.Error(xerr) {
+			s.ILogger.Error(ctx.UserContext(), "delete file session %s fail %v", session, xerr)
+		}
+	}
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+	})
+}
+
+func (s *service) DeleteFile(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
+	var files []model.Identify
+	xerr := s.IHttp.ParseBodyParams(ctx, &header, &files)
 	if xerror.Error(xerr) {
-		s.ILogger.Error(ctx.UserContext(), "commit file sessions %+v fail %v", sessions, xerr)
+		s.ILogger.Error(ctx.UserContext(), "parse body params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+
+	department := ctx.Get("department")
+	xerr = s.IFile.DeleteFiles(ctx.UserContext(), department, files...)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "delete file %s fail %v", files, xerr)
+	}
+
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+	})
+}
+
+func (s *service) GetFile(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
+	var condition model.FileCondition
+	xerr := s.IHttp.ParseQueryParams(ctx, &header, &condition)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse query params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	department := ctx.Get("department")
+	files, page, xerr := s.IFile.GetFiles(ctx.UserContext(), department, condition)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "department %s get files %+v fail %v", department, condition, xerr)
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
 		})
 	}
 	return ctx.JSON(&bpmodel.HttpResponse{
 		IError: xerror.ErrSuccess,
+		Data: model.PaginatedData[model.File]{
+			PageInfo: page,
+			List:     files,
+		},
 	})
 }

@@ -42,6 +42,11 @@ type ISession interface {
 	UpdatePlan(ctx context.Context, plan model.Plan) xerror.IError
 	DeletePlans(ctx context.Context, plans ...model.Identify) xerror.IError
 	GetPlans(ctx context.Context, condition model.PlanCondition) ([]model.Plan, model.PageInfo, xerror.IError)
+
+	AddFile(ctx context.Context, file model.File) (int, xerror.IError)
+	UpdateFile(ctx context.Context, file model.File) xerror.IError
+	DeleteFiles(ctx context.Context, identifies ...model.Identify) xerror.IError
+	GetFiles(ctx context.Context, condition model.FileCondition) ([]model.File, model.PageInfo, xerror.IError)
 }
 
 type ITransaction interface {

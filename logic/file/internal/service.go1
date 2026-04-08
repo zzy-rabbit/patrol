@@ -2,14 +2,80 @@ package internal
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/xtools/xerror"
+	"github.com/zzy-rabbit/xtools/xtrace"
+	"os"
 )
 
-func (s *service) CommitFile(ctx context.Context, session model.FileCommit, filePath string) (model.File, xerror.IError) {
-	return model.File{}, nil
+func (s *service) CommitFile(ctx context.Context, department string, identify model.Identify, basic model.FileBasic) (model.File, xerror.IError) {
+	defer xtrace.Trace(ctx)(department, identify, basic)
+	if identify.ID == "" {
+		identify.ID = uuid.New().String()
+	}
+	file := model.File{
+		Identify:   identify,
+		FileBasic:  basic,
+		FileExtern: model.FileExtern{},
+	}
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return model.File{}, xerror.Extend(xerror.ErrNotFound, "department %s", department)
+	}
+	_, xerr := database.GetDB(ctx).AddFile(ctx, file)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "department %s add file %+v fail %v", department, file, xerr)
+		return model.File{}, xerr
+	}
+	return file, nil
 }
 
-func (s *service) DeleteFile(ctx context.Context, sessions ...string) xerror.IError {
+func (s *service) DeleteFiles(ctx context.Context, department string, identifies ...model.Identify) xerror.IError {
+	defer xtrace.Trace(ctx)(department, identifies)
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return xerror.Extend(xerror.ErrNotFound, "department %s", department)
+	}
+
+	// 查询文件的详情，用于获取文件路径
+	ids := make([]string, len(identifies))
+	for i, identify := range identifies {
+		ids[i] = identify.ID
+	}
+	files, _, xerr := database.GetDB(ctx).GetFiles(ctx, model.FileCondition{
+		IDs: ids,
+	})
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "department %s get file %+v fail %v", department, files, xerr)
+		return xerr
+	}
+
+	// 从db删除记录
+	xerr = database.GetDB(ctx).DeleteFiles(ctx, identifies...)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "department %s add file %+v fail %v", department, identifies, xerr)
+		return xerr
+	}
+
+	// 删除文件
+	for _, file := range files {
+		err := os.RemoveAll(file.Path)
+		if xerror.Error(err) {
+			s.ILogger.Error(ctx, "department %s delete file %+v fail %v", department, file, err)
+		}
+	}
 	return nil
+}
+
+func (s *service) GetFiles(ctx context.Context, department string, condition model.FileCondition) ([]model.File, model.PageInfo, xerror.IError) {
+	defer xtrace.Trace(ctx)(department, condition)
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return nil, model.PageInfo{}, xerror.Extend(xerror.ErrNotFound, "department "+department)
+	}
+	return database.GetDB(ctx).GetFiles(ctx, condition)
 }

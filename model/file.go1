@@ -11,15 +11,32 @@ const (
 type FileCommit struct {
 	Session string   `json:"session"`
 	Type    FileType `json:"type"`
-	Ext     string   `json:"ext"`
+}
+
+type FileBasic struct {
+	Name string   `json:"name"`
+	Type FileType `json:"type"`
+	Size int64    `json:"size"`
+	Mime string   `json:"mime"`
+	Path string   `json:"path"`
+}
+
+type FileExtern struct {
+	URL  string `json:"url"`
+	Hash string `json:"hash"`
 }
 
 type File struct {
 	Identify
-	Name string   `json:"name"`
-	Type FileType `json:"type"`
-	URL  string   `json:"url"`
-	Mime string   `json:"mime"`
-	Hash string   `json:"hash"`
-	Size int64    `json:"size"`
+	FileBasic
+	FileExtern
+}
+
+type FileCondition struct {
+	*PageQuery
+	IDs   []string `json:"ids"`
+	Name  string   `json:"name"`
+	Types []string `json:"types"`
+	Mimes []string `json:"mimes"`
+	Path  string   `json:"path"`
 }

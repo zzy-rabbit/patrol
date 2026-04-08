@@ -56,3 +56,19 @@ type Plan struct {
 func (*Plan) TableName() string {
 	return "table_plan"
 }
+
+type File struct {
+	ID       int    `gorm:"column:id;primaryKey;autoIncrement"`
+	Identify string `gorm:"column:identify;unique"`
+	Name     string `gorm:"column:name"`
+	Type     int    `gorm:"column:type"`
+	Size     int64  `gorm:"column:size"`
+	Mime     string `gorm:"column:mime"`
+	Path     string `gorm:"column:path"`
+	URL      string `gorm:"column:url"`
+	Hash     string `gorm:"column:hash"`
+}
+
+func (*File) TableName() string {
+	return "table_file"
+}

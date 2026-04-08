@@ -1,0 +1,39 @@
+package internal
+
+import (
+	"context"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+)
+
+func (s *session) SetDepartment(ctx context.Context, department model.Department) xerror.IError {
+	tx := s.getTransaction(ctx)
+
+	err := tx.db.Where("1 = 1").Delete(&Department{}).Error
+	if xerror.Error(err) {
+		tx.Rollback(ctx)
+		s.logger.Error(ctx, "delete department fail %v", err)
+		return transError(err)
+	}
+
+	var table Department
+	table.FromModel(department)
+	err = tx.db.Create(&table).Error
+	if xerror.Error(err) {
+		tx.Rollback(ctx)
+		s.logger.Error(ctx, "add department %+v fail %v", department, err)
+		return transError(err)
+	}
+	tx.Commit(ctx)
+	return nil
+}
+
+func (s *session) GetDepartment(ctx context.Context) (model.Department, xerror.IError) {
+	var table Department
+	err := s.db.Where("1 = 1").First(&table).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "query department fail %v", err)
+		return model.Department{}, transError(err)
+	}
+	return table.ToModel(), nil
+}

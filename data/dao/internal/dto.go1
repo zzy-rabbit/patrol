@@ -88,3 +88,33 @@ func (p *Plan) ToModel() model.Plan {
 		Users:  users,
 	}
 }
+
+func (f *File) FromModel(m model.File) {
+	f.Identify = m.Identify.ID
+	f.Name = m.Name
+	f.Type = int(m.Type)
+	f.Size = m.Size
+	f.Mime = m.Mime
+	f.Path = m.Path
+	f.URL = m.URL
+	f.Hash = m.Hash
+}
+
+func (f *File) ToModel() model.File {
+	return model.File{
+		Identify: model.Identify{
+			ID: f.Identify,
+		},
+		FileBasic: model.FileBasic{
+			Name: f.Name,
+			Type: model.FileType(f.Type),
+			Size: f.Size,
+			Mime: f.Mime,
+			Path: f.Path,
+		},
+		FileExtern: model.FileExtern{
+			URL:  f.URL,
+			Hash: f.Hash,
+		},
+	}
+}
