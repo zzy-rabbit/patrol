@@ -297,3 +297,100 @@ func (s *service) GetPlans(ctx *fiber.Ctx) error {
 		},
 	})
 }
+
+func (s *service) AddCheckPoint(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
+	var checkPoint model.CheckPoint
+	xerr := s.IHttp.ParseBodyParams(ctx, &header, &checkPoint)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse body params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	department := ctx.Get("department")
+	identify, xerr := s.IConfig.AddCheckPoint(ctx.UserContext(), department, checkPoint)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "department %s add checkPoint %+v fail %v", department, checkPoint, xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+		Data:   identify,
+	})
+}
+
+func (s *service) UpdateCheckPoint(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
+	var checkPoint model.CheckPoint
+	xerr := s.IHttp.ParseBodyParams(ctx, &header, &checkPoint)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse body params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	department := ctx.Get("department")
+	xerr = s.IConfig.UpdateCheckPoint(ctx.UserContext(), department, checkPoint)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "department %s update checkPoint %+v fail %v", department, checkPoint, xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+	})
+}
+
+func (s *service) DeleteCheckPoints(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
+	var checkPoints []model.Identify
+	xerr := s.IHttp.ParseBodyParams(ctx, &header, &checkPoints)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse body params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	department := ctx.Get("department")
+	xerr = s.IConfig.DeleteCheckPoints(ctx.UserContext(), department, checkPoints...)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "department %s delete checkPoints %+v fail %v", department, checkPoints, xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+	})
+}
+
+func (s *service) GetCheckPoints(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
+	var condition model.CheckPointCondition
+	xerr := s.IHttp.ParseQueryParams(ctx, &header, &condition)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse query params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	department := ctx.Get("department")
+	checkPoints, page, xerr := s.IConfig.GetCheckPoints(ctx.UserContext(), department, condition)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "department %s get checkPoints %+v fail %v", department, condition, xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+		Data: model.PaginatedData[model.CheckPoint]{
+			PageInfo: page,
+			List:     checkPoints,
+		},
+	})
+}

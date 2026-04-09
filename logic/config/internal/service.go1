@@ -151,3 +151,51 @@ func (s *service) GetPlans(ctx context.Context, department string, condition mod
 	}
 	return database.GetDB(ctx).GetPlans(ctx, condition)
 }
+
+func (s *service) AddCheckPoint(ctx context.Context, department string, checkPoint model.CheckPoint) (model.Identify, xerror.IError) {
+	defer xtrace.Trace(ctx)(department, checkPoint)
+	if checkPoint.ID == "" {
+		checkPoint.ID = uuid.New().String()
+	}
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return model.Identify{}, xerror.Extend(xerror.ErrNotFound, "department "+department)
+	}
+	_, xerr := database.GetDB(ctx).AddCheckPoint(ctx, checkPoint)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "department %s add checkPoint %+v fail %v", department, checkPoint, xerr)
+		return model.Identify{}, xerr
+	}
+	return checkPoint.Identify, nil
+}
+
+func (s *service) UpdateCheckPoint(ctx context.Context, department string, checkPoint model.CheckPoint) xerror.IError {
+	defer xtrace.Trace(ctx)(department, checkPoint)
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return xerror.Extend(xerror.ErrNotFound, "department "+department)
+	}
+	return database.GetDB(ctx).UpdateCheckPoint(ctx, checkPoint)
+}
+
+func (s *service) DeleteCheckPoints(ctx context.Context, department string, checkPoints ...model.Identify) xerror.IError {
+	defer xtrace.Trace(ctx)(department, checkPoints)
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return xerror.Extend(xerror.ErrNotFound, "department "+department)
+	}
+	return database.GetDB(ctx).DeleteCheckPoints(ctx, checkPoints...)
+}
+
+func (s *service) GetCheckPoints(ctx context.Context, department string, condition model.CheckPointCondition) ([]model.CheckPoint, model.PageInfo, xerror.IError) {
+	defer xtrace.Trace(ctx)(department, condition)
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return nil, model.PageInfo{}, xerror.Extend(xerror.ErrNotFound, "department "+department)
+	}
+	return database.GetDB(ctx).GetCheckPoints(ctx, condition)
+}

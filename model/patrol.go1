@@ -138,9 +138,21 @@ type PlanCondition struct {
 }
 
 type CheckPoint struct {
+	Identify
 	User   string   `json:"user"`
 	Serial string   `json:"serial"`
 	Time   DateTime `json:"time"`
+	Remark string   `json:"remark"`
+	Files  []string `json:"files"`
+}
+
+type CheckPointCondition struct {
+	*PageQuery
+	IDs        []string `json:"ids"`
+	Users      []string `json:"users"`
+	Serials    []string `json:"serials"`
+	TimeBefore DateTime `json:"time_before"`
+	TimeAfter  DateTime `json:"time_after"`
 }
 
 type TaskPointStatus int

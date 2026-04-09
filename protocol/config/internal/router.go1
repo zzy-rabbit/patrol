@@ -23,12 +23,12 @@ func (s *service) registerRouter(fiberApp *fiber.App) {
 	planGroup.Delete("", s.DeletePlans)
 	planGroup.Get("", s.GetPlans)
 
-	//checkPointGroup := s.fiberApp.Group("/api/v1/check-point")
-	//checkPointGroup.Post("add", nil)
-	//checkPointGroup.Post("update", nil)
-	//checkPointGroup.Delete("", nil)
-	//checkPointGroup.Get("", nil)
-	//
+	checkPointGroup := configGroup.Group("check-point")
+	checkPointGroup.Post("add", s.AddCheckPoint)
+	checkPointGroup.Post("update", s.UpdateCheckPoint)
+	checkPointGroup.Delete("", s.DeleteCheckPoints)
+	checkPointGroup.Get("", s.GetCheckPoints)
+
 	//scheduleGroup := s.fiberApp.Group("/api/v1/schedule")
 	//scheduleGroup.Post("add", nil)
 	//scheduleGroup.Post("update", nil)

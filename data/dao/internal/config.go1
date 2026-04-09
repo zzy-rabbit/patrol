@@ -373,3 +373,84 @@ func (s *session) DeleteUsersFromPlans(ctx context.Context, users []string) xerr
 	}
 	return nil
 }
+
+func (s *session) AddCheckPoint(ctx context.Context, checkPoint model.CheckPoint) (int, xerror.IError) {
+	var table CheckPoint
+	table.FromModel(checkPoint)
+	err := s.db.Create(&table).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "add checkPoint %+v fail %v", checkPoint, err)
+		return 0, transError(err)
+	}
+	return table.ID, nil
+}
+
+func (s *session) UpdateCheckPoint(ctx context.Context, checkPoint model.CheckPoint) xerror.IError {
+	var table CheckPoint
+	table.FromModel(checkPoint)
+	err := s.db.Updates(&table).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "update checkPoint %+v fail %v", checkPoint, err)
+		return transError(err)
+	}
+	return nil
+}
+
+func (s *session) DeleteCheckPoints(ctx context.Context, identifies ...model.Identify) xerror.IError {
+	ids := make([]string, 0, len(identifies))
+	for _, identify := range identifies {
+		ids = append(ids, identify.ID)
+	}
+	// 删除checkPoint
+	err := s.db.Where("identify in ?", ids).Delete(&Router{}).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "delete checkPoints %+v fail %v", ids, err)
+		return transError(err)
+	}
+	return nil
+}
+
+func (s *session) GetCheckPoints(ctx context.Context, condition model.CheckPointCondition) ([]model.CheckPoint, model.PageInfo, xerror.IError) {
+	db := s.db
+	if len(condition.IDs) > 0 {
+		db = db.Where("identify in ?", condition.IDs)
+	}
+	if len(condition.Users) > 0 {
+		db = db.Where("user in ?", condition.Users)
+	}
+	if len(condition.Serials) > 0 {
+		db = db.Where("serial in ?", condition.Serials)
+	}
+	if !condition.TimeBefore.IsZero() {
+		db = db.Where("util <= ?", condition.TimeBefore.Format("2006-01-02 15:04:05"))
+	}
+	if !condition.TimeAfter.IsZero() {
+		db = db.Where("util >= ?", condition.TimeAfter.Format("2006-01-02 15:04:05"))
+	}
+
+	total := int64(0)
+	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
+		err := db.Count(&total).Error
+		if xerror.Error(err) {
+			s.logger.Error(ctx, "query checkPoints count by condition %+v fail %v", condition, err)
+			return nil, model.PageInfo{}, transError(err)
+		}
+		offset := (condition.PageQuery.Num - 1) * condition.PageQuery.Size
+		db = db.Offset(offset).Limit(condition.PageQuery.Size)
+	}
+
+	var tables []CheckPoint
+	err := db.Find(&tables).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "query checkPoints by condition %+v fail %v", condition, err)
+		return nil, model.PageInfo{}, transError(err)
+	}
+	checkPoints := make([]model.CheckPoint, 0, len(tables))
+	for _, table := range tables {
+		checkPoints = append(checkPoints, table.ToModel())
+	}
+	return checkPoints, model.PageInfo{
+		Count: len(tables),
+		Total: int(total),
+	}, nil
+}

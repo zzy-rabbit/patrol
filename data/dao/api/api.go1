@@ -43,6 +43,11 @@ type ISession interface {
 	DeletePlans(ctx context.Context, plans ...model.Identify) xerror.IError
 	GetPlans(ctx context.Context, condition model.PlanCondition) ([]model.Plan, model.PageInfo, xerror.IError)
 
+	AddCheckPoint(ctx context.Context, checkPoint model.CheckPoint) (int, xerror.IError)
+	UpdateCheckPoint(ctx context.Context, checkPoint model.CheckPoint) xerror.IError
+	DeleteCheckPoints(ctx context.Context, checkPoints ...model.Identify) xerror.IError
+	GetCheckPoints(ctx context.Context, condition model.CheckPointCondition) ([]model.CheckPoint, model.PageInfo, xerror.IError)
+
 	AddFile(ctx context.Context, file model.File) (int, xerror.IError)
 	UpdateFile(ctx context.Context, file model.File) xerror.IError
 	DeleteFiles(ctx context.Context, identifies ...model.Identify) xerror.IError

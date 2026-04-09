@@ -89,6 +89,29 @@ func (p *Plan) ToModel() model.Plan {
 	}
 }
 
+func (p *CheckPoint) FromModel(m model.CheckPoint) {
+	p.Identify = m.Identify.ID
+	p.Serial = m.Serial
+	p.Time = m.Time.Time
+	p.Remark = m.Remark
+	files := make([]string, len(p.Files))
+	copy(files, p.Files)
+}
+
+func (p *CheckPoint) ToModel() model.CheckPoint {
+	files := make([]string, len(p.Files))
+	copy(files, p.Files)
+	return model.CheckPoint{
+		Identify: model.Identify{
+			ID: p.Identify,
+		},
+		Serial: p.Serial,
+		Time:   model.NewDateTime(p.Time),
+		Remark: p.Remark,
+		Files:  files,
+	}
+}
+
 func (f *File) FromModel(m model.File) {
 	f.Identify = m.Identify.ID
 	f.Name = m.Name
