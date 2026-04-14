@@ -1,0 +1,57 @@
+package internal
+
+import (
+	"context"
+	"github.com/google/uuid"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+	"github.com/zzy-rabbit/xtools/xtrace"
+)
+
+func (s *service) AddUser(ctx context.Context, department string, user model.User) (model.Identify, xerror.IError) {
+	defer xtrace.Trace(ctx)(department, user)
+	if user.ID == "" {
+		user.ID = uuid.New().String()
+	}
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return model.Identify{}, xerror.Extend(xerror.ErrNotFound, "department %s", department)
+	}
+	_, xerr := database.GetDB(ctx).AddUser(ctx, user)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "department %s add user %+v fail %v", department, user, xerr)
+		return model.Identify{}, xerr
+	}
+	return user.Identify, nil
+}
+
+func (s *service) UpdateUser(ctx context.Context, department string, user model.User) xerror.IError {
+	defer xtrace.Trace(ctx)(department, user)
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return xerror.Extend(xerror.ErrNotFound, "department %s", department)
+	}
+	return database.GetDB(ctx).UpdateUser(ctx, user)
+}
+
+func (s *service) DeleteUsers(ctx context.Context, department string, users ...model.Identify) xerror.IError {
+	defer xtrace.Trace(ctx)(department, users)
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return xerror.Extend(xerror.ErrNotFound, "department %s", department)
+	}
+	return database.GetDB(ctx).DeleteUsers(ctx, users...)
+}
+
+func (s *service) GetUsers(ctx context.Context, department string, condition model.UserCondition) ([]model.User, model.PageInfo, xerror.IError) {
+	defer xtrace.Trace(ctx)(department, condition)
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return nil, model.PageInfo{}, xerror.Extend(xerror.ErrNotFound, "department %s", department)
+	}
+	return database.GetDB(ctx).GetUsers(ctx, condition)
+}

@@ -22,9 +22,11 @@ import (
 	_ "github.com/zzy-rabbit/patrol/logic/executor"
 	_ "github.com/zzy-rabbit/patrol/logic/file"
 	_ "github.com/zzy-rabbit/patrol/logic/trigger"
+	_ "github.com/zzy-rabbit/patrol/logic/user"
 
 	_ "github.com/zzy-rabbit/patrol/protocol/authorization"
 	_ "github.com/zzy-rabbit/patrol/protocol/config"
 	_ "github.com/zzy-rabbit/patrol/protocol/department"
 	_ "github.com/zzy-rabbit/patrol/protocol/file"
+	_ "github.com/zzy-rabbit/patrol/protocol/user"
 )

@@ -1,0 +1,20 @@
+package api
+
+import (
+	"context"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+	"github.com/zzy-rabbit/xtools/xplugin"
+)
+
+const (
+	PluginName = "patrol.logic.user"
+)
+
+type IPlugin interface {
+	xplugin.IPlugin
+	AddUser(ctx context.Context, department string, user model.User) (model.Identify, xerror.IError)
+	UpdateUser(ctx context.Context, department string, user model.User) xerror.IError
+	DeleteUsers(ctx context.Context, department string, users ...model.Identify) xerror.IError
+	GetUsers(ctx context.Context, department string, condition model.UserCondition) ([]model.User, model.PageInfo, xerror.IError)
+}

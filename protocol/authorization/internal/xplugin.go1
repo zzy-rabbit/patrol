@@ -3,23 +3,33 @@ package internal
 import (
 	"context"
 	"encoding/json"
+	httpApi "github.com/zzy-rabbit/bp/protocol/http/api"
 	encryptApi "github.com/zzy-rabbit/bp/tool/encrypt/api"
 	logApi "github.com/zzy-rabbit/bp/tool/log/api"
+	userApi "github.com/zzy-rabbit/patrol/logic/user/api"
+	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/patrol/protocol/authorization/api"
 	"github.com/zzy-rabbit/xtools/xerror"
+	"sync"
 )
 
 type service struct {
+	IHttp     httpApi.IPlugin    `xplugin:"bp.protocol.http"`
 	ILogger   logApi.IPlugin     `xplugin:"bp.tool.log"`
 	IEncrypt  encryptApi.IPlugin `xplugin:"bp.tool.encrypt"`
+	IUser     userApi.IPlugin    `xplugin:"patrol.logic.user"`
 	encoder   encryptApi.IProcessor
 	decoder   encryptApi.IProcessor
 	config    api.Config
 	secretKey []byte
+
+	mutex    sync.RWMutex
+	tokenMap map[string]model.Authorization
+	cancel   context.CancelFunc
 }
 
 func New(ctx context.Context) api.IPlugin {
-	return &service{}
+	return &service{tokenMap: make(map[string]model.Authorization)}
 }
 
 func (s *service) GetName(ctx context.Context) string {
@@ -32,7 +42,7 @@ func (s *service) Init(ctx context.Context, initParam string) error {
 		s.ILogger.Error(ctx, "plugin %s init fail %v", s.GetName(ctx), err)
 		return err
 	}
-	s.secretKey = generateRandomKey(ctx, s.config.SecretKeyLength)
+	s.secretKey = generateRandomKey(ctx, s.config.KeyLength)
 
 	s.encoder = s.IEncrypt.Workflow(ctx,
 		s.IEncrypt.NewAESEncoder(ctx, []byte(s.secretKey)),
@@ -42,6 +52,12 @@ func (s *service) Init(ctx context.Context, initParam string) error {
 		s.IEncrypt.NewBase64Decoder(ctx),
 		s.IEncrypt.NewAESDecoder(ctx, []byte(s.secretKey)),
 	)
+
+	s.IHttp.Register(ctx, s.registerRouter)
+
+	ctx, cancel := context.WithCancel(ctx)
+	s.startMonitor(ctx)
+	s.cancel = cancel
 
 	s.ILogger.Info(ctx, "plugin %s init success", s.GetName(ctx))
 	return nil
@@ -53,6 +69,7 @@ func (s *service) Run(ctx context.Context, runParam string) error {
 }
 
 func (s *service) Stop(ctx context.Context, stopParam string) error {
+	s.cancel()
 	s.ILogger.Info(ctx, "plugin %s stop success", s.GetName(ctx))
 	return nil
 }

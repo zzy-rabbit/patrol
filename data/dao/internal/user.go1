@@ -1,0 +1,80 @@
+package internal
+
+import (
+	"context"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+)
+
+func (s *session) AddUser(ctx context.Context, user model.User) (int, xerror.IError) {
+	var table User
+	table.FromModel(user)
+	err := s.db.Create(&table).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "add user %+v fail %v", user, err)
+		return 0, transError(err)
+	}
+	return table.ID, nil
+}
+
+func (s *session) UpdateUser(ctx context.Context, user model.User) xerror.IError {
+	var table User
+	table.FromModel(user)
+	err := s.db.Updates(&table).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "update user %+v fail %v", user, err)
+		return transError(err)
+	}
+	return nil
+}
+
+func (s *session) DeleteUsers(ctx context.Context, identifies ...model.Identify) xerror.IError {
+	ids := make([]string, 0, len(identifies))
+	for _, identify := range identifies {
+		ids = append(ids, identify.ID)
+	}
+
+	// 删除user
+	err := s.db.Where("identify in ?", ids).Delete(&User{}).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "delete users %+v fail %v", ids, err)
+		return transError(err)
+	}
+	return nil
+}
+
+func (s *session) GetUsers(ctx context.Context, condition model.UserCondition) ([]model.User, model.PageInfo, xerror.IError) {
+	db := s.db
+	if len(condition.IDs) > 0 {
+		db = db.Where("identify in ?", condition.IDs)
+	}
+	if condition.Name != "" {
+		db = db.Where("name like ?", "%"+condition.Name+"%")
+	}
+	total := int64(0)
+	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
+		err := db.Count(&total).Error
+		if xerror.Error(err) {
+			s.logger.Error(ctx, "query users count by condition %+v fail %v", condition, err)
+			return nil, model.PageInfo{}, transError(err)
+		}
+		offset := (condition.PageQuery.Num - 1) * condition.PageQuery.Size
+		db = db.Offset(offset).Limit(condition.PageQuery.Size)
+	}
+
+	var tables []User
+	err := db.Find(&tables).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "query users by condition %+v fail %v", condition, err)
+		return nil, model.PageInfo{}, transError(err)
+	}
+	users := make([]model.User, 0, len(tables))
+	for _, table := range tables {
+		table.Password = ""
+		users = append(users, table.ToModel())
+	}
+	return users, model.PageInfo{
+		Count: len(tables),
+		Total: int(total),
+	}, nil
+}

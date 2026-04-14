@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"github.com/gofiber/fiber/v2"
+	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"github.com/zzy-rabbit/xtools/xplugin"
 )
@@ -12,15 +13,14 @@ const (
 )
 
 type Config struct {
-	SecretKeyLength int `json:"secret_key_length"`
-}
-
-type AuthClaim struct {
+	KeyLength int `json:"key_length"`
+	Expire    int `json:"expire"`
+	Interval  int `json:"interval"`
 }
 
 type IPlugin interface {
 	xplugin.IPlugin
-	GenerateToken(ctx context.Context, plaintext []byte) ([]byte, xerror.IError)
-	ParseToken(ctx context.Context, ciphertext []byte) ([]byte, xerror.IError)
-	Middleware(ctx context.Context, checks ...func(ctx context.Context, claim AuthClaim) xerror.IError) fiber.Handler
+	GenerateToken(ctx context.Context, user string, expire int) ([]byte, xerror.IError)
+	ParseToken(ctx context.Context, ciphertext []byte) (model.Authorization, xerror.IError)
+	Middleware(ctx context.Context, checks ...func(ctx context.Context, claim model.Authorization) xerror.IError) fiber.Handler
 }

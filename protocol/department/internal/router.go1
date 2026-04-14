@@ -10,7 +10,7 @@ func (s *service) registerRouter(ctx context.Context, fiberApp *fiber.App) {
 		"/patrol/api/v1/department",
 		s.IHttp.CORSMiddleware(),
 		s.IHttp.TimingMiddleware(),
-		s.IAuth.Middleware(ctx),
+		//s.IAuth.Middleware(ctx),
 	)
 	departmentGroup.Post("add", s.AddDepartment)
 	departmentGroup.Post("update", s.UpdateDepartment)

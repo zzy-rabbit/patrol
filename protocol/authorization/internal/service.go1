@@ -4,64 +4,104 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gofiber/fiber/v2"
-	"github.com/zzy-rabbit/bp/model"
-	"github.com/zzy-rabbit/patrol/protocol/authorization/api"
+	"github.com/google/uuid"
+	bpmodel "github.com/zzy-rabbit/bp/model"
+	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/xtools/xerror"
+	"time"
 )
 
-func (s *service) GenerateToken(ctx context.Context, plaintext []byte) ([]byte, xerror.IError) {
-	ciphertext, err := s.encoder.Process(ctx, plaintext)
-	if err != nil {
-		s.ILogger.Error(ctx, "encode plaintext %+v fail %v", plaintext, err)
-		return nil, xerror.Extend(xerror.ErrInternalError, "encode plaintext fail: %v", err)
+func (s *service) GenerateToken(ctx context.Context, user string, expire int) ([]byte, xerror.IError) {
+	claim := model.Authorization{
+		User:   user,
+		UUID:   uuid.New().String(),
+		Time:   model.NewDateTime(time.Now()),
+		Expire: expire,
 	}
+	plaintext, err := json.Marshal(claim)
+	if xerror.Error(err) {
+		s.ILogger.Error(ctx, "json marshal claim %+v fail %v", claim, err)
+		return nil, xerror.Extend(xerror.ErrInternalError, "json marshal claim fail: %v", err)
+	}
+	ciphertext, xerr := s.encoder.Process(ctx, plaintext)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "encode plaintext %+v fail %v", plaintext, xerr)
+		return nil, xerr
+	}
+
+	s.mutex.Lock()
+	s.tokenMap[string(ciphertext)] = claim
+	s.mutex.Unlock()
+
 	return ciphertext, nil
 }
 
-func (s *service) ParseToken(ctx context.Context, ciphertext []byte) ([]byte, xerror.IError) {
-	plaintext, err := s.decoder.Process(ctx, ciphertext)
-	if err != nil {
-		s.ILogger.Error(ctx, "decode ciphertext %+v fail %v", ciphertext, err)
-		return nil, xerror.Extend(xerror.ErrInternalError, "decode plaintext fail: %v", err)
+func (s *service) ParseToken(ctx context.Context, ciphertext []byte) (model.Authorization, xerror.IError) {
+	plaintext, xerr := s.decoder.Process(ctx, ciphertext)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "decode ciphertext %+v fail %v", ciphertext, xerr)
+		return model.Authorization{}, xerr
 	}
-	return plaintext, nil
+	var claim model.Authorization
+	err := json.Unmarshal(plaintext, &claim)
+	if xerror.Error(err) {
+		s.ILogger.Error(ctx, "json unmarshal plaintext %+v fail %v", plaintext, err)
+		return model.Authorization{}, xerror.Extend(xerror.ErrInternalError, "json unmarshal plaintext fail: %v", err)
+	}
+	return claim, nil
 }
 
-func (s *service) Middleware(ctx context.Context, checks ...func(ctx context.Context, claim api.AuthClaim) xerror.IError) fiber.Handler {
+func (s *service) Middleware(ctx context.Context, checks ...func(ctx context.Context, claim model.Authorization) xerror.IError) fiber.Handler {
 	return func(fiberCtx *fiber.Ctx) error {
-		return fiberCtx.Next()
 		token := fiberCtx.Get("authorization")
 		if token == "" {
-			return fiberCtx.JSON(model.HttpResponse{
+			s.ILogger.Error(fiberCtx.UserContext(), "authorization empty")
+			return fiberCtx.JSON(bpmodel.HttpResponse{
 				IError: xerror.ErrAuthenticationFail,
 				Data:   struct{}{},
 			})
 		}
 
-		plaintext, xerr := s.ParseToken(fiberCtx.UserContext(), []byte(token))
-		if xerror.Error(xerr) {
-			s.ILogger.Error(ctx, "parse token %+v fail %v", token, xerr)
-			return fiberCtx.JSON(model.HttpResponse{
-				IError: xerr,
+		s.mutex.RLock()
+		cacheClaim, ok := s.tokenMap[string(token)]
+		s.mutex.RUnlock()
+		if !ok {
+			s.ILogger.Error(fiberCtx.UserContext(), "token %+v not exist", token)
+			return fiberCtx.JSON(bpmodel.HttpResponse{
+				IError: xerror.ErrAuthenticationFail,
 				Data:   struct{}{},
 			})
 		}
 
-		var claim api.AuthClaim
-		err := json.Unmarshal(plaintext, &claim)
-		if err != nil {
-			s.ILogger.Error(ctx, "parse plaintext %+v fail %v", plaintext, err)
-			return fiberCtx.JSON(model.HttpResponse{
-				IError: xerror.Extend(xerror.ErrInternalError, "parse plaintext fail: %v", err),
+		//claim, xerr := s.ParseToken(fiberCtx.UserContext(), []byte(token))
+		//if xerror.Error(xerr) {
+		//	s.ILogger.Error(fiberCtx.UserContext(), "parse token %+v fail %v", token, xerr)
+		//	return fiberCtx.JSON(bpmodel.HttpResponse{
+		//		IError: xerr,
+		//		Data:   struct{}{},
+		//	})
+		//}
+		//if cacheClaim.User != claim.User && cacheClaim.UUID != claim.UUID {
+		//	s.ILogger.Error(fiberCtx.UserContext(), "parse token %+v not match cache %+v", claim, cacheClaim)
+		//	return fiberCtx.JSON(bpmodel.HttpResponse{
+		//		IError: xerror.ErrAuthenticationFail,
+		//		Data:   struct{}{},
+		//	})
+		//}
+
+		if time.Now().After(cacheClaim.Time.Add(time.Duration(cacheClaim.Expire) * time.Second)) {
+			s.ILogger.Error(fiberCtx.UserContext(), "token %+v expired", token)
+			return fiberCtx.JSON(bpmodel.HttpResponse{
+				IError: xerror.ErrAuthenticationFail,
 				Data:   struct{}{},
 			})
 		}
 
 		for _, check := range checks {
-			xerr = check(fiberCtx.UserContext(), claim)
+			xerr := check(fiberCtx.UserContext(), cacheClaim)
 			if xerror.Error(xerr) {
-				s.ILogger.Error(ctx, "check token %+v fail %v", token, xerr)
-				return fiberCtx.JSON(model.HttpResponse{
+				s.ILogger.Error(fiberCtx.UserContext(), "check token %+v claim %+v fail %v", token, cacheClaim, xerr)
+				return fiberCtx.JSON(bpmodel.HttpResponse{
 					IError: xerr,
 					Data:   struct{}{},
 				})
@@ -69,4 +109,59 @@ func (s *service) Middleware(ctx context.Context, checks ...func(ctx context.Con
 		}
 		return fiberCtx.Next()
 	}
+}
+
+func (s *service) Login(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
+	var user model.User
+	xerr := s.IHttp.ParseBodyParams(ctx, &header, &user)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse body params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	department := ctx.Get("department")
+
+	users, _, xerr := s.IUser.GetUsers(ctx.UserContext(), department, model.UserCondition{IDs: []string{user.ID}})
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "get user %s fail %v", user.ID, xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	if len(users) == 0 {
+		s.ILogger.Error(ctx.UserContext(), "user %s not exist", user.ID)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerror.Extend(xerror.ErrNotFound, "user %s", user.ID),
+		})
+	}
+	if users[0].Password != user.Password {
+		s.ILogger.Error(ctx.UserContext(), "user %s password error", user.ID)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerror.Extend(xerror.ErrAuthenticationFail, "user %s password not correct", user.ID),
+		})
+	}
+
+	token, xerr := s.GenerateToken(ctx.UserContext(), users[0].ID, s.config.Expire)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "generate token fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+		Data:   map[string]any{"token": string(token)},
+	})
+}
+
+func (s *service) Logout(ctx *fiber.Ctx) error {
+	s.mutex.Lock()
+	delete(s.tokenMap, ctx.Get("authorization"))
+	s.mutex.Unlock()
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+	})
 }

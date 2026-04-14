@@ -141,3 +141,21 @@ func (f *File) ToModel() model.File {
 		},
 	}
 }
+
+func (u *User) FromModel(m model.User) {
+	u.Identify = m.Identify.ID
+	u.Name = m.Name
+	u.Password = m.Password
+	u.Profile = m.Profile
+}
+
+func (u *User) ToModel() model.User {
+	return model.User{
+		Identify: model.Identify{
+			ID: u.Identify,
+		},
+		Name:     u.Name,
+		Password: u.Password,
+		Profile:  u.Profile,
+	}
+}

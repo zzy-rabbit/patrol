@@ -1,0 +1,8 @@
+package model
+
+type Authorization struct {
+	User   string   `json:"user"`
+	UUID   string   `json:"uuid"`
+	Time   DateTime `json:"time"`
+	Expire int      `json:"expire"`
+}

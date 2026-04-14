@@ -1,0 +1,14 @@
+package model
+
+type User struct {
+	Identify
+	Name     string `json:"name"`
+	Password string `json:"password"`
+	Profile  string `json:"profile"`
+}
+
+type UserCondition struct {
+	*PageQuery
+	IDs  []string `json:"ids"`
+	Name string   `json:"name"`
+}

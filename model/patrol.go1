@@ -162,11 +162,6 @@ const (
 	TaskPointStatusLeak                              // 漏巡
 )
 
-type User struct {
-	Identify
-	Name string `json:"name"`
-}
-
 type TaskPointUserResult struct {
 	Time DateTime `json:"time"`
 	User string   `json:"users"`

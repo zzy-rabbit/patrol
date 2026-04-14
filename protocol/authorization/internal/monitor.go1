@@ -1,0 +1,37 @@
+package internal
+
+import (
+	"context"
+	"time"
+)
+
+func (s *service) scanTokenExpire(ctx context.Context) []string {
+	var expires []string
+	for authorization, token := range s.tokenMap {
+		if time.Now().After(token.Time.Add(time.Duration(s.config.Expire) * time.Second)) {
+			expires = append(expires, authorization)
+		}
+	}
+	return expires
+}
+
+func (s *service) startMonitor(ctx context.Context) {
+	go func() {
+		ticker := time.NewTicker(time.Second * time.Duration(s.config.Interval))
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				s.mutex.Lock()
+				expires := s.scanTokenExpire(ctx)
+				for _, authorization := range expires {
+					delete(s.tokenMap, authorization)
+				}
+				s.mutex.Unlock()
+			}
+		}
+	}()
+}

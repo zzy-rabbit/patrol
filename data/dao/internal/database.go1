@@ -30,7 +30,7 @@ func (s *service) OpenDatabase(ctx context.Context, config api.Config) (api.IDat
 	}
 	s.ILogger.Info(ctx, "open database by config %+v success", config)
 
-	err = db.AutoMigrate(&Department{}, &Point{}, &Router{}, &Plan{}, &File{}, &CheckPoint{})
+	err = db.AutoMigrate(&Department{}, &Point{}, &Router{}, &Plan{}, &File{}, &CheckPoint{}, &User{})
 	if err != nil {
 		s.ILogger.Error(ctx, "plugin %s auto migrate fail %v", s.GetName(ctx), err)
 		return nil, xerror.Extend(xerror.ErrInternalError, "database auto migrate fail")
