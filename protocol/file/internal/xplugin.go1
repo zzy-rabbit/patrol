@@ -8,6 +8,7 @@ import (
 	uploadApi "github.com/zzy-rabbit/bp/protocol/upload/api"
 	logApi "github.com/zzy-rabbit/bp/tool/log/api"
 	fileApi "github.com/zzy-rabbit/patrol/logic/file/api"
+	authApi "github.com/zzy-rabbit/patrol/protocol/authorization/api"
 	"github.com/zzy-rabbit/patrol/protocol/file/api"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"github.com/zzy-rabbit/xtools/xfile"
@@ -20,6 +21,7 @@ type service struct {
 	IHttp   httpApi.IPlugin   `xplugin:"bp.protocol.http"`
 	IUpload uploadApi.IPlugin `xplugin:"bp.protocol.upload"`
 	config  api.Config
+	IAuth   authApi.IPlugin `xplugin:"patrol.protocol.authorization"`
 }
 
 func New(ctx context.Context) api.IPlugin {
@@ -44,7 +46,7 @@ func (s *service) Init(ctx context.Context, initParam string) error {
 			return xerror.Extend(xerror.ErrInternalError, "create path %s: %s", s.config.Path, err)
 		}
 	}
-	s.IHttp.Register(s.registerRouter)
+	s.IHttp.Register(ctx, s.registerRouter)
 	s.ILogger.Info(ctx, "plugin %s init success", s.GetName(ctx))
 	return nil
 }

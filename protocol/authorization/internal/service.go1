@@ -1,0 +1,72 @@
+package internal
+
+import (
+	"context"
+	"encoding/json"
+	"github.com/gofiber/fiber/v2"
+	"github.com/zzy-rabbit/bp/model"
+	"github.com/zzy-rabbit/patrol/protocol/authorization/api"
+	"github.com/zzy-rabbit/xtools/xerror"
+)
+
+func (s *service) GenerateToken(ctx context.Context, plaintext []byte) ([]byte, xerror.IError) {
+	ciphertext, err := s.encoder.Process(ctx, plaintext)
+	if err != nil {
+		s.ILogger.Error(ctx, "encode plaintext %+v fail %v", plaintext, err)
+		return nil, xerror.Extend(xerror.ErrInternalError, "encode plaintext fail: %v", err)
+	}
+	return ciphertext, nil
+}
+
+func (s *service) ParseToken(ctx context.Context, ciphertext []byte) ([]byte, xerror.IError) {
+	plaintext, err := s.decoder.Process(ctx, ciphertext)
+	if err != nil {
+		s.ILogger.Error(ctx, "decode ciphertext %+v fail %v", ciphertext, err)
+		return nil, xerror.Extend(xerror.ErrInternalError, "decode plaintext fail: %v", err)
+	}
+	return plaintext, nil
+}
+
+func (s *service) Middleware(ctx context.Context, checks ...func(ctx context.Context, claim api.AuthClaim) xerror.IError) fiber.Handler {
+	return func(fiberCtx *fiber.Ctx) error {
+		return fiberCtx.Next()
+		token := fiberCtx.Get("authorization")
+		if token == "" {
+			return fiberCtx.JSON(model.HttpResponse{
+				IError: xerror.ErrAuthenticationFail,
+				Data:   struct{}{},
+			})
+		}
+
+		plaintext, xerr := s.ParseToken(fiberCtx.UserContext(), []byte(token))
+		if xerror.Error(xerr) {
+			s.ILogger.Error(ctx, "parse token %+v fail %v", token, xerr)
+			return fiberCtx.JSON(model.HttpResponse{
+				IError: xerr,
+				Data:   struct{}{},
+			})
+		}
+
+		var claim api.AuthClaim
+		err := json.Unmarshal(plaintext, &claim)
+		if err != nil {
+			s.ILogger.Error(ctx, "parse plaintext %+v fail %v", plaintext, err)
+			return fiberCtx.JSON(model.HttpResponse{
+				IError: xerror.Extend(xerror.ErrInternalError, "parse plaintext fail: %v", err),
+				Data:   struct{}{},
+			})
+		}
+
+		for _, check := range checks {
+			xerr = check(fiberCtx.UserContext(), claim)
+			if xerror.Error(xerr) {
+				s.ILogger.Error(ctx, "check token %+v fail %v", token, xerr)
+				return fiberCtx.JSON(model.HttpResponse{
+					IError: xerr,
+					Data:   struct{}{},
+				})
+			}
+		}
+		return fiberCtx.Next()
+	}
+}

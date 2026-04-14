@@ -1,9 +1,17 @@
 package internal
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"context"
+	"github.com/gofiber/fiber/v2"
+)
 
-func (s *service) registerRouter(fiberApp *fiber.App) {
-	departmentGroup := fiberApp.Group("/patrol/api/v1/department", s.IHttp.CORSMiddleware(), s.IHttp.TimingMiddleware())
+func (s *service) registerRouter(ctx context.Context, fiberApp *fiber.App) {
+	departmentGroup := fiberApp.Group(
+		"/patrol/api/v1/department",
+		s.IHttp.CORSMiddleware(),
+		s.IHttp.TimingMiddleware(),
+		s.IAuth.Middleware(ctx),
+	)
 	departmentGroup.Post("add", s.AddDepartment)
 	departmentGroup.Post("update", s.UpdateDepartment)
 	departmentGroup.Delete("", s.DeleteDepartments)

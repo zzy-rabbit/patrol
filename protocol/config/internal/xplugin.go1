@@ -5,6 +5,7 @@ import (
 	httpApi "github.com/zzy-rabbit/bp/protocol/http/api"
 	logApi "github.com/zzy-rabbit/bp/tool/log/api"
 	configApi "github.com/zzy-rabbit/patrol/logic/config/api"
+	authApi "github.com/zzy-rabbit/patrol/protocol/authorization/api"
 	"github.com/zzy-rabbit/patrol/protocol/config/api"
 )
 
@@ -12,6 +13,7 @@ type service struct {
 	IConfig configApi.IPlugin `xplugin:"patrol.logic.config"`
 	ILogger logApi.IPlugin    `xplugin:"bp.tool.log"`
 	IHttp   httpApi.IPlugin   `xplugin:"bp.protocol.http"`
+	IAuth   authApi.IPlugin   `xplugin:"patrol.protocol.authorization"`
 }
 
 func New(ctx context.Context) api.IPlugin {
@@ -23,7 +25,7 @@ func (s *service) GetName(ctx context.Context) string {
 }
 
 func (s *service) Init(ctx context.Context, initParam string) error {
-	s.IHttp.Register(s.registerRouter)
+	s.IHttp.Register(ctx, s.registerRouter)
 	s.ILogger.Info(ctx, "plugin %s init success", s.GetName(ctx))
 	return nil
 }

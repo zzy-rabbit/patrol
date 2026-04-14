@@ -1,11 +1,15 @@
 package internal
 
 import (
+	"context"
 	"github.com/gofiber/fiber/v2"
 )
 
-func (s *service) registerRouter(fiberApp *fiber.App) {
-	fileGroup := fiberApp.Group("/patrol/api/v1/file")
+func (s *service) registerRouter(ctx context.Context, fiberApp *fiber.App) {
+	fileGroup := fiberApp.Group(
+		"/patrol/api/v1/file",
+		s.IAuth.Middleware(ctx),
+	)
 	fileGroup.Post("/commit", s.CommitFile)
 	fileGroup.Delete("/revert", s.RevertFile)
 	fileGroup.Delete("", s.DeleteFile)
