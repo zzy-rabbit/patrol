@@ -1,5 +1,9 @@
 package model
 
+const (
+	UserAdmin = "admin"
+)
+
 type User struct {
 	Identify
 	Name     string `json:"name"`

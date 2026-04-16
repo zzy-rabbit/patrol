@@ -24,6 +24,28 @@ func (s *session) SetDepartment(ctx context.Context, department model.Department
 		s.logger.Error(ctx, "add department %+v fail %v", department, err)
 		return transError(err)
 	}
+
+	// 创建默认的管理员账户
+	users, _, xerr := tx.GetUsers(ctx, model.UserCondition{IDs: []string{model.UserAdmin}})
+	if xerror.Error(xerr) {
+		tx.Rollback(ctx)
+		s.logger.Error(ctx, "query admin user fail %v", xerr)
+		return transError(xerr)
+	}
+	if len(users) == 0 {
+		_, xerr = tx.AddUser(ctx, model.User{
+			Identify: model.Identify{ID: model.UserAdmin},
+			Name:     "超级管理员",
+			Password: "",
+			Profile:  "",
+		})
+		if xerror.Error(xerr) {
+			tx.Rollback(ctx)
+			s.logger.Error(ctx, "create admin user fail %v", xerr)
+			return transError(xerr)
+		}
+	}
+
 	tx.Commit(ctx)
 	return nil
 }
