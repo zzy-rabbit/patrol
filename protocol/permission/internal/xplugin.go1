@@ -4,18 +4,16 @@ import (
 	"context"
 	httpApi "github.com/zzy-rabbit/bp/protocol/http/api"
 	logApi "github.com/zzy-rabbit/bp/tool/log/api"
-	configApi "github.com/zzy-rabbit/patrol/logic/config/api"
-	userApi "github.com/zzy-rabbit/patrol/logic/user/api"
+	permissionApi "github.com/zzy-rabbit/patrol/logic/permission/api"
 	authApi "github.com/zzy-rabbit/patrol/protocol/authorization/api"
-	"github.com/zzy-rabbit/patrol/protocol/config/api"
+	"github.com/zzy-rabbit/patrol/protocol/permission/api"
 )
 
 type service struct {
-	IConfig configApi.IPlugin `xplugin:"patrol.logic.config"`
-	IUser   userApi.IPlugin   `xplugin:"patrol.logic.user"`
-	ILogger logApi.IPlugin    `xplugin:"bp.tool.log"`
-	IHttp   httpApi.IPlugin   `xplugin:"bp.protocol.http"`
-	IAuth   authApi.IPlugin   `xplugin:"patrol.protocol.authorization"`
+	IPermission permissionApi.IPlugin `xplugin:"patrol.logic.permission"`
+	ILogger     logApi.IPlugin        `xplugin:"bp.tool.log"`
+	IHttp       httpApi.IPlugin       `xplugin:"bp.protocol.http"`
+	IAuth       authApi.IPlugin       `xplugin:"patrol.protocol.authorization"`
 }
 
 func New(ctx context.Context) api.IPlugin {

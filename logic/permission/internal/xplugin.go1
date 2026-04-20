@@ -2,24 +2,24 @@ package internal
 
 import (
 	"context"
-	httpApi "github.com/zzy-rabbit/bp/protocol/http/api"
+	reportApi "github.com/zzy-rabbit/bp/protocol/report/api"
 	logApi "github.com/zzy-rabbit/bp/tool/log/api"
-	configApi "github.com/zzy-rabbit/patrol/logic/config/api"
+	databaseApi "github.com/zzy-rabbit/patrol/data/database/api"
+	"github.com/zzy-rabbit/patrol/logic/permission/api"
 	userApi "github.com/zzy-rabbit/patrol/logic/user/api"
-	authApi "github.com/zzy-rabbit/patrol/protocol/authorization/api"
-	"github.com/zzy-rabbit/patrol/protocol/config/api"
+	"github.com/zzy-rabbit/patrol/model"
 )
 
 type service struct {
-	IConfig configApi.IPlugin `xplugin:"patrol.logic.config"`
-	IUser   userApi.IPlugin   `xplugin:"patrol.logic.user"`
-	ILogger logApi.IPlugin    `xplugin:"bp.tool.log"`
-	IHttp   httpApi.IPlugin   `xplugin:"bp.protocol.http"`
-	IAuth   authApi.IPlugin   `xplugin:"patrol.protocol.authorization"`
+	IDatabase     databaseApi.IPlugin `xplugin:"patrol.data.database"`
+	IReport       reportApi.IPlugin   `xplugin:"bp.protocol.report"`
+	ILogger       logApi.IPlugin      `xplugin:"bp.tool.log"`
+	IUser         userApi.IPlugin     `xplugin:"patrol.logic.user"`
+	permissionMap map[model.PermissionType]model.Permission
 }
 
 func New(ctx context.Context) api.IPlugin {
-	return &service{}
+	return &service{permissionMap: make(map[model.PermissionType]model.Permission)}
 }
 
 func (s *service) GetName(ctx context.Context) string {
@@ -27,7 +27,6 @@ func (s *service) GetName(ctx context.Context) string {
 }
 
 func (s *service) Init(ctx context.Context, initParam string) error {
-	s.IHttp.Register(ctx, s.registerRouter)
 	s.ILogger.Info(ctx, "plugin %s init success", s.GetName(ctx))
 	return nil
 }

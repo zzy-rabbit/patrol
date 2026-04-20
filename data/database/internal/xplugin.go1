@@ -49,12 +49,8 @@ func (s *service) Init(ctx context.Context, initParam string) error {
 			return err
 		}
 	}
-	s.ILogger.Info(ctx, "plugin %s init by config %+v success", s.GetName(ctx), s.config)
-	return nil
-}
 
-func (s *service) Run(ctx context.Context, runParam string) error {
-	err := filepath.Walk(s.databasePath, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(s.databasePath, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
 		}
@@ -81,6 +77,11 @@ func (s *service) Run(ctx context.Context, runParam string) error {
 		s.ILogger.Fatal(ctx, "filepath walk database fail %v", err)
 		return err
 	}
+	s.ILogger.Info(ctx, "plugin %s init by config %+v success", s.GetName(ctx), s.config)
+	return nil
+}
+
+func (s *service) Run(ctx context.Context, runParam string) error {
 	s.ILogger.Info(ctx, "plugin %s run success", s.GetName(ctx))
 	return nil
 }

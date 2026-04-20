@@ -1,0 +1,35 @@
+package internal
+
+import (
+	"github.com/gofiber/fiber/v2"
+	bpmodel "github.com/zzy-rabbit/bp/model"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+)
+
+func (s *service) GetPermissions(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
+	var condition model.PermissionCondition
+	xerr := s.IHttp.ParseQueryParams(ctx, &header, &condition)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse query params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	department := ctx.Get("department")
+	permissions, page, xerr := s.IPermission.GetPermissions(ctx.UserContext(), condition)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "department %s get permissions %+v fail %v", department, condition, xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+		Data: model.PaginatedData[model.Permission]{
+			PageInfo: page,
+			List:     permissions,
+		},
+	})
+}

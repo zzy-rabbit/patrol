@@ -1,0 +1,106 @@
+package model
+
+type Permission struct {
+	Permission  PermissionType `json:"permission"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+}
+
+type PermissionCondition struct {
+	*PageQuery
+	Permissions []PermissionType `json:"permissions"`
+	Name        string           `json:"name"`
+	Description string           `json:"description"`
+}
+
+type PermissionType int
+
+const (
+	PermissionAddUser PermissionType = iota + 1
+	PermissionUpdateUser
+	PermissionDeleteUser
+	PermissionGetUser
+)
+
+const (
+	PermissionAddPatrol PermissionType = iota + 100
+	PermissionUpdatePatrol
+	PermissionDeletePatrol
+	PermissionGetPatrol
+)
+
+const (
+	PermissionAddPatrolCheckPoint PermissionType = iota + 200
+	PermissionUpdatePatrolCheckPoint
+	PermissionDeletePatrolCheckPoint
+	PermissionGetPatrolCheckPoint
+)
+
+const (
+	PermissionAddPatrolResult PermissionType = iota + 300
+	PermissionUpdatePatrolResult
+	PermissionDeletePatrolResult
+	PermissionGetPatrolResult
+)
+
+const (
+	PermissionAddPatrolStatistic PermissionType = iota + 400
+	PermissionUpdatePatrolStatistic
+	PermissionDeletePatrolStatistic
+	PermissionGetPatrolStatistic
+)
+
+const (
+	PermissionAddFile PermissionType = iota + 500
+	PermissionUpdateFile
+	PermissionDeleteFile
+	PermissionGetFile
+)
+
+var Permissions = []Permission{
+	{Permission: PermissionAddUser, Name: "添加用户", Description: "允许创建新的用户账号"},
+	{Permission: PermissionUpdateUser, Name: "更新用户", Description: "允许修改已有用户的信息"},
+	{Permission: PermissionDeleteUser, Name: "删除用户", Description: "允许删除用户账号"},
+	{Permission: PermissionGetUser, Name: "查询用户", Description: "允许查看用户信息"},
+
+	{Permission: PermissionAddPatrol, Name: "添加巡检任务", Description: "允许创建新的巡检任务"},
+	{Permission: PermissionUpdatePatrol, Name: "更新巡检任务", Description: "允许修改巡检任务信息"},
+	{Permission: PermissionDeletePatrol, Name: "删除巡检任务", Description: "允许删除巡检任务"},
+	{Permission: PermissionGetPatrol, Name: "查询巡检任务", Description: "允许查看巡检任务信息"},
+
+	{Permission: PermissionAddPatrolCheckPoint, Name: "添加巡检打卡信息", Description: "允许创建巡检打卡信息"},
+	{Permission: PermissionUpdatePatrolCheckPoint, Name: "更新巡检打卡信息", Description: "允许修改巡检打卡信息"},
+	{Permission: PermissionDeletePatrolCheckPoint, Name: "删除巡检打卡信息", Description: "允许删除巡检打卡信息"},
+	{Permission: PermissionGetPatrolCheckPoint, Name: "查询巡检打卡信息", Description: "允许查看巡检打卡信息"},
+
+	{Permission: PermissionAddPatrolResult, Name: "添加巡检结果", Description: "允许记录巡检执行结果"},
+	{Permission: PermissionUpdatePatrolResult, Name: "更新巡检结果", Description: "允许修改巡检结果"},
+	{Permission: PermissionDeletePatrolResult, Name: "删除巡检结果", Description: "允许删除巡检结果"},
+	{Permission: PermissionGetPatrolResult, Name: "查询巡检结果", Description: "允许查看巡检结果信息"},
+
+	{Permission: PermissionAddPatrolStatistic, Name: "添加巡检统计", Description: "允许创建巡检统计数据"},
+	{Permission: PermissionUpdatePatrolStatistic, Name: "更新巡检统计", Description: "允许修改巡检统计数据"},
+	{Permission: PermissionDeletePatrolStatistic, Name: "删除巡检统计", Description: "允许删除巡检统计数据"},
+	{Permission: PermissionGetPatrolStatistic, Name: "查询巡检统计", Description: "允许查看巡检统计数据"},
+
+	{Permission: PermissionAddFile, Name: "添加文件", Description: "允许上传或创建文件"},
+	{Permission: PermissionUpdateFile, Name: "更新文件", Description: "允许修改文件内容或属性"},
+	{Permission: PermissionDeleteFile, Name: "删除文件", Description: "允许删除文件"},
+	{Permission: PermissionGetFile, Name: "查询文件", Description: "允许查看或下载文件"},
+}
+
+var permissionMap = make(map[PermissionType]Permission)
+
+func init() {
+	for _, permission := range Permissions {
+		permissionMap[permission.Permission] = permission
+	}
+}
+
+func (t PermissionType) Name() string {
+	return permissionMap[t].Name
+}
+
+func (t PermissionType) Description() string {
+	return permissionMap[t].Description
+}

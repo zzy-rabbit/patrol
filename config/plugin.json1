@@ -109,6 +109,12 @@
             "stop_param": ""
         },
         {
+            "plugin_name": "patrol.logic.permission",
+            "init_param": "",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
             "plugin_name": "patrol.protocol.department",
             "init_param": "",
             "run_param": "",
@@ -135,6 +141,12 @@
         {
             "plugin_name": "patrol.protocol.authorization",
             "init_param": "{\"key_length\":16,\"expire\":3600,\"interval\":300}",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
+            "plugin_name": "patrol.protocol.permission",
+            "init_param": "",
             "run_param": "",
             "stop_param": ""
         }

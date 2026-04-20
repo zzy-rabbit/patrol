@@ -1,0 +1,17 @@
+package internal
+
+import (
+	"context"
+	"github.com/gofiber/fiber/v2"
+)
+
+func (s *service) registerRouter(ctx context.Context, fiberApp *fiber.App) {
+	permissionGroup := fiberApp.Group(
+		"/permission/api/v1/",
+		s.IHttp.CORSMiddleware(),
+		s.IHttp.TimingMiddleware(),
+		s.IAuth.Middleware(ctx),
+	)
+
+	permissionGroup.Get("", s.GetPermissions)
+}

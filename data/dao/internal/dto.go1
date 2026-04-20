@@ -147,15 +147,30 @@ func (u *User) FromModel(m model.User) {
 	u.Name = m.Name
 	u.Password = m.Password
 	u.Profile = m.Profile
+	u.Telephone = m.Telephone
+	u.Address = m.Address
+	u.IsAdmin = m.IsAdmin
+	u.Permissions = make([]int, len(m.Permissions))
+	for i, p := range m.Permissions {
+		u.Permissions[i] = int(p)
+	}
 }
 
 func (u *User) ToModel() model.User {
+	permissions := make([]model.PermissionType, len(u.Permissions))
+	for i, p := range u.Permissions {
+		permissions[i] = model.PermissionType(p)
+	}
 	return model.User{
 		Identify: model.Identify{
 			ID: u.Identify,
 		},
-		Name:     u.Name,
-		Password: u.Password,
-		Profile:  u.Profile,
+		Name:        u.Name,
+		Password:    u.Password,
+		Address:     u.Address,
+		Profile:     u.Profile,
+		Telephone:   u.Telephone,
+		IsAdmin:     u.IsAdmin,
+		Permissions: permissions,
 	}
 }

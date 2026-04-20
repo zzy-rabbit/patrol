@@ -1,0 +1,18 @@
+package api
+
+import (
+	"context"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+	"github.com/zzy-rabbit/xtools/xplugin"
+)
+
+const (
+	PluginName = "patrol.logic.permission"
+)
+
+type IPlugin interface {
+	xplugin.IPlugin
+	GetPermissions(ctx context.Context, condition model.PermissionCondition) ([]model.Permission, model.PageInfo, xerror.IError)
+	CheckUserPermissions(ctx context.Context, department, user string, permissions ...model.PermissionType) (bool, xerror.IError)
+}

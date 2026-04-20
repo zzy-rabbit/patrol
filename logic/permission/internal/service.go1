@@ -1,0 +1,59 @@
+package internal
+
+import (
+	"context"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+	"strings"
+)
+
+func (s *service) GetPermissions(ctx context.Context, condition model.PermissionCondition) ([]model.Permission, model.PageInfo, xerror.IError) {
+	permissionConditionMap := make(map[model.PermissionType]bool, len(model.Permissions))
+	for _, permission := range condition.Permissions {
+		permissionConditionMap[permission] = true
+	}
+
+	permissions := make([]model.Permission, 0, len(model.Permissions))
+	for _, permission := range model.Permissions {
+		if len(condition.Permissions) > 0 && !permissionConditionMap[permission.Permission] {
+			continue
+		}
+		if condition.Name != "" && !strings.Contains(permission.Name, condition.Name) {
+			continue
+		}
+		if condition.Description != "" && !strings.Contains(permission.Description, condition.Description) {
+			continue
+		}
+		permissions = append(permissions, permission)
+	}
+
+	permissions, page := model.Paginate(permissions, condition.PageQuery)
+	return permissions, page, nil
+}
+
+func (s *service) CheckUserPermissions(ctx context.Context, department, user string, permissions ...model.PermissionType) (bool, xerror.IError) {
+	users, _, xerr := s.IUser.GetUsers(ctx, department, model.UserCondition{IDs: []string{user}})
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "get user %s fail %v", user, xerr)
+		return false, xerr
+	}
+	if len(users) == 0 || users[0].ID != user {
+		s.ILogger.Error(ctx, "user %s not exist", user)
+		return false, nil
+	}
+	if users[0].IsAdmin {
+		return true, nil
+	}
+
+	permissionMap := make(map[model.PermissionType]bool, len(users[0].Permissions))
+	for _, permission := range users[0].Permissions {
+		permissionMap[permission] = true
+	}
+	for _, permission := range permissions {
+		if !permissionMap[permission] {
+			s.ILogger.Error(ctx, "user %s not have permission %d %s", user, permission, permission.Name())
+			return false, nil
+		}
+	}
+	return true, nil
+}

@@ -57,6 +57,11 @@ type ISession interface {
 	UpdateUser(ctx context.Context, user model.User) xerror.IError
 	DeleteUsers(ctx context.Context, users ...model.Identify) xerror.IError
 	GetUsers(ctx context.Context, condition model.UserCondition) ([]model.User, model.PageInfo, xerror.IError)
+
+	//AddUser(ctx context.Context, user model.User) (int, xerror.IError)
+	//UpdateUser(ctx context.Context, user model.User) xerror.IError
+	//DeleteUsers(ctx context.Context, users ...model.Identify) xerror.IError
+	//GetUsers(ctx context.Context, condition model.UserCondition) ([]model.User, model.PageInfo, xerror.IError)
 }
 
 type ITransaction interface {
