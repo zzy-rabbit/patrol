@@ -51,7 +51,7 @@ func (s *service) ParseToken(ctx context.Context, ciphertext []byte) (model.Auth
 	return claim, nil
 }
 
-func (s *service) Middleware(ctx context.Context, checks ...func(ctx context.Context, claim model.Authorization) xerror.IError) fiber.Handler {
+func (s *service) Middleware(checks ...func(fiberCtx *fiber.Ctx, claim model.Authorization) xerror.IError) fiber.Handler {
 	return func(fiberCtx *fiber.Ctx) error {
 		token := fiberCtx.Get("authorization")
 		if token == "" {

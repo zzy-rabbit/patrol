@@ -8,7 +8,10 @@ import (
 func (s *service) registerRouter(ctx context.Context, fiberApp *fiber.App) {
 	fileGroup := fiberApp.Group(
 		"/system/api/v1/file",
-		s.IAuth.Middleware(ctx),
+		s.IHttp.TimingMiddleware(func(ctx *fiber.Ctx) bool {
+			return true
+		}),
+		s.IAuth.Middleware(),
 	)
 	fileGroup.Post("/commit", s.CommitFile)
 	fileGroup.Delete("/revert", s.RevertFile)

@@ -10,7 +10,7 @@ func (s *service) registerRouter(ctx context.Context, fiberApp *fiber.App) {
 		"/system/api/v1/permission",
 		s.IHttp.CORSMiddleware(),
 		s.IHttp.TimingMiddleware(),
-		s.IAuth.Middleware(ctx),
+		s.IAuth.Middleware(),
 	)
 
 	permissionGroup.Get("", s.GetPermissions)

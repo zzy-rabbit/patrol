@@ -22,5 +22,5 @@ type IPlugin interface {
 	xplugin.IPlugin
 	GenerateToken(ctx context.Context, user string, expire int) ([]byte, xerror.IError)
 	ParseToken(ctx context.Context, ciphertext []byte) (model.Authorization, xerror.IError)
-	Middleware(ctx context.Context, checks ...func(ctx context.Context, claim model.Authorization) xerror.IError) fiber.Handler
+	Middleware(checks ...func(fiberCtx *fiber.Ctx, claim model.Authorization) xerror.IError) fiber.Handler
 }
