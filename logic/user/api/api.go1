@@ -17,4 +17,5 @@ type IPlugin interface {
 	UpdateUser(ctx context.Context, department string, user model.User) xerror.IError
 	DeleteUsers(ctx context.Context, department string, users ...model.Identify) xerror.IError
 	GetUsers(ctx context.Context, department string, condition model.UserCondition) ([]model.User, model.PageInfo, xerror.IError)
+	CheckUserPassword(ctx context.Context, department string, user model.User) (bool, xerror.IError)
 }

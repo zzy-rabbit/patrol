@@ -55,3 +55,13 @@ func (s *service) GetUsers(ctx context.Context, department string, condition mod
 	}
 	return database.GetDB(ctx).GetUsers(ctx, condition)
 }
+
+func (s *service) CheckUserPassword(ctx context.Context, department string, user model.User) (bool, xerror.IError) {
+	defer xtrace.Trace(ctx)(department, user)
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return false, xerror.Extend(xerror.ErrNotFound, "department %s", department)
+	}
+	return database.GetDB(ctx).CheckUserPassword(ctx, user)
+}

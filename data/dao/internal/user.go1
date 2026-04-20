@@ -78,3 +78,13 @@ func (s *session) GetUsers(ctx context.Context, condition model.UserCondition) (
 		Total: int(total),
 	}, nil
 }
+
+func (s *session) CheckUserPassword(ctx context.Context, user model.User) (bool, xerror.IError) {
+	var count int64
+	err := s.db.Model(&User{}).Where("identify = ? and password = ?", user.ID, user.Password).Count(&count).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "query user by condition %+v fail %v", user, err)
+		return false, transError(err)
+	}
+	return count > 0, nil
+}

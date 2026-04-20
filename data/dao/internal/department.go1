@@ -36,8 +36,9 @@ func (s *session) SetDepartment(ctx context.Context, department model.Department
 		_, xerr = tx.AddUser(ctx, model.User{
 			Identify: model.Identify{ID: model.UserAdmin},
 			Name:     "超级管理员",
-			Password: "",
+			Password: model.UserAdmin,
 			Profile:  "",
+			IsAdmin:  true,
 		})
 		if xerror.Error(xerr) {
 			tx.Rollback(ctx)

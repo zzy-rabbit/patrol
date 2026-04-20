@@ -96,6 +96,7 @@ func (d *departmentTrigger) startScanMonitor(ctx context.Context) {
 		defer func() {
 			if err := recover(); err != nil {
 				d.ILogger.Error(ctx, "scan monitor panic %v stack %s", err, debug.Stack())
+				ctx, d.cancel = context.WithCancel(ctx)
 				d.startScanMonitor(ctx)
 			}
 		}()
