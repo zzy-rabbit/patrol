@@ -7,7 +7,7 @@ import (
 
 func (s *service) registerRouter(ctx context.Context, fiberApp *fiber.App) {
 	userGroup := fiberApp.Group(
-		"/user/api/v1/",
+		"/system/api/v1/user",
 		s.IHttp.CORSMiddleware(),
 		s.IHttp.TimingMiddleware(),
 		s.IAuth.Middleware(ctx),

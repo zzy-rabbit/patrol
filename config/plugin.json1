@@ -32,7 +32,7 @@
         },
         {
             "plugin_name": "bp.protocol.upload",
-            "init_param": "{\"base_url\": \"/patrol/api/v1/upload\",\"root_path\":\"./uploads\",\"expire\":604800,\"interval\":3600}",
+            "init_param": "{\"base_url\": \"/system/api/v1/upload\",\"root_path\":\"./uploads\",\"expire\":604800,\"interval\":3600}",
             "run_param": "",
             "stop_param": ""
         },

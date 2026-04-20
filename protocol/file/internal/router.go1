@@ -7,7 +7,7 @@ import (
 
 func (s *service) registerRouter(ctx context.Context, fiberApp *fiber.App) {
 	fileGroup := fiberApp.Group(
-		"/patrol/api/v1/file",
+		"/system/api/v1/file",
 		s.IAuth.Middleware(ctx),
 	)
 	fileGroup.Post("/commit", s.CommitFile)
