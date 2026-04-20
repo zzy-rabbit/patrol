@@ -96,11 +96,17 @@ func (d *departmentTrigger) startScanMonitor(ctx context.Context) {
 		defer func() {
 			if err := recover(); err != nil {
 				d.ILogger.Error(ctx, "scan monitor panic %v stack %s", err, debug.Stack())
+				d.startScanMonitor(ctx)
 			}
-			d.startScanMonitor(ctx)
 		}()
 
 		for {
+			select {
+			case <-ctx.Done():
+				d.ILogger.Info(ctx, "department %s scan monitor stop", d.department)
+				return
+			default:
+			}
 			// 已经开始，但未结束的计划
 			runnings, xerr := d.initPlans(ctx)
 			if xerror.Error(xerr) {
@@ -124,6 +130,7 @@ func (d *departmentTrigger) startScanMonitor(ctx context.Context) {
 		for {
 			select {
 			case <-ctx.Done():
+				d.ILogger.Info(ctx, "department %s scan monitor stop", d.department)
 				return
 			case <-ticker.C:
 				scanChan <- scanRetryMaxCount
