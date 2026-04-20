@@ -56,7 +56,7 @@ func (s *service) Middleware(ctx context.Context, checks ...func(ctx context.Con
 		token := fiberCtx.Get("authorization")
 		if token == "" {
 			s.ILogger.Error(fiberCtx.UserContext(), "authorization empty")
-			return fiberCtx.JSON(bpmodel.HttpResponse{
+			return fiberCtx.JSON(&bpmodel.HttpResponse{
 				IError: xerror.ErrAuthenticationFail,
 				Data:   struct{}{},
 			})
@@ -67,7 +67,7 @@ func (s *service) Middleware(ctx context.Context, checks ...func(ctx context.Con
 		s.mutex.RUnlock()
 		if !ok {
 			s.ILogger.Error(fiberCtx.UserContext(), "token %+v not exist", token)
-			return fiberCtx.JSON(bpmodel.HttpResponse{
+			return fiberCtx.JSON(&bpmodel.HttpResponse{
 				IError: xerror.ErrAuthenticationFail,
 				Data:   struct{}{},
 			})
@@ -76,14 +76,14 @@ func (s *service) Middleware(ctx context.Context, checks ...func(ctx context.Con
 		//claim, xerr := s.ParseToken(fiberCtx.UserContext(), []byte(token))
 		//if xerror.Error(xerr) {
 		//	s.ILogger.Error(fiberCtx.UserContext(), "parse token %+v fail %v", token, xerr)
-		//	return fiberCtx.JSON(bpmodel.HttpResponse{
+		//	return fiberCtx.JSON(&bpmodel.HttpResponse{
 		//		IError: xerr,
 		//		Data:   struct{}{},
 		//	})
 		//}
 		//if cacheClaim.User != claim.User && cacheClaim.UUID != claim.UUID {
 		//	s.ILogger.Error(fiberCtx.UserContext(), "parse token %+v not match cache %+v", claim, cacheClaim)
-		//	return fiberCtx.JSON(bpmodel.HttpResponse{
+		//	return fiberCtx.JSON(&bpmodel.HttpResponse{
 		//		IError: xerror.ErrAuthenticationFail,
 		//		Data:   struct{}{},
 		//	})
@@ -91,7 +91,7 @@ func (s *service) Middleware(ctx context.Context, checks ...func(ctx context.Con
 
 		if time.Now().After(cacheClaim.Time.Add(time.Duration(cacheClaim.Expire) * time.Second)) {
 			s.ILogger.Error(fiberCtx.UserContext(), "token %+v expired", token)
-			return fiberCtx.JSON(bpmodel.HttpResponse{
+			return fiberCtx.JSON(&bpmodel.HttpResponse{
 				IError: xerror.ErrAuthenticationFail,
 				Data:   struct{}{},
 			})
@@ -101,7 +101,7 @@ func (s *service) Middleware(ctx context.Context, checks ...func(ctx context.Con
 			xerr := check(fiberCtx.UserContext(), cacheClaim)
 			if xerror.Error(xerr) {
 				s.ILogger.Error(fiberCtx.UserContext(), "check token %+v claim %+v fail %v", token, cacheClaim, xerr)
-				return fiberCtx.JSON(bpmodel.HttpResponse{
+				return fiberCtx.JSON(&bpmodel.HttpResponse{
 					IError: xerr,
 					Data:   struct{}{},
 				})
