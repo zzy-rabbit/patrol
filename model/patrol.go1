@@ -205,3 +205,51 @@ type Task struct {
 	TaskParam
 	TaskResult
 }
+
+type TaskCondition struct {
+	*PageQuery
+	IDs      []string     `json:"ids"`
+	Start    DateTime     `json:"start"`
+	Statuses []TaskStatus `json:"statuses"`
+	End      DateTime     `json:"end"`
+}
+
+type StatisticType int
+
+const (
+	StatisticTypeUser StatisticType = iota + 1
+	StatisticTypePoint
+	StatisticTypeRouter
+	StatisticTypePlan
+)
+
+type StatisticSort int
+
+const (
+	StatisticSortName StatisticSort = iota + 1
+	StatisticSortLeak
+	StatisticSortLeakPercent
+	StatisticSortNormal
+	StatisticSortNormalPercent
+	StatisticSortTotal
+)
+
+type StatisticCondition struct {
+	Type   StatisticType `json:"type"`
+	Sort   StatisticSort `json:"sort"`
+	Revert bool          `json:"revert"`
+	IDs    []string      `json:"ids"`
+	Start  DateTime      `json:"start"`
+	End    DateTime      `json:"end"`
+}
+
+type Statistic struct {
+	Identify
+	Name          string  `json:"name"`
+	Normal        int     `json:"normal"`
+	NormalPercent float64 `json:"normal_percent"`
+	Leak          int     `json:"leak"`
+	LeakPercent   float64 `json:"leak_percent"`
+	Total         int     `json:"total"`
+	Tasks         []Task  `json:"tasks"`
+}

@@ -43,7 +43,7 @@ func (s *service) UpdateDepartment(ctx context.Context, department model.Departm
 	database, ok := s.IDatabase.Get(ctx, department.ID)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department.ID)
-		return xerror.Extend(xerror.ErrNotFound, "department "+department.ID)
+		return xerror.Extend(xerror.ErrNotFound, "department %s", department.ID)
 	}
 	err := database.GetDB(ctx).SetDepartment(ctx, department)
 	if xerror.Error(err) {

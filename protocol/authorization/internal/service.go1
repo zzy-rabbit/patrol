@@ -98,7 +98,7 @@ func (s *service) Middleware(checks ...func(fiberCtx *fiber.Ctx, claim model.Aut
 		}
 
 		for _, check := range checks {
-			xerr := check(fiberCtx.UserContext(), cacheClaim)
+			xerr := check(fiberCtx, cacheClaim)
 			if xerror.Error(xerr) {
 				s.ILogger.Error(fiberCtx.UserContext(), "check token %+v claim %+v fail %v", token, cacheClaim, xerr)
 				return fiberCtx.JSON(&bpmodel.HttpResponse{

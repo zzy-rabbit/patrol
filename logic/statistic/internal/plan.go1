@@ -1,0 +1,91 @@
+package internal
+
+import (
+	"context"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+	"github.com/zzy-rabbit/xtools/xtrace"
+	"sort"
+)
+
+type planStatistic struct {
+	*Base
+}
+
+func (s *service) newPlanStatistic(ctx context.Context, department string, condition model.StatisticCondition) IStatisticProcessor {
+	return &planStatistic{
+		Base: s.newBase(ctx, department, condition),
+	}
+}
+
+func (p *planStatistic) GetTasks(ctx context.Context) ([]model.Task, xerror.IError) {
+	defer xtrace.Trace(ctx)(p.department, p.condition)
+	tasks, _, xerr := p.IConfig.GetTasks(ctx, p.department, model.TaskCondition{
+		Start:    p.condition.Start,
+		End:      p.condition.End,
+		Statuses: []model.TaskStatus{model.TaskStatusNormal, model.TaskStatusAbnormal},
+	})
+	if xerror.Error(xerr) {
+		p.ILogger.Error(ctx, "get tasks fail %v", xerr)
+		return nil, xerr
+	}
+	if len(p.condition.IDs) <= 0 {
+		return tasks, nil
+	}
+
+	idMap := make(map[string]bool, len(p.condition.IDs))
+	for _, id := range p.condition.IDs {
+		idMap[id] = true
+	}
+
+	var results []model.Task
+	for i, task := range tasks {
+		if idMap[task.Plan.ID] {
+			results = append(results, tasks[i])
+		}
+	}
+	return results, nil
+}
+
+func (p *planStatistic) Statistic(ctx context.Context, tasks []model.Task) ([]model.Statistic, xerror.IError) {
+	idMap := make(map[string]bool, len(p.condition.IDs))
+	for _, id := range p.condition.IDs {
+		idMap[id] = true
+	}
+
+	planStatusMap := make(map[string]*model.Statistic, len(p.condition.IDs))
+	for i, task := range tasks {
+		statistic, ok := planStatusMap[task.Plan.ID]
+		if !ok {
+			statistic = &model.Statistic{
+				Identify: task.Plan.Identify,
+				Name:     task.Plan.Name,
+			}
+		}
+		for _, result := range task.Results {
+			switch result.Status {
+			case model.TaskPointStatusNormal:
+				statistic.Normal++
+			case model.TaskPointStatusLeak:
+				statistic.Leak++
+			default:
+				continue
+			}
+			statistic.Total++
+		}
+
+		statistic.LeakPercent = float64(statistic.Leak) / float64(statistic.Total)
+		statistic.NormalPercent = float64(statistic.Normal) / float64(statistic.Total)
+		statistic.Tasks = append(statistic.Tasks, tasks[i])
+	}
+
+	statistics := make([]model.Statistic, 0, len(planStatusMap))
+	for _, statistic := range planStatusMap {
+		sort.Slice(statistic.Tasks, func(i, j int) bool {
+			return statistic.Tasks[i].Plan.Start < statistic.Tasks[j].Plan.Start
+		})
+		statistics = append(statistics, *statistic)
+	}
+
+	return p.Sort(ctx, statistics), nil
+}

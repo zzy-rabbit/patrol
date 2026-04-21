@@ -1,0 +1,35 @@
+package internal
+
+import (
+	"context"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+)
+
+func (s *service) Statistic(ctx context.Context, department string, condition model.StatisticCondition) ([]model.Statistic, xerror.IError) {
+	var processor IStatisticProcessor
+	switch condition.Type {
+	case model.StatisticTypePoint:
+		processor = s.newPointStatistic(ctx, department, condition)
+	case model.StatisticTypeRouter:
+		processor = s.newRouterStatistic(ctx, department, condition)
+	case model.StatisticTypePlan:
+		processor = s.newPlanStatistic(ctx, department, condition)
+	case model.StatisticTypeUser:
+		processor = s.newUserStatistic(ctx, department, condition)
+	default:
+		return nil, xerror.Extend(xerror.ErrInvalidParam, "invalid statistic type %d", condition.Type)
+	}
+
+	tasks, xerr := processor.GetTasks(ctx)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "department %s get tasks by condition %+v fail %+v", department, condition, xerr)
+		return nil, xerr
+	}
+	statistics, xerr := processor.Statistic(ctx, tasks)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "department %s statistic by condition %+v fail %v", department, condition, xerr)
+		return nil, xerr
+	}
+	return statistics, nil
+}

@@ -72,7 +72,7 @@ POINT:
 				// 有效的点位打卡数据
 				j.result.Results = append(j.result.Results, model.TaskPointResult{
 					Identify: point.Identify,
-					Time:     model.NewDateTime(time.Time{}),
+					Time:     model.NewDateTime(checkPoint.Time.Time),
 					Status:   model.TaskPointStatusLeak,
 					User: model.TaskPointUserResult{
 						Time: checkPoint.Time,

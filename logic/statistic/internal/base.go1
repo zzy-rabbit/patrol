@@ -1,0 +1,93 @@
+package internal
+
+import (
+	"context"
+	logApi "github.com/zzy-rabbit/bp/tool/log/api"
+	databaseApi "github.com/zzy-rabbit/patrol/data/database/api"
+	configApi "github.com/zzy-rabbit/patrol/logic/config/api"
+	userApi "github.com/zzy-rabbit/patrol/logic/user/api"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+	"sort"
+)
+
+type IStatisticProcessor interface {
+	GetTasks(ctx context.Context) ([]model.Task, xerror.IError)
+	Statistic(ctx context.Context, tasks []model.Task) ([]model.Statistic, xerror.IError)
+}
+
+type Base struct {
+	IConfig   configApi.IPlugin   `xplugin:"patrol.logic.config"`
+	IUser     userApi.IPlugin     `xplugin:"patrol.logic.user"`
+	ILogger   logApi.IPlugin      `xplugin:"bp.tool.log"`
+	IDatabase databaseApi.IPlugin `xplugin:"patrol.data.database"`
+
+	condition  model.StatisticCondition
+	department string
+}
+
+func (s *service) newBase(ctx context.Context, department string, condition model.StatisticCondition) *Base {
+	return &Base{
+		IConfig:    s.IConfig,
+		IUser:      s.IUser,
+		ILogger:    s.ILogger,
+		IDatabase:  s.IDatabase,
+		condition:  condition,
+		department: department,
+	}
+}
+
+func (b *Base) Sort(ctx context.Context, statistics []model.Statistic) []model.Statistic {
+	switch b.condition.Sort {
+	case model.StatisticSortName:
+		sort.Slice(statistics, func(i, j int) bool {
+			if b.condition.Revert {
+				return statistics[i].Name > statistics[j].Name
+			}
+			return statistics[i].Name < statistics[j].Name
+		})
+	case model.StatisticSortLeak:
+		sort.Slice(statistics, func(i, j int) bool {
+			if b.condition.Revert {
+				return statistics[i].Leak > statistics[j].Leak
+			}
+			return statistics[i].Leak < statistics[j].Leak
+		})
+	case model.StatisticSortLeakPercent:
+		sort.Slice(statistics, func(i, j int) bool {
+			if b.condition.Revert {
+				return statistics[i].LeakPercent > statistics[j].LeakPercent
+			}
+			return statistics[i].LeakPercent < statistics[j].LeakPercent
+		})
+	case model.StatisticSortNormal:
+		sort.Slice(statistics, func(i, j int) bool {
+			if b.condition.Revert {
+				return statistics[i].Normal > statistics[j].Normal
+			}
+			return statistics[i].Normal < statistics[j].Normal
+		})
+	case model.StatisticSortNormalPercent:
+		sort.Slice(statistics, func(i, j int) bool {
+			if b.condition.Revert {
+				return statistics[i].NormalPercent > statistics[j].NormalPercent
+			}
+			return statistics[i].NormalPercent < statistics[j].NormalPercent
+		})
+	case model.StatisticSortTotal:
+		sort.Slice(statistics, func(i, j int) bool {
+			if b.condition.Revert {
+				return statistics[i].Total > statistics[j].Total
+			}
+			return statistics[i].Total < statistics[j].Total
+		})
+	default:
+		sort.Slice(statistics, func(i, j int) bool {
+			if b.condition.Revert {
+				return statistics[i].Name > statistics[j].Name
+			}
+			return statistics[i].Name < statistics[j].Name
+		})
+	}
+	return statistics
+}

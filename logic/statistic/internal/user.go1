@@ -1,0 +1,107 @@
+package internal
+
+import (
+	"context"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+	"github.com/zzy-rabbit/xtools/xtrace"
+	"sort"
+)
+
+type userStatistic struct {
+	*Base
+}
+
+func (s *service) newUserStatistic(ctx context.Context, department string, condition model.StatisticCondition) IStatisticProcessor {
+	return &userStatistic{
+		Base: s.newBase(ctx, department, condition),
+	}
+}
+
+func (u *userStatistic) GetTasks(ctx context.Context) ([]model.Task, xerror.IError) {
+	defer xtrace.Trace(ctx)(u.department, u.condition)
+	tasks, _, xerr := u.IConfig.GetTasks(ctx, u.department, model.TaskCondition{
+		Start:    u.condition.Start,
+		End:      u.condition.End,
+		Statuses: []model.TaskStatus{model.TaskStatusNormal, model.TaskStatusAbnormal},
+	})
+	if xerror.Error(xerr) {
+		u.ILogger.Error(ctx, "get tasks fail %v", xerr)
+		return nil, xerr
+	}
+	if len(u.condition.IDs) <= 0 {
+		return tasks, nil
+	}
+
+	idMap := make(map[string]bool, len(u.condition.IDs))
+	for _, id := range u.condition.IDs {
+		idMap[id] = true
+	}
+
+	var results []model.Task
+	for i, task := range tasks {
+		for _, user := range task.Plan.Users {
+			if idMap[user] {
+				results = append(results, tasks[i])
+				break
+			}
+		}
+	}
+	return results, nil
+}
+
+func (u *userStatistic) Statistic(ctx context.Context, tasks []model.Task) ([]model.Statistic, xerror.IError) {
+	idMap := make(map[string]bool, len(u.condition.IDs))
+	for _, id := range u.condition.IDs {
+		idMap[id] = true
+	}
+
+	userStatusMap := make(map[string]*model.Statistic, len(u.condition.IDs))
+	for i, task := range tasks {
+		userMap := make(map[string]model.User, len(task.Users))
+		for _, user := range task.Users {
+			userMap[user.ID] = user
+		}
+
+		for j, result := range task.Results {
+			// 如果指定了id
+			if len(idMap) > 0 && !idMap[result.User.User] {
+				continue
+			}
+
+			statistic, ok := userStatusMap[result.User.User]
+			if !ok {
+				statistic = &model.Statistic{
+					Identify: model.Identify{ID: result.User.User},
+					Name:     userMap[result.User.User].Name,
+				}
+			}
+			switch result.Status {
+			case model.TaskPointStatusNormal:
+				statistic.Normal++
+			case model.TaskPointStatusLeak:
+				statistic.Leak++
+			default:
+				continue
+			}
+			statistic.Total++
+
+			statistic.LeakPercent = float64(statistic.Leak) / float64(statistic.Total)
+			statistic.NormalPercent = float64(statistic.Normal) / float64(statistic.Total)
+
+			if j == len(tasks[i].Results)-1 {
+				statistic.Tasks = append(statistic.Tasks, tasks[i])
+			}
+		}
+	}
+
+	statistics := make([]model.Statistic, 0, len(userStatusMap))
+	for _, statistic := range userStatusMap {
+		sort.Slice(statistic.Tasks, func(i, j int) bool {
+			return statistic.Tasks[i].Plan.Start < statistic.Tasks[j].Plan.Start
+		})
+		statistics = append(statistics, *statistic)
+	}
+
+	return u.Sort(ctx, statistics), nil
+}

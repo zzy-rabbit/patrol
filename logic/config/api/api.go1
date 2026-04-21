@@ -33,4 +33,9 @@ type IPlugin interface {
 	UpdateCheckPoint(ctx context.Context, department string, checkPoint model.CheckPoint) xerror.IError
 	DeleteCheckPoints(ctx context.Context, department string, checkPoints ...model.Identify) xerror.IError
 	GetCheckPoints(ctx context.Context, department string, condition model.CheckPointCondition) ([]model.CheckPoint, model.PageInfo, xerror.IError)
+
+	AddTask(ctx context.Context, department string, task model.Task) (model.Identify, xerror.IError)
+	UpdateTask(ctx context.Context, department string, task model.Task) xerror.IError
+	DeleteTasks(ctx context.Context, department string, task ...model.Identify) xerror.IError
+	GetTasks(ctx context.Context, department string, condition model.TaskCondition) ([]model.Task, model.PageInfo, xerror.IError)
 }

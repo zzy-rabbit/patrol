@@ -1,0 +1,17 @@
+package internal
+
+import (
+	"context"
+	"github.com/gofiber/fiber/v2"
+)
+
+func (s *service) registerRouter(ctx context.Context, fiberApp *fiber.App) {
+	statisticGroup := fiberApp.Group(
+		"/patrol/api/v1/statistic",
+		s.IHttp.CORSMiddleware(),
+		s.IHttp.TimingMiddleware(),
+		s.IAuth.Middleware(),
+	)
+
+	statisticGroup.Post("", s.Statistics)
+}

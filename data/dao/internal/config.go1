@@ -454,3 +454,57 @@ func (s *session) GetCheckPoints(ctx context.Context, condition model.CheckPoint
 		Total: int(total),
 	}, nil
 }
+
+func (s *session) AddTask(ctx context.Context, task model.Task) (int, xerror.IError) {
+	return 0, nil
+}
+
+func (s *session) UpdateTask(ctx context.Context, task model.Task) xerror.IError {
+	return nil
+}
+
+func (s *session) DeleteTasks(ctx context.Context, tasks ...model.Identify) xerror.IError {
+	return nil
+}
+
+func (s *session) GetTasks(ctx context.Context, condition model.TaskCondition) ([]model.Task, model.PageInfo, xerror.IError) {
+	db := s.db
+	if len(condition.IDs) > 0 {
+		db = db.Where("identify in ?", condition.IDs)
+	}
+	if !condition.Start.IsZero() {
+		db = db.Where("start >= ?", condition.Start.Format("2006-01-02 15:04:05"))
+	}
+	if !condition.End.IsZero() {
+		db = db.Where("end <= ?", condition.End.Format("2006-01-02 15:04:05"))
+	}
+	if len(condition.Statuses) > 0 {
+		db = db.Where("status in ?", condition.Statuses)
+	}
+
+	total := int64(0)
+	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
+		err := db.Count(&total).Error
+		if xerror.Error(err) {
+			s.logger.Error(ctx, "query checkPoints count by condition %+v fail %v", condition, err)
+			return nil, model.PageInfo{}, transError(err)
+		}
+		offset := (condition.PageQuery.Num - 1) * condition.PageQuery.Size
+		db = db.Offset(offset).Limit(condition.PageQuery.Size)
+	}
+
+	var tables []Task
+	err := db.Find(&tables).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "query checkPoints by condition %+v fail %v", condition, err)
+		return nil, model.PageInfo{}, transError(err)
+	}
+	tasks := make([]model.Task, 0, len(tables))
+	for _, table := range tables {
+		tasks = append(tasks, table.ToModel())
+	}
+	return tasks, model.PageInfo{
+		Count: len(tables),
+		Total: int(total),
+	}, nil
+}

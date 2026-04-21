@@ -2,16 +2,18 @@ package internal
 
 import (
 	"context"
-	reportApi "github.com/zzy-rabbit/bp/protocol/report/api"
 	logApi "github.com/zzy-rabbit/bp/tool/log/api"
 	databaseApi "github.com/zzy-rabbit/patrol/data/database/api"
-	"github.com/zzy-rabbit/patrol/logic/config/api"
+	configApi "github.com/zzy-rabbit/patrol/logic/config/api"
+	"github.com/zzy-rabbit/patrol/logic/statistic/api"
+	userApi "github.com/zzy-rabbit/patrol/logic/user/api"
 )
 
 type service struct {
-	IDatabase databaseApi.IPlugin `xplugin:"patrol.data.database"`
-	IReport   reportApi.IPlugin   `xplugin:"bp.protocol.report"`
+	IConfig   configApi.IPlugin   `xplugin:"patrol.logic.config"`
+	IUser     userApi.IPlugin     `xplugin:"patrol.logic.user"`
 	ILogger   logApi.IPlugin      `xplugin:"bp.tool.log"`
+	IDatabase databaseApi.IPlugin `xplugin:"patrol.data.database"`
 }
 
 func New(ctx context.Context) api.IPlugin {

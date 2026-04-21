@@ -75,7 +75,7 @@ func (s *service) GetFiles(ctx context.Context, department string, condition mod
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return nil, model.PageInfo{}, xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return nil, model.PageInfo{}, xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
 	return database.GetDB(ctx).GetFiles(ctx, condition)
 }

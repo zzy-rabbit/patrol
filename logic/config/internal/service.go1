@@ -16,7 +16,7 @@ func (s *service) AddPoint(ctx context.Context, department string, point model.P
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return model.Identify{}, xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return model.Identify{}, xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
 	_, xerr := database.GetDB(ctx).AddPoint(ctx, point)
 	if xerror.Error(xerr) {
@@ -31,7 +31,7 @@ func (s *service) UpdatePoint(ctx context.Context, department string, point mode
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
 	return database.GetDB(ctx).UpdatePoint(ctx, point)
 }
@@ -41,7 +41,7 @@ func (s *service) DeletePoints(ctx context.Context, department string, points ..
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
 	return database.GetDB(ctx).DeletePoints(ctx, points...)
 }
@@ -51,7 +51,7 @@ func (s *service) GetPoints(ctx context.Context, department string, condition mo
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return nil, model.PageInfo{}, xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return nil, model.PageInfo{}, xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
 	return database.GetDB(ctx).GetPoints(ctx, condition)
 }
@@ -64,7 +64,7 @@ func (s *service) AddRouter(ctx context.Context, department string, router model
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return model.Identify{}, xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return model.Identify{}, xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
 	_, xerr := database.GetDB(ctx).AddRouter(ctx, router)
 	if xerror.Error(xerr) {
@@ -79,7 +79,7 @@ func (s *service) UpdateRouter(ctx context.Context, department string, router mo
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
 	return database.GetDB(ctx).UpdateRouter(ctx, router)
 }
@@ -89,7 +89,7 @@ func (s *service) DeleteRouters(ctx context.Context, department string, routers 
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
 	return database.GetDB(ctx).DeleteRouters(ctx, routers...)
 }
@@ -99,7 +99,7 @@ func (s *service) GetRouters(ctx context.Context, department string, condition m
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return nil, model.PageInfo{}, xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return nil, model.PageInfo{}, xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
 	return database.GetDB(ctx).GetRouters(ctx, condition)
 }
@@ -112,7 +112,7 @@ func (s *service) AddPlan(ctx context.Context, department string, plan model.Pla
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return model.Identify{}, xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return model.Identify{}, xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
 	_, xerr := database.GetDB(ctx).AddPlan(ctx, plan)
 	if xerror.Error(xerr) {
@@ -127,7 +127,7 @@ func (s *service) UpdatePlan(ctx context.Context, department string, plan model.
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
 	return database.GetDB(ctx).UpdatePlan(ctx, plan)
 }
@@ -137,7 +137,7 @@ func (s *service) DeletePlans(ctx context.Context, department string, plans ...m
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
 	return database.GetDB(ctx).DeletePlans(ctx, plans...)
 }
@@ -147,7 +147,7 @@ func (s *service) GetPlans(ctx context.Context, department string, condition mod
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return nil, model.PageInfo{}, xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return nil, model.PageInfo{}, xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
 	return database.GetDB(ctx).GetPlans(ctx, condition)
 }
@@ -160,7 +160,7 @@ func (s *service) AddCheckPoint(ctx context.Context, department string, checkPoi
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return model.Identify{}, xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return model.Identify{}, xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
 	_, xerr := database.GetDB(ctx).AddCheckPoint(ctx, checkPoint)
 	if xerror.Error(xerr) {
@@ -175,7 +175,7 @@ func (s *service) UpdateCheckPoint(ctx context.Context, department string, check
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
 	return database.GetDB(ctx).UpdateCheckPoint(ctx, checkPoint)
 }
@@ -185,7 +185,7 @@ func (s *service) DeleteCheckPoints(ctx context.Context, department string, chec
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
 	return database.GetDB(ctx).DeleteCheckPoints(ctx, checkPoints...)
 }
@@ -195,7 +195,55 @@ func (s *service) GetCheckPoints(ctx context.Context, department string, conditi
 	database, ok := s.IDatabase.Get(ctx, department)
 	if !ok {
 		s.ILogger.Error(ctx, "department %s database not found", department)
-		return nil, model.PageInfo{}, xerror.Extend(xerror.ErrNotFound, "department "+department)
+		return nil, model.PageInfo{}, xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
 	return database.GetDB(ctx).GetCheckPoints(ctx, condition)
+}
+
+func (s *service) AddTask(ctx context.Context, department string, task model.Task) (model.Identify, xerror.IError) {
+	defer xtrace.Trace(ctx)(department, task)
+	if task.ID == "" {
+		task.ID = uuid.New().String()
+	}
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return model.Identify{}, xerror.Extend(xerror.ErrNotFound, "department %s", department)
+	}
+	_, xerr := database.GetDB(ctx).AddTask(ctx, task)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "department %s add task %+v fail %v", department, task, xerr)
+		return model.Identify{}, xerr
+	}
+	return task.Identify, nil
+}
+
+func (s *service) UpdateTask(ctx context.Context, department string, task model.Task) xerror.IError {
+	defer xtrace.Trace(ctx)(department, task)
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return xerror.Extend(xerror.ErrNotFound, "department %s", department)
+	}
+	return database.GetDB(ctx).UpdateTask(ctx, task)
+}
+
+func (s *service) DeleteTasks(ctx context.Context, department string, tasks ...model.Identify) xerror.IError {
+	defer xtrace.Trace(ctx)(department, tasks)
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return xerror.Extend(xerror.ErrNotFound, "department %s", department)
+	}
+	return database.GetDB(ctx).DeleteTasks(ctx, tasks...)
+}
+
+func (s *service) GetTasks(ctx context.Context, department string, condition model.TaskCondition) ([]model.Task, model.PageInfo, xerror.IError) {
+	defer xtrace.Trace(ctx)(department, condition)
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return nil, model.PageInfo{}, xerror.Extend(xerror.ErrNotFound, "department %s", department)
+	}
+	return database.GetDB(ctx).GetTasks(ctx, condition)
 }

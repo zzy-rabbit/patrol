@@ -115,6 +115,12 @@
             "stop_param": ""
         },
         {
+            "plugin_name": "patrol.logic.statistic",
+            "init_param": "",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
             "plugin_name": "patrol.protocol.department",
             "init_param": "",
             "run_param": "",
@@ -146,6 +152,12 @@
         },
         {
             "plugin_name": "patrol.protocol.permission",
+            "init_param": "",
+            "run_param": "",
+            "stop_param": ""
+        },
+        {
+            "plugin_name": "patrol.protocol.statistic",
             "init_param": "",
             "run_param": "",
             "stop_param": ""

@@ -48,6 +48,11 @@ type ISession interface {
 	DeleteCheckPoints(ctx context.Context, checkPoints ...model.Identify) xerror.IError
 	GetCheckPoints(ctx context.Context, condition model.CheckPointCondition) ([]model.CheckPoint, model.PageInfo, xerror.IError)
 
+	AddTask(ctx context.Context, taskResult model.Task) (int, xerror.IError)
+	UpdateTask(ctx context.Context, taskResult model.Task) xerror.IError
+	DeleteTasks(ctx context.Context, taskResults ...model.Identify) xerror.IError
+	GetTasks(ctx context.Context, condition model.TaskCondition) ([]model.Task, model.PageInfo, xerror.IError)
+
 	AddFile(ctx context.Context, file model.File) (int, xerror.IError)
 	UpdateFile(ctx context.Context, file model.File) xerror.IError
 	DeleteFiles(ctx context.Context, identifies ...model.Identify) xerror.IError
