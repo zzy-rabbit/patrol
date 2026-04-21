@@ -98,7 +98,7 @@ func (p *pointStatistic) Statistic(ctx context.Context, tasks []model.Task) ([]m
 	statistics := make([]model.Statistic, 0, len(pointStatusMap))
 	for _, statistic := range pointStatusMap {
 		sort.Slice(statistic.Tasks, func(i, j int) bool {
-			return statistic.Tasks[i].Plan.Start < statistic.Tasks[j].Plan.Start
+			return statistic.Tasks[i].Start.Time.Before(statistic.Tasks[j].Start.Time)
 		})
 		statistics = append(statistics, *statistic)
 	}

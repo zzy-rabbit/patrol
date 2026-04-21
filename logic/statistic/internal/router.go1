@@ -82,7 +82,7 @@ func (p *routerStatistic) Statistic(ctx context.Context, tasks []model.Task) ([]
 	statistics := make([]model.Statistic, 0, len(routerStatusMap))
 	for _, statistic := range routerStatusMap {
 		sort.Slice(statistic.Tasks, func(i, j int) bool {
-			return statistic.Tasks[i].Plan.Start < statistic.Tasks[j].Plan.Start
+			return statistic.Tasks[i].Start.Time.Before(statistic.Tasks[j].Start.Time)
 		})
 		statistics = append(statistics, *statistic)
 	}

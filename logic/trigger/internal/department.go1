@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	logApi "github.com/zzy-rabbit/bp/tool/log/api"
 	timerApi "github.com/zzy-rabbit/bp/tool/timer/api"
 	daoApi "github.com/zzy-rabbit/patrol/data/dao/api"
@@ -43,21 +44,15 @@ func (d *departmentTrigger) init(ctx context.Context) xerror.IError {
 	return nil
 }
 
-func (d *departmentTrigger) initPlans(ctx context.Context) ([]model.Plan, xerror.IError) {
+func (d *departmentTrigger) scanRunningTasks(ctx context.Context) ([]model.Task, xerror.IError) {
 	defer xtrace.Trace(ctx)(d.department)
 
 	d.registerPlanMutex.Lock()
 	defer d.registerPlanMutex.Unlock()
 
-	now := time.Now()
-	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	nowSeconds := int(now.Sub(today).Seconds())
-
 	// 查找运行中的计划
-	runnings, _, xerr := d.database.GetDB(ctx).GetPlans(ctx, model.PlanCondition{
-		UtilAfter:  model.NewDate(now),
-		StartAfter: nowSeconds,
-		EndBefore:  nowSeconds,
+	runnings, _, xerr := d.database.GetDB(ctx).GetTasks(ctx, model.TaskCondition{
+		Statuses: []model.TaskStatus{model.TaskStatusRunning, model.TaskStatusWaiting},
 	})
 	if xerror.Error(xerr) {
 		d.ILogger.Error(ctx, "department %s scan plans fail %v", d.department, xerr)
@@ -66,7 +61,7 @@ func (d *departmentTrigger) initPlans(ctx context.Context) ([]model.Plan, xerror
 	return runnings, nil
 }
 
-func (d *departmentTrigger) scanPlans(ctx context.Context) ([]model.Plan, xerror.IError) {
+func (d *departmentTrigger) scanFeaturePlans(ctx context.Context) ([]model.Plan, xerror.IError) {
 	defer xtrace.Trace(ctx)(d.department)
 
 	d.registerPlanMutex.Lock()
@@ -109,7 +104,7 @@ func (d *departmentTrigger) startScanMonitor(ctx context.Context) {
 			default:
 			}
 			// 已经开始，但未结束的计划
-			runnings, xerr := d.initPlans(ctx)
+			runnings, xerr := d.scanRunningTasks(ctx)
 			if xerror.Error(xerr) {
 				d.ILogger.Error(ctx, "department %s init plans to trigger fail %v", d.department, xerr)
 				time.Sleep(time.Second * 5)
@@ -139,20 +134,136 @@ func (d *departmentTrigger) startScanMonitor(ctx context.Context) {
 				if retry <= 0 {
 					continue
 				}
-				features, xerr := d.scanPlans(ctx)
+				features, xerr := d.scanFeaturePlans(ctx)
 				if xerror.Error(xerr) {
 					d.ILogger.Error(ctx, "department %s scan plans fail %v", d.department, xerr)
 					scanChan <- retry - 1
 					continue
 				}
+
 				// 添加到定时器
-				_ = features
+				for i, feature := range features {
+					start := time.Unix(time.Now().Truncate(time.Hour*24).Unix()+int64(feature.Start), 0)
+					spec := fmt.Sprintf("%d %d %d %d %d *", start.Second(), start.Minute(), start.Hour(), start.Day(), start.Month())
+					xerr = d.ITimer.Register(ctx, feature.ID, spec, d.taskStartCallback(ctx, features[i]))
+					if xerror.Error(xerr) {
+						d.ILogger.Error(ctx, "department %s register plan %s fail %v", d.department, feature.ID, xerr)
+						continue
+					}
+				}
 			}
 		}
 	}()
 }
 
-func (d *departmentTrigger) prepareTaskParams(ctx context.Context, plan string) (model.TaskParam, xerror.IError) {
+func (d *departmentTrigger) taskStartCallback(ctx context.Context, plan model.Plan) func() {
+	return func() {
+		// 删除定时器
+		d.ITimer.Unregister(ctx, plan.ID)
+
+		// 创建任务
+		task, xerr := d.createTask(ctx, plan)
+		if xerror.Error(xerr) {
+			d.ILogger.Error(ctx, "department %s plan %s create task fail %v", d.department, plan.ID, xerr)
+			return
+		}
+
+		start := time.Unix(time.Now().Truncate(time.Hour*24).Unix()+int64(plan.End)+int64(task.Router.Deviation), 0)
+		spec := fmt.Sprintf("%d %d %d %d %d *", start.Second(), start.Minute(), start.Hour(), start.Day(), start.Month())
+
+		// 添加结束的定时器
+		xerr = d.ITimer.Register(ctx, task.ID, spec, d.taskEndCallback(ctx, task))
+		if xerror.Error(xerr) {
+			d.ILogger.Error(ctx, "department %s register task %s fail %v", d.department, task.ID, xerr)
+			return
+		}
+	}
+}
+
+func (d *departmentTrigger) taskEndCallback(ctx context.Context, task model.Task) func() {
+	return func() {
+		// 删除定时器
+		d.ITimer.Unregister(ctx, task.ID)
+
+		serialMap := make(map[string]struct{}, len(task.Points))
+		for _, point := range task.Points {
+			serialMap[point.Serial] = struct{}{}
+		}
+		serials := make([]string, 0, len(serialMap))
+		for serial := range serialMap {
+			serials = append(serials, serial)
+		}
+
+		userMap := make(map[string]struct{}, len(task.Plan.Users))
+		for _, user := range task.Plan.Users {
+			userMap[user] = struct{}{}
+		}
+		users := make([]string, 0, len(userMap))
+		for user := range userMap {
+			users = append(users, user)
+		}
+
+		condition := model.CheckPointCondition{
+			Users:      users,
+			Serials:    serials,
+			TimeBefore: model.DateTime{},
+			TimeAfter:  model.DateTime{},
+		}
+		checkPoints, _, xerr := d.IConfig.GetCheckPoints(ctx, d.department, condition)
+		if xerror.Error(xerr) {
+			d.ILogger.Error(ctx, "department %s plan %s get check points by condition %+v fail %v", d.department, task.Plan.ID, condition, xerr)
+			return
+		}
+		task.CheckPoints = checkPoints
+
+		xerr = d.IExecutor.ASyncDo(ctx, task.TaskParam, d.taskExecuteCallback(ctx, task))
+		if xerror.Error(xerr) {
+			d.ILogger.Error(ctx, "department %s plan %s task %s do fail %v", d.department, task.Plan.ID, task.ID, xerr)
+			return
+		}
+	}
+}
+
+func (d *departmentTrigger) taskExecuteCallback(ctx context.Context, task model.Task) func(result model.TaskResult, xerr xerror.IError) {
+	return func(result model.TaskResult, xerr xerror.IError) {
+		if xerror.Error(xerr) {
+			d.ILogger.Error(ctx, "department %s plan %s task %s execute fail %v", d.department, task.Plan.ID, task.ID, xerr)
+			return
+		}
+		task.TaskResult = result
+		xerr = d.IConfig.UpdateTask(ctx, d.department, task)
+		if xerror.Error(xerr) {
+			d.ILogger.Error(ctx, "department %s plan %s task %s update fail %v", d.department, task.Plan.ID, task.ID, xerr)
+			return
+		}
+	}
+}
+
+func (d *departmentTrigger) createTask(ctx context.Context, plan model.Plan) (model.Task, xerror.IError) {
+	defer xtrace.Trace(ctx)(plan)
+
+	param, xerr := d.prepareTaskParams(ctx, plan)
+	if xerror.Error(xerr) {
+		d.ILogger.Error(ctx, "department %s plan %+v prepare task param fail %v", d.department, plan, xerr)
+		return model.Task{}, xerr
+	}
+
+	task := model.Task{
+		Identify:   model.Identify{},
+		TaskParam:  param,
+		TaskResult: model.TaskResult{},
+	}
+	identify, xerr := d.IConfig.AddTask(ctx, d.department, task)
+	if xerror.Error(xerr) {
+		d.ILogger.Error(ctx, "department %s plan %s create task %+v fail %v", d.department, plan.ID, task, xerr)
+		return model.Task{}, xerr
+	}
+
+	task.Identify = identify
+	return task, nil
+}
+
+func (d *departmentTrigger) prepareTaskParams(ctx context.Context, plan model.Plan) (model.TaskParam, xerror.IError) {
 
 	return model.TaskParam{}, nil
 }
