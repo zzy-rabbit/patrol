@@ -74,10 +74,9 @@ const (
 
 type Point struct {
 	Identify
-	Department string    `json:"department"`
-	Name       string    `json:"name"`
-	Type       PointType `json:"type"`   // 硬件设备类型
-	Serial     string    `json:"serial"` // 硬件设备的唯一序列号
+	Name   string    `json:"name"`
+	Type   PointType `json:"type"`   // 硬件设备类型
+	Serial string    `json:"serial"` // 硬件设备的唯一序列号
 }
 
 type PointCondition struct {
@@ -118,8 +117,8 @@ type Plan struct {
 	Type   PlanType `json:"type"`
 	Router string   `json:"router"`
 	Util   Date     `json:"util"`
-	Start  int      `json:"start"`
-	End    int      `json:"end"`
+	Start  Time     `json:"start"`
+	End    Time     `json:"end"`
 	Users  []string `json:"users"`
 }
 
@@ -131,10 +130,10 @@ type PlanCondition struct {
 	Name        string     `json:"name"`
 	UtilBefore  Date       `json:"util_before"`
 	UtilAfter   Date       `json:"util_after"`
-	StartBefore int        `json:"start_before"`
-	StartAfter  int        `json:"start_after"`
-	EndBefore   int        `json:"end_before"`
-	EndAfter    int        `json:"end_after"`
+	StartBefore Time       `json:"start_before"`
+	StartAfter  Time       `json:"start_after"`
+	EndBefore   Time       `json:"end_before"`
+	EndAfter    Time       `json:"end_after"`
 }
 
 type CheckPoint struct {

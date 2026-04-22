@@ -68,8 +68,8 @@ func (p *Plan) FromModel(m model.Plan) {
 	p.Name = m.Name
 	p.Type = int(m.Type)
 	p.Router = m.Router
-	p.Start = m.Start
-	p.End = m.End
+	p.Start = m.Start.Time
+	p.End = m.End.Time
 	p.Util = m.Util.Time
 	p.Users = users
 }
@@ -84,8 +84,8 @@ func (p *Plan) ToModel() model.Plan {
 		Name:   p.Name,
 		Type:   model.PlanType(p.Type),
 		Router: p.Router,
-		Start:  p.Start,
-		End:    p.End,
+		Start:  model.NewTime(p.Start),
+		End:    model.NewTime(p.End),
 		Util:   model.NewDate(p.Util),
 		Users:  users,
 	}

@@ -49,8 +49,8 @@ type Plan struct {
 	Type     int       `gorm:"column:type"`
 	Router   string    `gorm:"column:router"`
 	Util     time.Time `gorm:"column:util"`
-	Start    int       `gorm:"column:start"`
-	End      int       `gorm:"column:end"`
+	Start    time.Time `gorm:"column:start"`
+	End      time.Time `gorm:"column:end"`
 	Users    []string  `gorm:"column:users;serializer:json"`
 }
 

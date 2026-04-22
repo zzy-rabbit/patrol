@@ -37,9 +37,9 @@ func (s *service) registerRouter(ctx context.Context, fiberApp *fiber.App) {
 	checkPointGroup.Delete("", s.DeleteCheckPoints)
 	checkPointGroup.Get("", s.GetCheckPoints)
 
-	//scheduleGroup := s.fiberApp.Group("/api/v1/schedule")
-	//scheduleGroup.Post("add", nil)
-	//scheduleGroup.Post("update", nil)
-	//scheduleGroup.Delete("", nil)
-	//scheduleGroup.Get("", nil)
+	//taskGroup := configGroup.Group("task")
+	//taskGroup.Post("add", nil)
+	//taskGroup.Post("update", nil)
+	//taskGroup.Delete("", nil)
+	//taskGroup.Get("", nil)
 }

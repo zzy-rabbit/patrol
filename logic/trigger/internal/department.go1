@@ -80,8 +80,8 @@ func (d *departmentTrigger) scanFeaturePlans(ctx context.Context) ([]model.Plan,
 	// 查找未来的计划
 	features, _, xerr := d.database.GetDB(ctx).GetPlans(ctx, model.PlanCondition{
 		UtilAfter:   model.NewDate(now),
-		StartBefore: overlapSeconds,
-		StartAfter:  nowSeconds,
+		StartBefore: model.NewTime(time.Unix(int64(overlapSeconds), 0)),
+		StartAfter:  model.NewTime(time.Unix(int64(nowSeconds), 0)),
 	})
 	if xerror.Error(xerr) {
 		d.ILogger.Error(ctx, "department %s scan plans fail %v", d.department, xerr)
@@ -153,7 +153,7 @@ func (d *departmentTrigger) startScanMonitor(ctx context.Context) {
 
 				// 添加到定时器
 				for i, feature := range features {
-					start := time.Unix(time.Now().Truncate(time.Hour*24).Unix()+int64(feature.Start), 0)
+					start := time.Unix(time.Now().Truncate(time.Hour*24).Unix()+int64(feature.Start.Unix()), 0)
 					spec := fmt.Sprintf("%d %d %d %d %d *", start.Second(), start.Minute(), start.Hour(), start.Day(), start.Month())
 					xerr = d.ITimer.Register(ctx, feature.ID, spec, d.taskStartCallback(ctx, features[i]))
 					if xerror.Error(xerr) {
@@ -336,8 +336,8 @@ func (d *departmentTrigger) prepareTaskParams(ctx context.Context, plan model.Pl
 		return model.TaskParam{}, xerr
 	}
 
-	start := time.Unix(time.Now().Truncate(time.Hour*24).Unix()+int64(plan.Start)-int64(router.Deviation), 0)
-	end := time.Unix(time.Now().Truncate(time.Hour*24).Unix()+int64(plan.End)+int64(router.Deviation), 0)
+	start := time.Unix(time.Now().Truncate(time.Hour*24).Unix()+int64(plan.Start.Unix())-int64(router.Deviation), 0)
+	end := time.Unix(time.Now().Truncate(time.Hour*24).Unix()+int64(plan.End.Unix())+int64(router.Deviation), 0)
 
 	return model.TaskParam{
 		Start:  model.NewDateTime(start),

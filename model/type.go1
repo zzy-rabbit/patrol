@@ -17,6 +17,23 @@ func NewBastTime(t time.Time, format string) BastTime {
 	}
 }
 
+func (t *BastTime) marshal(format string) ([]byte, error) {
+	return json.Marshal(t.Format(format))
+}
+
+func (t *BastTime) unmarshal(data []byte, format string) error {
+	var str string
+	if err := json.Unmarshal(data, &str); err != nil {
+		return err
+	}
+	tt, err := time.ParseInLocation(format, str, time.Local)
+	if err != nil {
+		return err
+	}
+	t.Time = tt
+	return nil
+}
+
 func (t *BastTime) MarshalJSON() ([]byte, error) {
 	return json.Marshal(t.Time.Format(t.format))
 }
@@ -44,8 +61,24 @@ func NewTime(t time.Time) Time {
 	}
 }
 
+func (t *Time) MarshalJSON() ([]byte, error) {
+	return t.marshal("15:04:05")
+}
+
+func (t *Time) UnmarshalJSON(data []byte) error {
+	return t.unmarshal(data, "15:04:05")
+}
+
 type Date struct {
 	BastTime
+}
+
+func (t *Date) MarshalJSON() ([]byte, error) {
+	return t.marshal("2006-01-02")
+}
+
+func (t *Date) UnmarshalJSON(data []byte) error {
+	return t.unmarshal(data, "2006-01-02")
 }
 
 func NewDate(t time.Time) Date {
@@ -62,4 +95,12 @@ func NewDateTime(t time.Time) DateTime {
 	return DateTime{
 		BastTime: NewBastTime(t, "2006-01-02 15:04:05"),
 	}
+}
+
+func (t *DateTime) MarshalJSON() ([]byte, error) {
+	return t.marshal("2006-01-02 15:04:05")
+}
+
+func (t *DateTime) UnmarshalJSON(data []byte) error {
+	return t.unmarshal(data, "2006-01-02 15:04:05")
 }
