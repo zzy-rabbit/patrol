@@ -42,8 +42,6 @@ func (s *service) NewJudge(_ context.Context, param model.TaskParam) *Judge {
 		ILogger:   s.ILogger,
 		auxiliary: aux,
 		result: model.TaskResult{
-			Start:   model.NewDateTime(param.Date.Add(time.Second * time.Duration(param.Plan.Start))),
-			End:     model.NewDateTime(param.Date.Add(time.Second * time.Duration(param.Plan.End))),
 			Status:  model.TaskStatusWaiting,
 			Results: make([]model.TaskPointResult, 0, len(param.Points)),
 		},
@@ -51,8 +49,8 @@ func (s *service) NewJudge(_ context.Context, param model.TaskParam) *Judge {
 }
 
 func (j *Judge) Exec(ctx context.Context) {
-	start := j.result.Start.Add(-1 * time.Second * time.Duration(j.params.Router.Deviation))
-	end := j.result.End.Add(time.Second * time.Duration(j.params.Router.Deviation))
+	start := j.params.Start.Time
+	end := j.params.End.Time
 
 POINT:
 	for _, point := range j.params.Points {

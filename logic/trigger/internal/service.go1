@@ -15,6 +15,7 @@ func (s *service) AddDepartment(ctx context.Context, department string) xerror.I
 	trigger := &departmentTrigger{
 		ILogger:         s.ILogger,
 		IConfig:         s.IConfig,
+		IUser:           s.IUser,
 		IExecutor:       s.IExecutor,
 		ITimer:          s.ITimer,
 		IDatabase:       s.IDatabase,

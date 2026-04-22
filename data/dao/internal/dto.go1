@@ -128,8 +128,6 @@ func (t *Task) ToModel() model.Task {
 		Identify:  model.Identify{ID: t.Identify},
 		TaskParam: t.Params,
 		TaskResult: model.TaskResult{
-			Start:   model.NewDateTime(t.Start),
-			End:     model.NewDateTime(t.End),
 			Status:  model.TaskStatus(t.Status),
 			Results: t.Results,
 		},

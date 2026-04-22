@@ -13,12 +13,12 @@ func (s *service) SyncDo(ctx context.Context, param model.TaskParam) (model.Task
 }
 
 func (s *service) ASyncDo(ctx context.Context, param model.TaskParam, after func(model.TaskResult, xerror.IError)) xerror.IError {
-	_, err := s.IThreadPool.Do(ctx, func() {
-		result, err := s.SyncDo(ctx, param)
-		if xerror.Error(err) {
-			s.ILogger.Error(ctx, "executor execute task %+v fail %v", param, err)
+	_, xerr := s.IThreadPool.Do(ctx, func() {
+		result, xerr := s.SyncDo(ctx, param)
+		if xerror.Error(xerr) {
+			s.ILogger.Error(ctx, "executor execute task %+v fail %v", param, xerr)
 		}
-		after(result, err)
+		after(result, xerr)
 	})
-	return err
+	return xerr
 }

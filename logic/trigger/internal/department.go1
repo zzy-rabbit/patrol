@@ -3,23 +3,27 @@ package internal
 import (
 	"context"
 	"fmt"
+	"runtime/debug"
+	"sync"
+	"time"
+
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+	"github.com/zzy-rabbit/xtools/xtrace"
+
 	logApi "github.com/zzy-rabbit/bp/tool/log/api"
 	timerApi "github.com/zzy-rabbit/bp/tool/timer/api"
 	daoApi "github.com/zzy-rabbit/patrol/data/dao/api"
 	databaseApi "github.com/zzy-rabbit/patrol/data/database/api"
 	configApi "github.com/zzy-rabbit/patrol/logic/config/api"
 	executorApi "github.com/zzy-rabbit/patrol/logic/executor/api"
-	"github.com/zzy-rabbit/patrol/model"
-	"github.com/zzy-rabbit/xtools/xerror"
-	"github.com/zzy-rabbit/xtools/xtrace"
-	"runtime/debug"
-	"sync"
-	"time"
+	userApi "github.com/zzy-rabbit/patrol/logic/user/api"
 )
 
 type departmentTrigger struct {
 	ILogger   logApi.IPlugin      `xplugin:"bp.tool.log"`
 	IConfig   configApi.IPlugin   `xplugin:"patrol.logic.config"`
+	IUser     userApi.IPlugin     `xplugin:"patrol.logic.user"`
 	IExecutor executorApi.IPlugin `xplugin:"patrol.logic.executor"`
 	ITimer    timerApi.IPlugin    `xplugin:"bp.tool.timer"`
 	IDatabase databaseApi.IPlugin `xplugin:"patrol.data.database"`
@@ -110,7 +114,13 @@ func (d *departmentTrigger) startScanMonitor(ctx context.Context) {
 				time.Sleep(time.Second * 5)
 				continue
 			}
-			_ = runnings
+			for _, running := range runnings {
+				xerr = d.registerTaskEndTimer(ctx, running)
+				if xerror.Error(xerr) {
+					d.ILogger.Error(ctx, "department %s register task %s fail %v", d.department, running.ID, xerr)
+					continue
+				}
+			}
 			break
 		}
 
@@ -168,11 +178,7 @@ func (d *departmentTrigger) taskStartCallback(ctx context.Context, plan model.Pl
 			return
 		}
 
-		start := time.Unix(time.Now().Truncate(time.Hour*24).Unix()+int64(plan.End)+int64(task.Router.Deviation), 0)
-		spec := fmt.Sprintf("%d %d %d %d %d *", start.Second(), start.Minute(), start.Hour(), start.Day(), start.Month())
-
-		// 添加结束的定时器
-		xerr = d.ITimer.Register(ctx, task.ID, spec, d.taskEndCallback(ctx, task))
+		xerr = d.registerTaskEndTimer(ctx, task)
 		if xerror.Error(xerr) {
 			d.ILogger.Error(ctx, "department %s register task %s fail %v", d.department, task.ID, xerr)
 			return
@@ -180,45 +186,75 @@ func (d *departmentTrigger) taskStartCallback(ctx context.Context, plan model.Pl
 	}
 }
 
+func (d *departmentTrigger) registerTaskEndTimer(ctx context.Context, task model.Task) xerror.IError {
+	// 如果已经过了结束时间，不再添加定时器，直接执行
+	if time.Now().After(task.End.Time) {
+		xerr := d.taskEndExecute(ctx, task)
+		if xerror.Error(xerr) {
+			d.ILogger.Error(ctx, "department %s execute task %s fail %v", d.department, task.ID, xerr)
+			return xerr
+		}
+		return nil
+	}
+
+	spec := fmt.Sprintf("%d %d %d %d %d *", task.End.Second(), task.End.Minute(), task.End.Hour(), task.End.Day(), task.End.Month())
+
+	// 添加结束的定时器
+	xerr := d.ITimer.Register(ctx, task.ID, spec, d.taskEndCallback(ctx, task))
+	if xerror.Error(xerr) {
+		d.ILogger.Error(ctx, "department %s register task %s fail %v", d.department, task.ID, xerr)
+		return xerr
+	}
+	return nil
+}
+
+func (d *departmentTrigger) taskEndExecute(ctx context.Context, task model.Task) xerror.IError {
+	serialMap := make(map[string]struct{}, len(task.Points))
+	for _, point := range task.Points {
+		serialMap[point.Serial] = struct{}{}
+	}
+	serials := make([]string, 0, len(serialMap))
+	for serial := range serialMap {
+		serials = append(serials, serial)
+	}
+
+	userMap := make(map[string]struct{}, len(task.Plan.Users))
+	for _, user := range task.Plan.Users {
+		userMap[user] = struct{}{}
+	}
+	users := make([]string, 0, len(userMap))
+	for user := range userMap {
+		users = append(users, user)
+	}
+
+	condition := model.CheckPointCondition{
+		Users:      users,
+		Serials:    serials,
+		TimeBefore: model.DateTime{},
+		TimeAfter:  model.DateTime{},
+	}
+	checkPoints, _, xerr := d.IConfig.GetCheckPoints(ctx, d.department, condition)
+	if xerror.Error(xerr) {
+		d.ILogger.Error(ctx, "department %s plan %s get check points by condition %+v fail %v", d.department, task.Plan.ID, condition, xerr)
+		return xerr
+	}
+	task.CheckPoints = checkPoints
+
+	xerr = d.IExecutor.ASyncDo(ctx, task.TaskParam, d.taskExecuteCallback(ctx, task))
+	if xerror.Error(xerr) {
+		d.ILogger.Error(ctx, "department %s plan %s task %s do fail %v", d.department, task.Plan.ID, task.ID, xerr)
+		return xerr
+	}
+	return nil
+}
+
 func (d *departmentTrigger) taskEndCallback(ctx context.Context, task model.Task) func() {
 	return func() {
 		// 删除定时器
 		d.ITimer.Unregister(ctx, task.ID)
-
-		serialMap := make(map[string]struct{}, len(task.Points))
-		for _, point := range task.Points {
-			serialMap[point.Serial] = struct{}{}
-		}
-		serials := make([]string, 0, len(serialMap))
-		for serial := range serialMap {
-			serials = append(serials, serial)
-		}
-
-		userMap := make(map[string]struct{}, len(task.Plan.Users))
-		for _, user := range task.Plan.Users {
-			userMap[user] = struct{}{}
-		}
-		users := make([]string, 0, len(userMap))
-		for user := range userMap {
-			users = append(users, user)
-		}
-
-		condition := model.CheckPointCondition{
-			Users:      users,
-			Serials:    serials,
-			TimeBefore: model.DateTime{},
-			TimeAfter:  model.DateTime{},
-		}
-		checkPoints, _, xerr := d.IConfig.GetCheckPoints(ctx, d.department, condition)
+		xerr := d.taskEndExecute(ctx, task)
 		if xerror.Error(xerr) {
-			d.ILogger.Error(ctx, "department %s plan %s get check points by condition %+v fail %v", d.department, task.Plan.ID, condition, xerr)
-			return
-		}
-		task.CheckPoints = checkPoints
-
-		xerr = d.IExecutor.ASyncDo(ctx, task.TaskParam, d.taskExecuteCallback(ctx, task))
-		if xerror.Error(xerr) {
-			d.ILogger.Error(ctx, "department %s plan %s task %s do fail %v", d.department, task.Plan.ID, task.ID, xerr)
+			d.ILogger.Error(ctx, "department %s plan %s task %s execute fail %v", d.department, task.Plan.ID, task.ID, xerr)
 			return
 		}
 	}
@@ -230,6 +266,7 @@ func (d *departmentTrigger) taskExecuteCallback(ctx context.Context, task model.
 			d.ILogger.Error(ctx, "department %s plan %s task %s execute fail %v", d.department, task.Plan.ID, task.ID, xerr)
 			return
 		}
+		task.End = model.NewDateTime(time.Now())
 		task.TaskResult = result
 		xerr = d.IConfig.UpdateTask(ctx, d.department, task)
 		if xerror.Error(xerr) {
@@ -249,9 +286,11 @@ func (d *departmentTrigger) createTask(ctx context.Context, plan model.Plan) (mo
 	}
 
 	task := model.Task{
-		Identify:   model.Identify{},
-		TaskParam:  param,
-		TaskResult: model.TaskResult{},
+		Identify:  model.Identify{},
+		TaskParam: param,
+		TaskResult: model.TaskResult{
+			Status: model.TaskStatusRunning,
+		},
 	}
 	identify, xerr := d.IConfig.AddTask(ctx, d.department, task)
 	if xerror.Error(xerr) {
@@ -264,8 +303,50 @@ func (d *departmentTrigger) createTask(ctx context.Context, plan model.Plan) (mo
 }
 
 func (d *departmentTrigger) prepareTaskParams(ctx context.Context, plan model.Plan) (model.TaskParam, xerror.IError) {
+	// 查询路线
+	routers, _, xerr := d.IConfig.GetRouters(ctx, d.department, model.RouterCondition{
+		IDs: []string{plan.Router},
+	})
+	if xerror.Error(xerr) {
+		d.ILogger.Error(ctx, "department %s plan %s get router %s fail %v", d.department, plan.ID, plan.Router, xerr)
+		return model.TaskParam{}, xerr
+	}
+	if len(routers) == 0 || routers[0].ID != plan.Router {
+		xerr = xerror.Extend(xerror.ErrNotFound, "router %s", plan.Router)
+		d.ILogger.Error(ctx, "department %s plan %s get router %s fail %v", d.department, plan.ID, plan.Router, xerr)
+		return model.TaskParam{}, xerr
+	}
+	router := routers[0]
 
-	return model.TaskParam{}, nil
+	// 查询用户
+	users, _, xerr := d.IUser.GetUsers(ctx, d.department, model.UserCondition{
+		IDs: plan.Users,
+	})
+	if xerror.Error(xerr) {
+		d.ILogger.Error(ctx, "department %s plan %s get users %v fail %v", d.department, plan.ID, plan.Users, xerr)
+		return model.TaskParam{}, xerr
+	}
+
+	// 查询点位
+	points, _, xerr := d.IConfig.GetPoints(ctx, d.department, model.PointCondition{
+		IDs: router.Points,
+	})
+	if xerror.Error(xerr) {
+		d.ILogger.Error(ctx, "department %s plan %s get points %v fail %v", d.department, plan.ID, router.Points, xerr)
+		return model.TaskParam{}, xerr
+	}
+
+	start := time.Unix(time.Now().Truncate(time.Hour*24).Unix()+int64(plan.Start)-int64(router.Deviation), 0)
+	end := time.Unix(time.Now().Truncate(time.Hour*24).Unix()+int64(plan.End)+int64(router.Deviation), 0)
+
+	return model.TaskParam{
+		Start:  model.NewDateTime(start),
+		End:    model.NewDateTime(end),
+		Plan:   plan,
+		Router: router,
+		Points: points,
+		Users:  users,
+	}, nil
 }
 
 func (d *departmentTrigger) stop(ctx context.Context) {
