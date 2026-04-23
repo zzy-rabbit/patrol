@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/xtools/xerror"
+	"github.com/zzy-rabbit/xtools/xtrace"
 )
 
 func (s *session) AddPoint(ctx context.Context, point model.Point) (int, xerror.IError) {
@@ -282,6 +283,7 @@ func (s *session) DeletePlans(ctx context.Context, identifies ...model.Identify)
 }
 
 func (s *session) GetPlans(ctx context.Context, condition model.PlanCondition) ([]model.Plan, model.PageInfo, xerror.IError) {
+	defer xtrace.Trace(ctx)(condition)
 	db := s.db
 	if len(condition.IDs) > 0 {
 		db = db.Where("identify in ?", condition.IDs)
@@ -296,22 +298,22 @@ func (s *session) GetPlans(ctx context.Context, condition model.PlanCondition) (
 		db = db.Where("name like ?", "%"+condition.Name+"%")
 	}
 	if !condition.UtilBefore.IsZero() {
-		db = db.Where("util <= ?", condition.UtilBefore.Format("2006-01-02"))
+		db = db.Where("util <= ?", condition.UtilBefore.Time)
 	}
 	if !condition.UtilAfter.IsZero() {
-		db = db.Where("util >= ?", condition.UtilAfter.Format("2006-01-02"))
+		db = db.Where("util >= ?", condition.UtilAfter.Time)
 	}
 	if !condition.StartBefore.IsZero() {
-		db = db.Where("start <= ?", condition.StartBefore.Format("15:04:05"))
+		db = db.Where("start <= ?", condition.StartBefore.Time)
 	}
 	if !condition.StartAfter.IsZero() {
-		db = db.Where("start >= ?", condition.StartAfter.Format("15:04:05"))
+		db = db.Where("start >= ?", condition.StartAfter.Time)
 	}
 	if !condition.EndBefore.IsZero() {
-		db = db.Where("end <= ?", condition.EndBefore.Format("15:04:05"))
+		db = db.Where("end <= ?", condition.EndBefore.Time)
 	}
 	if !condition.EndAfter.IsZero() {
-		db = db.Where("end >= ?", condition.EndAfter.Format("15:04:05"))
+		db = db.Where("end >= ?", condition.EndAfter.Time)
 	}
 
 	total := int64(0)
@@ -326,7 +328,7 @@ func (s *session) GetPlans(ctx context.Context, condition model.PlanCondition) (
 	}
 
 	var tables []Plan
-	err := db.Find(&tables).Error
+	err := db.Debug().Find(&tables).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "query plans by condition %+v fail %v", condition, err)
 		return nil, model.PageInfo{}, transError(err)
@@ -422,10 +424,10 @@ func (s *session) GetCheckPoints(ctx context.Context, condition model.CheckPoint
 		db = db.Where("serial in ?", condition.Serials)
 	}
 	if !condition.TimeBefore.IsZero() {
-		db = db.Where("util <= ?", condition.TimeBefore.Format("2006-01-02 15:04:05"))
+		db = db.Where("util <= ?", condition.TimeBefore.Time)
 	}
 	if !condition.TimeAfter.IsZero() {
-		db = db.Where("util >= ?", condition.TimeAfter.Format("2006-01-02 15:04:05"))
+		db = db.Where("util >= ?", condition.TimeAfter.Time)
 	}
 
 	total := int64(0)
@@ -473,10 +475,10 @@ func (s *session) GetTasks(ctx context.Context, condition model.TaskCondition) (
 		db = db.Where("identify in ?", condition.IDs)
 	}
 	if !condition.Start.IsZero() {
-		db = db.Where("start >= ?", condition.Start.Format("2006-01-02 15:04:05"))
+		db = db.Where("start >= ?", condition.Start.Time)
 	}
 	if !condition.End.IsZero() {
-		db = db.Where("end <= ?", condition.End.Format("2006-01-02 15:04:05"))
+		db = db.Where("end <= ?", condition.End.Time)
 	}
 	if len(condition.Statuses) > 0 {
 		db = db.Where("status in ?", condition.Statuses)

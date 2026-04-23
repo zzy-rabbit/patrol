@@ -50,3 +50,59 @@ func (s *service) DeleteDepartment(ctx context.Context, department string) xerro
 	delete(s.departmentMap, department)
 	return nil
 }
+
+func (s *service) AddPlan(ctx context.Context, department string, plan model.Plan) xerror.IError {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.addPlan(ctx, department, plan)
+}
+
+func (s *service) addPlan(ctx context.Context, department string, plan model.Plan) xerror.IError {
+	trigger, ok := s.departmentMap[department]
+	if !ok {
+		xerr := xerror.Extend(xerror.ErrNotFound, "department %s", department)
+		s.ILogger.Info(ctx, "%v", xerr)
+		return xerr
+	}
+	trigger.scanChan <- scanRetryMaxCount
+	return nil
+}
+
+func (s *service) UpdatePlan(ctx context.Context, department string, plan model.Plan) xerror.IError {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.updatePlan(ctx, department, plan)
+}
+
+func (s *service) updatePlan(ctx context.Context, department string, plan model.Plan) xerror.IError {
+	xerr := s.deletePlans(ctx, department, plan.Identify)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "department %s delete plan %+v fail %v", department, plan, xerr)
+		return xerr
+	}
+	xerr = s.addPlan(ctx, department, plan)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "department %s add plan %+v fail %v", department, plan, xerr)
+		return xerr
+	}
+	return nil
+}
+
+func (s *service) DeletePlans(ctx context.Context, department string, plans ...model.Identify) xerror.IError {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.deletePlans(ctx, department, plans...)
+}
+
+func (s *service) deletePlans(ctx context.Context, department string, plans ...model.Identify) xerror.IError {
+	trigger, ok := s.departmentMap[department]
+	if !ok {
+		xerr := xerror.Extend(xerror.ErrNotFound, "department %s", department)
+		s.ILogger.Info(ctx, "%v", xerr)
+		return xerr
+	}
+	for _, plan := range plans {
+		trigger.ITimer.Unregister(ctx, plan.ID)
+	}
+	return nil
+}

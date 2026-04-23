@@ -11,10 +11,11 @@ import (
 )
 
 type database struct {
+	ILogger  logApi.IPlugin `xplugin:"bp.tool.log"`
 	config   api.Config
 	db       *gorm.DB
 	database *sql.DB
-	ILogger  logApi.IPlugin `xplugin:"bp.tool.log"`
+	unique   string
 }
 
 func (s *service) OpenDatabase(ctx context.Context, config api.Config) (api.IDatabase, xerror.IError) {

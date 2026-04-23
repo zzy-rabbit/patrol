@@ -20,6 +20,8 @@ import (
 	userApi "github.com/zzy-rabbit/patrol/logic/user/api"
 )
 
+const scanRetryMaxCount = 3
+
 type departmentTrigger struct {
 	ILogger   logApi.IPlugin      `xplugin:"bp.tool.log"`
 	IConfig   configApi.IPlugin   `xplugin:"patrol.logic.config"`
@@ -32,6 +34,7 @@ type departmentTrigger struct {
 	department   string
 	cancel       context.CancelFunc
 	scanInterval time.Duration
+	scanChan     chan int
 
 	registerPlanMutex sync.RWMutex
 	registerPlanMap   map[string]model.Plan
@@ -87,6 +90,7 @@ func (d *departmentTrigger) scanFeaturePlans(ctx context.Context) ([]model.Plan,
 		d.ILogger.Error(ctx, "department %s scan plans fail %v", d.department, xerr)
 		return nil, xerr
 	}
+	d.ILogger.Info(ctx, "department %s scan feature plans %+v", d.department, features)
 	return features, nil
 }
 
@@ -124,11 +128,9 @@ func (d *departmentTrigger) startScanMonitor(ctx context.Context) {
 			break
 		}
 
-		const scanRetryMaxCount = 3
-
-		scanChan := make(chan int, 16)
-		defer close(scanChan)
-		scanChan <- scanRetryMaxCount
+		d.scanChan = make(chan int, 16)
+		defer close(d.scanChan)
+		d.scanChan <- scanRetryMaxCount
 
 		ticker := time.NewTicker(d.scanInterval)
 		defer ticker.Stop()
@@ -139,23 +141,24 @@ func (d *departmentTrigger) startScanMonitor(ctx context.Context) {
 				d.ILogger.Info(ctx, "department %s scan monitor stop", d.department)
 				return
 			case <-ticker.C:
-				scanChan <- scanRetryMaxCount
-			case retry := <-scanChan:
+				d.scanChan <- scanRetryMaxCount
+			case retry := <-d.scanChan:
 				if retry <= 0 {
 					continue
 				}
+
+				d.ILogger.Info(ctx, "department %s start scan feature plans", d.department)
+
 				features, xerr := d.scanFeaturePlans(ctx)
 				if xerror.Error(xerr) {
 					d.ILogger.Error(ctx, "department %s scan plans fail %v", d.department, xerr)
-					scanChan <- retry - 1
+					d.scanChan <- retry - 1
 					continue
 				}
 
 				// 添加到定时器
 				for i, feature := range features {
-					start := time.Unix(time.Now().Truncate(time.Hour*24).Unix()+int64(feature.Start.Unix()), 0)
-					spec := fmt.Sprintf("%d %d %d %d %d *", start.Second(), start.Minute(), start.Hour(), start.Day(), start.Month())
-					xerr = d.ITimer.Register(ctx, feature.ID, spec, d.taskStartCallback(ctx, features[i]))
+					xerr = d.registerFeaturePlan(ctx, features[i])
 					if xerror.Error(xerr) {
 						d.ILogger.Error(ctx, "department %s register plan %s fail %v", d.department, feature.ID, xerr)
 						continue
@@ -164,6 +167,17 @@ func (d *departmentTrigger) startScanMonitor(ctx context.Context) {
 			}
 		}
 	}()
+}
+
+func (d *departmentTrigger) registerFeaturePlan(ctx context.Context, plan model.Plan) xerror.IError {
+	start := time.Unix(time.Now().Truncate(time.Hour*24).Unix()+int64(plan.Start.Unix()), 0)
+	spec := fmt.Sprintf("%d %d %d %d %d *", start.Second(), start.Minute(), start.Hour(), start.Day(), start.Month())
+	xerr := d.ITimer.Register(ctx, plan.ID, spec, d.taskStartCallback(ctx, plan))
+	if xerror.Error(xerr, xerror.ErrAlreadyExists) {
+		d.ILogger.Error(ctx, "department %s register plan %s fail %v", d.department, plan.ID, xerr)
+		return xerr
+	}
+	return nil
 }
 
 func (d *departmentTrigger) taskStartCallback(ctx context.Context, plan model.Plan) func() {

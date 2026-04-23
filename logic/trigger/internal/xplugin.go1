@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"github.com/zzy-rabbit/xtools/xerror"
 	"sync"
 
 	logApi "github.com/zzy-rabbit/bp/tool/log/api"
@@ -41,6 +42,19 @@ func (s *service) Init(ctx context.Context, initParam string) error {
 }
 
 func (s *service) Run(ctx context.Context, runParam string) error {
+	databases := s.IDatabase.GetAll(ctx)
+	for _, database := range databases {
+		department, xerr := database.GetDB(ctx).GetDepartment(ctx)
+		if xerror.Error(xerr) {
+			s.ILogger.Error(ctx, "get department fail %v", xerr)
+			continue
+		}
+		xerr = s.AddDepartment(ctx, department.ID)
+		if xerror.Error(xerr) {
+			s.ILogger.Error(ctx, "trigger add department fail %v", xerr)
+			continue
+		}
+	}
 	s.ILogger.Info(ctx, "plugin %s run success", s.GetName(ctx))
 	return nil
 }

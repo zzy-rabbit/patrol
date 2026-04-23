@@ -119,6 +119,10 @@ func (s *service) AddPlan(ctx context.Context, department string, plan model.Pla
 		s.ILogger.Error(ctx, "department %s add plan %+v fail %v", department, plan, xerr)
 		return model.Identify{}, xerr
 	}
+	xerr = s.ITrigger.AddPlan(ctx, department, plan)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "department %s add plan %+v fail %v", department, plan, xerr)
+	}
 	return plan.Identify, nil
 }
 
@@ -129,7 +133,12 @@ func (s *service) UpdatePlan(ctx context.Context, department string, plan model.
 		s.ILogger.Error(ctx, "department %s database not found", department)
 		return xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
-	return database.GetDB(ctx).UpdatePlan(ctx, plan)
+	xerr := database.GetDB(ctx).UpdatePlan(ctx, plan)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "department %s update plan %+v fail %v", department, plan, xerr)
+		return xerr
+	}
+	return s.ITrigger.UpdatePlan(ctx, department, plan)
 }
 
 func (s *service) DeletePlans(ctx context.Context, department string, plans ...model.Identify) xerror.IError {
@@ -139,7 +148,12 @@ func (s *service) DeletePlans(ctx context.Context, department string, plans ...m
 		s.ILogger.Error(ctx, "department %s database not found", department)
 		return xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
-	return database.GetDB(ctx).DeletePlans(ctx, plans...)
+	xerr := database.GetDB(ctx).DeletePlans(ctx, plans...)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "department %s delete plans %+v fail %v", department, plans, xerr)
+		return xerr
+	}
+	return s.ITrigger.DeletePlans(ctx, department, plans...)
 }
 
 func (s *service) GetPlans(ctx context.Context, department string, condition model.PlanCondition) ([]model.Plan, model.PageInfo, xerror.IError) {

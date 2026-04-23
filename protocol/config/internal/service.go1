@@ -394,3 +394,100 @@ func (s *service) GetCheckPoints(ctx *fiber.Ctx) error {
 		},
 	})
 }
+
+func (s *service) AddTask(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
+	var task model.Task
+	xerr := s.IHttp.ParseBodyParams(ctx, &header, &task)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse body params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	department := ctx.Get("department")
+	identify, xerr := s.IConfig.AddTask(ctx.UserContext(), department, task)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "department %s add task %+v fail %v", department, task, xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+		Data:   identify,
+	})
+}
+
+func (s *service) UpdateTask(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
+	var task model.Task
+	xerr := s.IHttp.ParseBodyParams(ctx, &header, &task)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse body params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	department := ctx.Get("department")
+	xerr = s.IConfig.UpdateTask(ctx.UserContext(), department, task)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "department %s update task %+v fail %v", department, task, xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+	})
+}
+
+func (s *service) DeleteTasks(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
+	var tasks []model.Identify
+	xerr := s.IHttp.ParseBodyParams(ctx, &header, &tasks)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse body params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	department := ctx.Get("department")
+	xerr = s.IConfig.DeleteTasks(ctx.UserContext(), department, tasks...)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "department %s delete tasks %+v fail %v", department, tasks, xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+	})
+}
+
+func (s *service) GetTasks(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
+	var condition model.TaskCondition
+	xerr := s.IHttp.ParseQueryParams(ctx, &header, &condition)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse query params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	department := ctx.Get("department")
+	tasks, page, xerr := s.IConfig.GetTasks(ctx.UserContext(), department, condition)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "department %s get tasks %+v fail %v", department, condition, xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+		Data: model.PaginatedData[model.Task]{
+			PageInfo: page,
+			List:     tasks,
+		},
+	})
+}
