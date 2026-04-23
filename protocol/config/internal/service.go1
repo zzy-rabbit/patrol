@@ -212,6 +212,7 @@ func (s *service) AddPlan(ctx *fiber.Ctx) error {
 		})
 	}
 	department := ctx.Get("department")
+	s.ILogger.Info(ctx.UserContext(), "department %s add plan %+v", department, plan)
 	identify, xerr := s.IConfig.AddPlan(ctx.UserContext(), department, plan)
 	if xerror.Error(xerr) {
 		s.ILogger.Error(ctx.UserContext(), "department %s add plan %+v fail %v", department, plan, xerr)

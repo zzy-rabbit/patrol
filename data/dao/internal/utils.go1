@@ -3,7 +3,9 @@ package internal
 import (
 	"errors"
 	"github.com/zzy-rabbit/xtools/xerror"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
+	"time"
 )
 
 func transError(err error) xerror.IError {
@@ -20,4 +22,24 @@ func transError(err error) xerror.IError {
 		return xerror.ErrAlreadyExists
 	}
 	return xerror.ErrFail
+}
+
+func TimeToGormTime(t time.Time) datatypes.Time {
+	h, m, s := t.Clock()
+
+	d := time.Duration(h)*time.Hour +
+		time.Duration(m)*time.Minute +
+		time.Duration(s)*time.Second +
+		time.Duration(t.Nanosecond())
+
+	return datatypes.Time(d)
+}
+
+func GormTimeToTime(t datatypes.Time) time.Time {
+	d := time.Duration(t)
+
+	// 用“零时间 + duration”
+	base := time.Date(0, 1, 1, 0, 0, 0, 0, time.Local)
+
+	return base.Add(d)
 }

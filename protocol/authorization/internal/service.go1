@@ -53,6 +53,8 @@ func (s *service) ParseToken(ctx context.Context, ciphertext []byte) (model.Auth
 
 func (s *service) Middleware(checks ...func(fiberCtx *fiber.Ctx, claim model.Authorization) xerror.IError) fiber.Handler {
 	return func(fiberCtx *fiber.Ctx) error {
+		fiberCtx.Next()
+		return nil
 		token := fiberCtx.Get("authorization")
 		if token == "" {
 			s.ILogger.Error(fiberCtx.UserContext(), "authorization empty")

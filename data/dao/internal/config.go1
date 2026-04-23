@@ -5,6 +5,8 @@ import (
 	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"github.com/zzy-rabbit/xtools/xtrace"
+	"gorm.io/datatypes"
+	"time"
 )
 
 func (s *session) AddPoint(ctx context.Context, point model.Point) (int, xerror.IError) {
@@ -247,9 +249,10 @@ func (s *session) GetRouters(ctx context.Context, condition model.RouterConditio
 }
 
 func (s *session) AddPlan(ctx context.Context, plan model.Plan) (int, xerror.IError) {
+	defer xtrace.Trace(ctx)(plan)
 	var table Plan
 	table.FromModel(plan)
-	err := s.db.Create(&table).Error
+	err := s.db.Debug().Create(&table).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "add plan %+v fail %v", plan, err)
 		return 0, transError(err)
@@ -260,7 +263,7 @@ func (s *session) AddPlan(ctx context.Context, plan model.Plan) (int, xerror.IEr
 func (s *session) UpdatePlan(ctx context.Context, plan model.Plan) xerror.IError {
 	var table Plan
 	table.FromModel(plan)
-	err := s.db.Updates(&table).Error
+	err := s.db.Debug().Updates(&table).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "update plan %+v fail %v", plan, err)
 		return transError(err)
@@ -274,7 +277,7 @@ func (s *session) DeletePlans(ctx context.Context, identifies ...model.Identify)
 		ids = append(ids, identify.ID)
 	}
 	// 删除plan
-	err := s.db.Where("identify in ?", ids).Delete(&Plan{}).Error
+	err := s.db.Debug().Where("identify in ?", ids).Delete(&Plan{}).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "delete plans %+v fail %v", ids, err)
 		return transError(err)
@@ -298,22 +301,22 @@ func (s *session) GetPlans(ctx context.Context, condition model.PlanCondition) (
 		db = db.Where("name like ?", "%"+condition.Name+"%")
 	}
 	if !condition.UtilBefore.IsZero() {
-		db = db.Where("util <= ?", condition.UtilBefore.Time)
+		db = db.Where("util <= ?", datatypes.Date(condition.UtilBefore.Time))
 	}
 	if !condition.UtilAfter.IsZero() {
-		db = db.Where("util >= ?", condition.UtilAfter.Time)
+		db = db.Where("util >= ?", datatypes.Date(condition.UtilAfter.Time))
 	}
 	if !condition.StartBefore.IsZero() {
-		db = db.Where("start <= ?", condition.StartBefore.Time)
+		db = db.Where("start <= ?", datatypes.Time(condition.StartBefore.Time.Sub(condition.StartBefore.Time.Truncate(time.Hour*24))))
 	}
 	if !condition.StartAfter.IsZero() {
-		db = db.Where("start >= ?", condition.StartAfter.Time)
+		db = db.Where("start >= ?", datatypes.Time(condition.StartAfter.Time.Sub(condition.StartAfter.Time.Truncate(time.Hour*24))))
 	}
 	if !condition.EndBefore.IsZero() {
-		db = db.Where("end <= ?", condition.EndBefore.Time)
+		db = db.Where("end <= ?", datatypes.Time(condition.EndBefore.Time.Sub(condition.EndBefore.Time.Truncate(time.Hour*24))))
 	}
 	if !condition.EndAfter.IsZero() {
-		db = db.Where("end >= ?", condition.EndAfter.Time)
+		db = db.Where("end >= ?", datatypes.Time(condition.EndAfter.Time.Sub(condition.EndAfter.Time.Truncate(time.Hour*24))))
 	}
 
 	total := int64(0)

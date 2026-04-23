@@ -2,6 +2,7 @@ package internal
 
 import (
 	"github.com/zzy-rabbit/patrol/model"
+	"gorm.io/datatypes"
 	"time"
 )
 
@@ -43,15 +44,15 @@ func (*Router) TableName() string {
 }
 
 type Plan struct {
-	ID       int       `gorm:"column:id;primaryKey;autoIncrement"`
-	Identify string    `gorm:"column:identify;unique"`
-	Name     string    `gorm:"column:name"`
-	Type     int       `gorm:"column:type"`
-	Router   string    `gorm:"column:router"`
-	Util     time.Time `gorm:"column:util"`
-	Start    time.Time `gorm:"column:start"`
-	End      time.Time `gorm:"column:end"`
-	Users    []string  `gorm:"column:users;serializer:json"`
+	ID       int            `gorm:"column:id;primaryKey;autoIncrement"`
+	Identify string         `gorm:"column:identify;unique"`
+	Name     string         `gorm:"column:name"`
+	Type     int            `gorm:"column:type"`
+	Router   string         `gorm:"column:router"`
+	Util     datatypes.Date `gorm:"column:util"`
+	Start    datatypes.Time `gorm:"column:start"`
+	End      datatypes.Time `gorm:"column:end"`
+	Users    []string       `gorm:"column:users;serializer:json"`
 }
 
 func (*Plan) TableName() string {

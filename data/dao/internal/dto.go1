@@ -2,6 +2,8 @@ package internal
 
 import (
 	"github.com/zzy-rabbit/patrol/model"
+	"gorm.io/datatypes"
+	"time"
 )
 
 func (d *Department) FromModel(m model.Department) {
@@ -68,9 +70,9 @@ func (p *Plan) FromModel(m model.Plan) {
 	p.Name = m.Name
 	p.Type = int(m.Type)
 	p.Router = m.Router
-	p.Start = m.Start.Time
-	p.End = m.End.Time
-	p.Util = m.Util.Time
+	p.Start = TimeToGormTime(m.Start.Time)
+	p.End = TimeToGormTime(m.End.Time)
+	p.Util = datatypes.Date(m.Util.Time)
 	p.Users = users
 }
 
@@ -84,9 +86,9 @@ func (p *Plan) ToModel() model.Plan {
 		Name:   p.Name,
 		Type:   model.PlanType(p.Type),
 		Router: p.Router,
-		Start:  model.NewTime(p.Start),
-		End:    model.NewTime(p.End),
-		Util:   model.NewDate(p.Util),
+		Start:  model.NewTime(GormTimeToTime(p.Start)),
+		End:    model.NewTime(GormTimeToTime(p.End)),
+		Util:   model.NewDate(time.Time(p.Util)),
 		Users:  users,
 	}
 }
