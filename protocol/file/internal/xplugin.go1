@@ -32,18 +32,18 @@ func (s *service) GetName(ctx context.Context) string {
 	return api.PluginName
 }
 
-func (s *service) Init(ctx context.Context, initParam string) error {
+func (s *service) Init(ctx context.Context, initParam string) xerror.IError {
 	err := json.Unmarshal([]byte(initParam), &s.config)
 	if xerror.Error(err) {
 		s.ILogger.Error(ctx, "plugin %s parse init param %s fail %v", s.GetName(ctx), initParam, err)
-		return xerror.Extend(xerror.ErrInternalError, err.Error())
+		return xerror.Extend(xerror.ErrInvalidParam, "init param invalid: %v", err)
 	}
 	if !xfile.IsExist(ctx, s.config.Path) {
 		s.ILogger.Info(ctx, "plugin %s path %s not exist, create it", s.GetName(ctx), s.config.Path)
 		err = os.MkdirAll(s.config.Path, os.ModePerm)
 		if xerror.Error(err) {
 			s.ILogger.Error(ctx, "plugin %s create path %s fail %v", s.GetName(ctx), s.config.Path, err)
-			return xerror.Extend(xerror.ErrInternalError, "create path %s: %s", s.config.Path, err)
+			return xerror.Extend(xerror.ErrInternalError, "create path %s: %v", s.config.Path, err)
 		}
 	}
 	s.IHttp.Register(ctx, s.registerRouter)
@@ -51,7 +51,7 @@ func (s *service) Init(ctx context.Context, initParam string) error {
 	return nil
 }
 
-func (s *service) Run(ctx context.Context, runParam string) error {
+func (s *service) Run(ctx context.Context, runParam string) xerror.IError {
 	s.ILogger.Info(ctx, "plugin %s run success", s.GetName(ctx))
 	s.IUpload.SetNotifyCreatedCallback(ctx, func(ctx context.Context, event handler.HookEvent) {
 		s.ILogger.Info(ctx, "upload created %+v", event)
@@ -62,7 +62,7 @@ func (s *service) Run(ctx context.Context, runParam string) error {
 	return nil
 }
 
-func (s *service) Stop(ctx context.Context, stopParam string) error {
+func (s *service) Stop(ctx context.Context, stopParam string) xerror.IError {
 	s.ILogger.Info(ctx, "plugin %s stop success", s.GetName(ctx))
 	return nil
 }

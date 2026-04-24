@@ -4,6 +4,7 @@ import (
 	"context"
 	logApi "github.com/zzy-rabbit/bp/tool/log/api"
 	"github.com/zzy-rabbit/patrol/data/dao/api"
+	"github.com/zzy-rabbit/xtools/xerror"
 )
 
 type service struct {
@@ -18,7 +19,7 @@ func (s *service) GetName(ctx context.Context) string {
 	return api.PluginName
 }
 
-func (s *service) Init(ctx context.Context, initParam string) error {
+func (s *service) Init(ctx context.Context, initParam string) xerror.IError {
 	//err := json.Unmarshal([]byte(initParam), &s.config)
 	//if xerror.Error(err) {
 	//	s.ILogger.Error(ctx, "plugin %s init error: %s", s.GetName(ctx), err.Error())
@@ -28,7 +29,7 @@ func (s *service) Init(ctx context.Context, initParam string) error {
 	return nil
 }
 
-func (s *service) Run(ctx context.Context, runParam string) error {
+func (s *service) Run(ctx context.Context, runParam string) xerror.IError {
 	//db, err := gorm.Open(sqlite.Open(s.config.Sqlite.File), &gorm.Config{})
 	//if err != nil {
 	//	s.ILogger.Error(ctx, "plugin %s open database by config %+v fail %v", s.GetName(ctx), s.config, err)
@@ -39,7 +40,7 @@ func (s *service) Run(ctx context.Context, runParam string) error {
 	return nil
 }
 
-func (s *service) Stop(ctx context.Context, stopParam string) error {
+func (s *service) Stop(ctx context.Context, stopParam string) xerror.IError {
 	s.ILogger.Info(ctx, "plugin %s stop success", s.GetName(ctx))
 	return nil
 }

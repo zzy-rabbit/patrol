@@ -34,11 +34,11 @@ func (s *service) GetName(ctx context.Context) string {
 	return api.PluginName
 }
 
-func (s *service) Init(ctx context.Context, initParam string) error {
+func (s *service) Init(ctx context.Context, initParam string) xerror.IError {
 	err := json.Unmarshal([]byte(initParam), &s.config)
 	if xerror.Error(err) {
 		s.ILogger.Error(ctx, "plugin %s init error: %s", s.GetName(ctx), err.Error())
-		return err
+		return xerror.Extend(xerror.ErrInvalidParam, "init param invalid: %v", err)
 	}
 	s.databasePath = filepath.Join(xexecutable.GetProcessAbsPath(), s.config.Path)
 	if !xfile.IsExist(ctx, s.databasePath) {
@@ -46,7 +46,7 @@ func (s *service) Init(ctx context.Context, initParam string) error {
 		err = os.MkdirAll(s.databasePath, os.ModePerm)
 		if xerror.Error(err) {
 			s.ILogger.Error(ctx, "create path %s fail %v", s.databasePath, err)
-			return err
+			return xerror.Extend(xerror.ErrInternalError, "create path %s: %v", s.databasePath, err)
 		}
 	}
 
@@ -75,18 +75,18 @@ func (s *service) Init(ctx context.Context, initParam string) error {
 	})
 	if xerror.Error(err) {
 		s.ILogger.Fatal(ctx, "filepath walk database fail %v", err)
-		return err
+		return xerror.Extend(xerror.ErrInternalError, "scan database fail")
 	}
 	s.ILogger.Info(ctx, "plugin %s init by config %+v success", s.GetName(ctx), s.config)
 	return nil
 }
 
-func (s *service) Run(ctx context.Context, runParam string) error {
+func (s *service) Run(ctx context.Context, runParam string) xerror.IError {
 	s.ILogger.Info(ctx, "plugin %s run success", s.GetName(ctx))
 	return nil
 }
 
-func (s *service) Stop(ctx context.Context, stopParam string) error {
+func (s *service) Stop(ctx context.Context, stopParam string) xerror.IError {
 	s.ILogger.Info(ctx, "plugin %s stop success", s.GetName(ctx))
 	return nil
 }
