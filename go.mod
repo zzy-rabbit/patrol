@@ -8,8 +8,9 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/tus/tusd v1.13.0
-	github.com/zzy-rabbit/bp v0.0.0-20260420023505-b7847f6de914
-	github.com/zzy-rabbit/xtools v0.0.0-20260407125636-05ca754442e8
+	github.com/zzy-rabbit/bp v0.0.0-20260424023103-0d43a7e08ef2
+	github.com/zzy-rabbit/xtools v0.0.0-20260424022857-18034b955864
+	gorm.io/datatypes v1.2.7
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.1
 )
@@ -35,6 +36,5 @@ require (
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.20.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
-	gorm.io/datatypes v1.2.7 // indirect
 	gorm.io/driver/mysql v1.5.6 // indirect
 )
