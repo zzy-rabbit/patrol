@@ -170,7 +170,7 @@ func (d *departmentTrigger) startScanMonitor(ctx context.Context) {
 }
 
 func (d *departmentTrigger) registerFeaturePlan(ctx context.Context, plan model.Plan) xerror.IError {
-	start := time.Unix(time.Now().Truncate(time.Hour*24).Unix()+int64(plan.Start.Unix()), 0)
+	start := model.ConcatTimeInToday(plan.Start.Time)
 	spec := fmt.Sprintf("%d %d %d %d %d *", start.Second(), start.Minute(), start.Hour(), start.Day(), start.Month())
 	xerr := d.ITimer.Register(ctx, plan.ID, spec, d.taskStartCallback(ctx, plan))
 	if xerror.Error(xerr, xerror.ErrAlreadyExists) {
@@ -201,8 +201,12 @@ func (d *departmentTrigger) taskStartCallback(ctx context.Context, plan model.Pl
 }
 
 func (d *departmentTrigger) registerTaskEndTimer(ctx context.Context, task model.Task) xerror.IError {
+	defer xtrace.Trace(ctx)(task)
+
 	// 如果已经过了结束时间，不再添加定时器，直接执行
 	if time.Now().After(task.End.Time) {
+		d.ILogger.Info(ctx, "department %s task %s end time %s already passed", d.department, task.ID, task.End.Time)
+
 		xerr := d.taskEndExecute(ctx, task)
 		if xerror.Error(xerr) {
 			d.ILogger.Error(ctx, "department %s execute task %s fail %v", d.department, task.ID, xerr)
@@ -211,7 +215,8 @@ func (d *departmentTrigger) registerTaskEndTimer(ctx context.Context, task model
 		return nil
 	}
 
-	spec := fmt.Sprintf("%d %d %d %d %d *", task.End.Second(), task.End.Minute(), task.End.Hour(), task.End.Day(), task.End.Month())
+	end := model.ConcatTimeInToday(task.End.Time).Add(time.Duration(task.Router.Deviation) * time.Second)
+	spec := fmt.Sprintf("%d %d %d %d %d *", end.Second(), end.Minute(), end.Hour(), end.Day(), end.Month())
 
 	// 添加结束的定时器
 	xerr := d.ITimer.Register(ctx, task.ID, spec, d.taskEndCallback(ctx, task))
@@ -350,8 +355,8 @@ func (d *departmentTrigger) prepareTaskParams(ctx context.Context, plan model.Pl
 		return model.TaskParam{}, xerr
 	}
 
-	start := time.Unix(time.Now().Truncate(time.Hour*24).Unix()+int64(plan.Start.Unix())-int64(router.Deviation), 0)
-	end := time.Unix(time.Now().Truncate(time.Hour*24).Unix()+int64(plan.End.Unix())+int64(router.Deviation), 0)
+	start := model.ConcatTimeInToday(plan.Start.Time).Add(-1 * time.Duration(router.Deviation) * time.Second)
+	end := model.ConcatTimeInToday(plan.End.Time).Add(time.Duration(router.Deviation) * time.Second)
 
 	return model.TaskParam{
 		Start:  model.NewDateTime(start),

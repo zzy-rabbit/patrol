@@ -104,3 +104,8 @@ func (t *DateTime) MarshalJSON() ([]byte, error) {
 func (t *DateTime) UnmarshalJSON(data []byte) error {
 	return t.unmarshal(data, "2006-01-02 15:04:05")
 }
+
+func ConcatTimeInToday(t time.Time) time.Time {
+	now := time.Now()
+	return time.Date(now.Year(), now.Month(), now.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), now.Location())
+}

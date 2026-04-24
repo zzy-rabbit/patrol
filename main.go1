@@ -3,14 +3,13 @@ package main
 import (
 	"context"
 	"flag"
-	"os"
-	"os/signal"
-	"syscall"
-
 	"github.com/zzy-rabbit/xtools/xcontext"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"github.com/zzy-rabbit/xtools/xlog"
 	"github.com/zzy-rabbit/xtools/xplugin"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func ParseStartParams(ctx context.Context) xerror.IError {
@@ -35,27 +34,27 @@ func main() {
 
 	logger.Info(ctx, "==========================%s start==========================", os.Args[0])
 
-	err := ParseStartParams(ctx)
-	if xerror.Error(err) {
-		panic(err)
+	xerr := ParseStartParams(ctx)
+	if xerror.Error(xerr) {
+		panic(xerr)
 	}
 
-	err = xplugin.Init(ctx)
-	if xerror.Error(err) {
-		panic(err)
+	xerr = xplugin.Init(ctx)
+	if xerror.Error(xerr) {
+		panic(xerr)
 	}
 
-	err = xplugin.Run(ctx)
-	if xerror.Error(err) {
-		panic(err)
+	xerr = xplugin.Run(ctx)
+	if xerror.Error(xerr) {
+		panic(xerr)
 	}
 
 	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGKILL)
 	<-exit
 
-	err = xplugin.Stop(ctx)
-	if xerror.Error(err) {
-		panic(err)
+	xerr = xplugin.Stop(ctx)
+	if xerror.Error(xerr) {
+		panic(xerr)
 	}
 }

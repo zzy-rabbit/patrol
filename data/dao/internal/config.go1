@@ -6,7 +6,6 @@ import (
 	"github.com/zzy-rabbit/xtools/xerror"
 	"github.com/zzy-rabbit/xtools/xtrace"
 	"gorm.io/datatypes"
-	"time"
 )
 
 func (s *session) AddPoint(ctx context.Context, point model.Point) (int, xerror.IError) {
@@ -23,7 +22,7 @@ func (s *session) AddPoint(ctx context.Context, point model.Point) (int, xerror.
 func (s *session) UpdatePoint(ctx context.Context, point model.Point) xerror.IError {
 	var table Point
 	table.FromModel(point)
-	err := s.db.Updates(&table).Error
+	err := s.db.Where("identify = ?", table.ID).Updates(&table).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "update point %+v fail %v", point, err)
 		return transError(err)
@@ -150,7 +149,7 @@ func (s *session) AddRouter(ctx context.Context, router model.Router) (int, xerr
 func (s *session) UpdateRouter(ctx context.Context, router model.Router) xerror.IError {
 	var table Router
 	table.FromModel(router)
-	err := s.db.Updates(&table).Error
+	err := s.db.Where("identify = ?", table.ID).Updates(&table).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "update router %+v fail %v", router, err)
 		return transError(err)
@@ -263,7 +262,7 @@ func (s *session) AddPlan(ctx context.Context, plan model.Plan) (int, xerror.IEr
 func (s *session) UpdatePlan(ctx context.Context, plan model.Plan) xerror.IError {
 	var table Plan
 	table.FromModel(plan)
-	err := s.db.Debug().Updates(&table).Error
+	err := s.db.Where("identify = ?", table.ID).Updates(&table).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "update plan %+v fail %v", plan, err)
 		return transError(err)
@@ -307,16 +306,16 @@ func (s *session) GetPlans(ctx context.Context, condition model.PlanCondition) (
 		db = db.Where("util >= ?", datatypes.Date(condition.UtilAfter.Time))
 	}
 	if !condition.StartBefore.IsZero() {
-		db = db.Where("start <= ?", datatypes.Time(condition.StartBefore.Time.Sub(condition.StartBefore.Time.Truncate(time.Hour*24))))
+		db = db.Where("start <= ?", datatypes.Time(TimeDurationOfDay(condition.StartBefore.Time)))
 	}
 	if !condition.StartAfter.IsZero() {
-		db = db.Where("start >= ?", datatypes.Time(condition.StartAfter.Time.Sub(condition.StartAfter.Time.Truncate(time.Hour*24))))
+		db = db.Where("start >= ?", datatypes.Time(TimeDurationOfDay(condition.StartAfter.Time)))
 	}
 	if !condition.EndBefore.IsZero() {
-		db = db.Where("end <= ?", datatypes.Time(condition.EndBefore.Time.Sub(condition.EndBefore.Time.Truncate(time.Hour*24))))
+		db = db.Where("end <= ?", datatypes.Time(TimeDurationOfDay(condition.EndBefore.Time)))
 	}
 	if !condition.EndAfter.IsZero() {
-		db = db.Where("end >= ?", datatypes.Time(condition.EndAfter.Time.Sub(condition.EndAfter.Time.Truncate(time.Hour*24))))
+		db = db.Where("end >= ?", datatypes.Time(TimeDurationOfDay(condition.EndAfter.Time)))
 	}
 
 	total := int64(0)
@@ -393,7 +392,7 @@ func (s *session) AddCheckPoint(ctx context.Context, checkPoint model.CheckPoint
 func (s *session) UpdateCheckPoint(ctx context.Context, checkPoint model.CheckPoint) xerror.IError {
 	var table CheckPoint
 	table.FromModel(checkPoint)
-	err := s.db.Updates(&table).Error
+	err := s.db.Where("identify = ?", table.ID).Updates(&table).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "update checkPoint %+v fail %v", checkPoint, err)
 		return transError(err)
@@ -407,7 +406,7 @@ func (s *session) DeleteCheckPoints(ctx context.Context, identifies ...model.Ide
 		ids = append(ids, identify.ID)
 	}
 	// 删除checkPoint
-	err := s.db.Where("identify in ?", ids).Delete(&Router{}).Error
+	err := s.db.Where("identify in ?", ids).Delete(&CheckPoint{}).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "delete checkPoints %+v fail %v", ids, err)
 		return transError(err)
@@ -461,14 +460,38 @@ func (s *session) GetCheckPoints(ctx context.Context, condition model.CheckPoint
 }
 
 func (s *session) AddTask(ctx context.Context, task model.Task) (int, xerror.IError) {
-	return 0, nil
+	var table Task
+	table.FromModel(task)
+	err := s.db.Create(&table).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "add task %+v fail %v", task, err)
+		return 0, transError(err)
+	}
+	return table.ID, nil
 }
 
 func (s *session) UpdateTask(ctx context.Context, task model.Task) xerror.IError {
+	var table Task
+	table.FromModel(task)
+	err := s.db.Where("identify = ?", table.ID).Updates(&table).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "update task %+v fail %v", task, err)
+		return transError(err)
+	}
 	return nil
 }
 
-func (s *session) DeleteTasks(ctx context.Context, tasks ...model.Identify) xerror.IError {
+func (s *session) DeleteTasks(ctx context.Context, identifies ...model.Identify) xerror.IError {
+	ids := make([]string, 0, len(identifies))
+	for _, identify := range identifies {
+		ids = append(ids, identify.ID)
+	}
+	// 删除task
+	err := s.db.Where("identify in ?", ids).Delete(&Task{}).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "delete tasks %+v fail %v", ids, err)
+		return transError(err)
+	}
 	return nil
 }
 

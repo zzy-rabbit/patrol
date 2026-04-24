@@ -20,7 +20,7 @@ func (s *session) AddUser(ctx context.Context, user model.User) (int, xerror.IEr
 func (s *session) UpdateUser(ctx context.Context, user model.User) xerror.IError {
 	var table User
 	table.FromModel(user)
-	err := s.db.Updates(&table).Error
+	err := s.db.Where("identify = ?", table.ID).Updates(&table).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "update user %+v fail %v", user, err)
 		return transError(err)

@@ -20,7 +20,7 @@ func (s *session) AddFile(ctx context.Context, file model.File) (int, xerror.IEr
 func (s *session) UpdateFile(ctx context.Context, file model.File) xerror.IError {
 	var table File
 	table.FromModel(file)
-	err := s.db.Updates(&table).Error
+	err := s.db.Where("identify = ?", table.ID).Updates(&table).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "update file %+v fail %v", file, err)
 		return transError(err)
