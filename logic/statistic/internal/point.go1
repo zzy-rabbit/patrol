@@ -63,7 +63,8 @@ func (p *pointStatistic) Statistic(ctx context.Context, tasks []model.Task) ([]m
 			pointMap[point.ID] = point
 		}
 
-		for j, result := range task.Results {
+		taskPointMap := make(map[string]bool, len(task.Results))
+		for _, result := range task.Results {
 			// 如果指定了id
 			if len(idMap) > 0 && !idMap[result.ID] {
 				continue
@@ -75,6 +76,7 @@ func (p *pointStatistic) Statistic(ctx context.Context, tasks []model.Task) ([]m
 					Identify: result.Identify,
 					Name:     pointMap[result.ID].Name,
 				}
+				pointStatusMap[result.ID] = statistic
 			}
 			switch result.Status {
 			case model.TaskPointStatusNormal:
@@ -86,12 +88,13 @@ func (p *pointStatistic) Statistic(ctx context.Context, tasks []model.Task) ([]m
 			}
 			statistic.Total++
 
-			statistic.LeakPercent = float64(statistic.Leak) / float64(statistic.Total)
-			statistic.NormalPercent = float64(statistic.Normal) / float64(statistic.Total)
+			statistic.LeakPercent = float64(statistic.Leak) / float64(statistic.Total) * 100
+			statistic.NormalPercent = float64(statistic.Normal) / float64(statistic.Total) * 100
 
-			if j == len(task.Results)-1 {
-				statistic.Tasks = append(statistic.Tasks, tasks[i])
+			if taskPointMap[result.ID] {
+				continue
 			}
+			statistic.Tasks = append(statistic.Tasks, tasks[i])
 		}
 	}
 

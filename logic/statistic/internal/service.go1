@@ -6,30 +6,32 @@ import (
 	"github.com/zzy-rabbit/xtools/xerror"
 )
 
-func (s *service) Statistic(ctx context.Context, department string, condition model.StatisticCondition) ([]model.Statistic, xerror.IError) {
+func (s *service) Statistic(ctx context.Context, department string, condition model.StatisticCondition) ([]model.Statistic, model.PageInfo, xerror.IError) {
 	var processor IStatisticProcessor
 	switch condition.Type {
+	case model.StatisticTypeUser:
+		processor = s.newUserStatistic(ctx, department, condition)
 	case model.StatisticTypePoint:
 		processor = s.newPointStatistic(ctx, department, condition)
 	case model.StatisticTypeRouter:
 		processor = s.newRouterStatistic(ctx, department, condition)
 	case model.StatisticTypePlan:
 		processor = s.newPlanStatistic(ctx, department, condition)
-	case model.StatisticTypeUser:
-		processor = s.newUserStatistic(ctx, department, condition)
 	default:
-		return nil, xerror.Extend(xerror.ErrInvalidParam, "invalid statistic type %d", condition.Type)
+		return nil, model.PageInfo{}, xerror.Extend(xerror.ErrInvalidParam, "invalid statistic type %d", condition.Type)
 	}
 
 	tasks, xerr := processor.GetTasks(ctx)
 	if xerror.Error(xerr) {
 		s.ILogger.Error(ctx, "department %s get tasks by condition %+v fail %+v", department, condition, xerr)
-		return nil, xerr
+		return nil, model.PageInfo{}, xerr
 	}
 	statistics, xerr := processor.Statistic(ctx, tasks)
 	if xerror.Error(xerr) {
 		s.ILogger.Error(ctx, "department %s statistic by condition %+v fail %v", department, condition, xerr)
-		return nil, xerr
+		return nil, model.PageInfo{}, xerr
 	}
-	return statistics, nil
+
+	statistics, page := model.Paginate(statistics, condition.PageQuery)
+	return statistics, page, nil
 }

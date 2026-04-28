@@ -13,5 +13,5 @@ const (
 
 type IPlugin interface {
 	xplugin.IPlugin
-	Statistic(ctx context.Context, department string, condition model.StatisticCondition) ([]model.Statistic, xerror.IError)
+	Statistic(ctx context.Context, department string, condition model.StatisticCondition) ([]model.Statistic, model.PageInfo, xerror.IError)
 }

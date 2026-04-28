@@ -74,13 +74,13 @@ func (*CheckPoint) TableName() string {
 }
 
 type Task struct {
-	ID       int                     `gorm:"column:id;primaryKey;autoIncrement"`
-	Identify string                  `gorm:"column:identify;unique"`
-	Start    time.Time               `gorm:"column:start"`
-	End      time.Time               `gorm:"column:end"`
-	Status   int                     `gorm:"column:status"`
-	Params   model.TaskParam         `gorm:"column:params;serializer:json"`
-	Results  []model.TaskPointResult `gorm:"column:results;serializer:json"`
+	ID       int                      `gorm:"column:id;primaryKey;autoIncrement"`
+	Identify string                   `gorm:"column:identify;unique"`
+	Start    time.Time                `gorm:"column:start"`
+	End      time.Time                `gorm:"column:end"`
+	Status   int                      `gorm:"column:status"`
+	Params   *model.TaskParam         `gorm:"column:params;serializer:json"`
+	Results  []*model.TaskPointResult `gorm:"column:results;serializer:json"`
 }
 
 func (*Task) TableName() string {

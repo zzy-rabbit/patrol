@@ -523,7 +523,7 @@ func (s *session) GetTasks(ctx context.Context, condition model.TaskCondition) (
 	}
 
 	var tables []Task
-	err := db.Find(&tables).Error
+	err := db.Debug().Find(&tables).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "query tasks by condition %+v fail %v", condition, err)
 		return nil, model.PageInfo{}, transError(err)

@@ -61,6 +61,7 @@ func (p *routerStatistic) Statistic(ctx context.Context, tasks []model.Task) ([]
 				Identify: task.Router.Identify,
 				Name:     task.Router.Name,
 			}
+			routerStatusMap[task.Router.ID] = statistic
 		}
 		for _, result := range task.Results {
 			switch result.Status {
@@ -74,8 +75,8 @@ func (p *routerStatistic) Statistic(ctx context.Context, tasks []model.Task) ([]
 			statistic.Total++
 		}
 
-		statistic.LeakPercent = float64(statistic.Leak) / float64(statistic.Total)
-		statistic.NormalPercent = float64(statistic.Normal) / float64(statistic.Total)
+		statistic.LeakPercent = float64(statistic.Leak) / float64(statistic.Total) * 100
+		statistic.NormalPercent = float64(statistic.Normal) / float64(statistic.Total) * 100
 		statistic.Tasks = append(statistic.Tasks, tasks[i])
 	}
 

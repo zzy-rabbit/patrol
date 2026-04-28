@@ -5,12 +5,11 @@ import (
 	bpmodel "github.com/zzy-rabbit/bp/model"
 	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/xtools/xerror"
-	"time"
 )
 
 func (s *service) Statistics(ctx *fiber.Ctx) error {
 	var header bpmodel.Header
-	var condition = model.StatisticCondition{Start: model.NewDateTime(time.Time{}), End: model.NewDateTime(time.Time{})}
+	var condition model.StatisticCondition
 	xerr := s.IHttp.ParseBodyParams(ctx, &header, &condition)
 	if xerror.Error(xerr) {
 		s.ILogger.Error(ctx.UserContext(), "parse query params fail %v", xerr)
@@ -19,14 +18,13 @@ func (s *service) Statistics(ctx *fiber.Ctx) error {
 		})
 	}
 	department := ctx.Get("department")
-	statistics, xerr := s.IStatistic.Statistic(ctx.UserContext(), department, condition)
+	statistics, page, xerr := s.IStatistic.Statistic(ctx.UserContext(), department, condition)
 	if xerror.Error(xerr) {
 		s.ILogger.Error(ctx.UserContext(), "department %s statistics %+v fail %v", department, condition, xerr)
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
 		})
 	}
-	statistics, page := model.Paginate(statistics, nil)
 	return ctx.JSON(&bpmodel.HttpResponse{
 		IError: xerror.ErrSuccess,
 		Data: model.PaginatedData[model.Statistic]{

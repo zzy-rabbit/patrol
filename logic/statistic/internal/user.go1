@@ -69,28 +69,32 @@ func (u *userStatistic) Statistic(ctx context.Context, tasks []model.Task) ([]mo
 				continue
 			}
 
-			statistic, ok := userStatusMap[result.User.User]
-			if !ok {
-				statistic = &model.Statistic{
-					Identify: model.Identify{ID: result.User.User},
-					Name:     userMap[result.User.User].Name,
+			for _, user := range task.Plan.Users {
+				statistic, ok := userStatusMap[user]
+				if !ok {
+					statistic = &model.Statistic{
+						Identify: model.Identify{ID: user},
+						Name:     userMap[user].Name,
+					}
+					userStatusMap[user] = statistic
 				}
-			}
-			switch result.Status {
-			case model.TaskPointStatusNormal:
-				statistic.Normal++
-			case model.TaskPointStatusLeak:
-				statistic.Leak++
-			default:
-				continue
-			}
-			statistic.Total++
 
-			statistic.LeakPercent = float64(statistic.Leak) / float64(statistic.Total)
-			statistic.NormalPercent = float64(statistic.Normal) / float64(statistic.Total)
+				switch result.Status {
+				case model.TaskPointStatusNormal:
+					statistic.Normal++
+				case model.TaskPointStatusLeak:
+					statistic.Leak++
+				default:
+					continue
+				}
+				statistic.Total++
 
-			if j == len(tasks[i].Results)-1 {
-				statistic.Tasks = append(statistic.Tasks, tasks[i])
+				statistic.LeakPercent = float64(statistic.Leak) / float64(statistic.Total) * 100
+				statistic.NormalPercent = float64(statistic.Normal) / float64(statistic.Total) * 100
+
+				if j == len(tasks[i].Results)-1 {
+					statistic.Tasks = append(statistic.Tasks, tasks[i])
+				}
 			}
 		}
 	}

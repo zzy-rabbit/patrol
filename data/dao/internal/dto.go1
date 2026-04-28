@@ -123,17 +123,24 @@ func (t *Task) FromModel(m model.Task) {
 	t.Start = m.Start.Time
 	t.End = m.End.Time
 	t.Status = int(m.Status)
-	t.Params = m.TaskParam
-	t.Results = m.Results
+	t.Params = &m.TaskParam
+	t.Results = make([]*model.TaskPointResult, 0, len(m.Results))
+	for i := range m.Results {
+		t.Results = append(t.Results, &m.Results[i])
+	}
 }
 
 func (t *Task) ToModel() model.Task {
+	results := make([]model.TaskPointResult, 0, len(t.Results))
+	for i := range t.Results {
+		results = append(results, *t.Results[i])
+	}
 	return model.Task{
 		Identify:  model.Identify{ID: t.Identify},
-		TaskParam: t.Params,
+		TaskParam: *t.Params,
 		TaskResult: model.TaskResult{
 			Status:  model.TaskStatus(t.Status),
-			Results: t.Results,
+			Results: results,
 		},
 	}
 }

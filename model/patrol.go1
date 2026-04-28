@@ -233,6 +233,7 @@ const (
 )
 
 type StatisticCondition struct {
+	*PageQuery
 	Type   StatisticType `json:"type"`
 	Sort   StatisticSort `json:"sort"`
 	Revert bool          `json:"revert"`
