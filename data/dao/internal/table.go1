@@ -63,6 +63,7 @@ type CheckPoint struct {
 	ID       int       `gorm:"column:id;primaryKey;autoIncrement"`
 	Identify string    `gorm:"column:identify;unique"`
 	Serial   string    `gorm:"column:serial"`
+	User     string    `gorm:"column:user"`
 	Time     time.Time `gorm:"column:time"`
 	Remark   string    `gorm:"column:remark"`
 	Files    []string  `gorm:"column:files;serializer:json"`

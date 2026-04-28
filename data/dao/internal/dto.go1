@@ -63,8 +63,8 @@ func (r *Router) ToModel() model.Router {
 }
 
 func (p *Plan) FromModel(m model.Plan) {
-	users := make([]string, len(p.Users))
-	copy(users, p.Users)
+	users := make([]string, len(m.Users))
+	copy(users, m.Users)
 
 	p.Identify = m.Identify.ID
 	p.Name = m.Name
@@ -96,10 +96,11 @@ func (p *Plan) ToModel() model.Plan {
 func (p *CheckPoint) FromModel(m model.CheckPoint) {
 	p.Identify = m.Identify.ID
 	p.Serial = m.Serial
+	p.User = m.User
 	p.Time = m.Time.Time
 	p.Remark = m.Remark
-	files := make([]string, len(p.Files))
-	copy(files, p.Files)
+	p.Files = make([]string, len(m.Files))
+	copy(p.Files, m.Files)
 }
 
 func (p *CheckPoint) ToModel() model.CheckPoint {
@@ -110,6 +111,7 @@ func (p *CheckPoint) ToModel() model.CheckPoint {
 			ID: p.Identify,
 		},
 		Serial: p.Serial,
+		User:   p.User,
 		Time:   model.NewDateTime(p.Time),
 		Remark: p.Remark,
 		Files:  files,

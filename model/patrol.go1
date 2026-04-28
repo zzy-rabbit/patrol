@@ -184,8 +184,8 @@ const (
 )
 
 type TaskParam struct {
-	Start       DateTime     `json:"start"`
-	End         DateTime     `json:"end"`
+	Start       DateTime     `json:"-"`
+	End         DateTime     `json:"-"`
 	Plan        Plan         `json:"plan"`
 	Router      Router       `json:"router"`
 	Points      []Point      `json:"points"`

@@ -75,16 +75,12 @@ func (d *departmentTrigger) scanFeaturePlans(ctx context.Context) ([]model.Plan,
 	defer d.registerPlanMutex.Unlock()
 
 	now := time.Now()
-	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-
-	nowSeconds := int(now.Sub(today).Seconds())
-	overlapSeconds := int(now.Add(d.scanInterval).Add(d.overlap).Sub(today).Seconds())
 
 	// 查找未来的计划
 	features, _, xerr := d.database.GetDB(ctx).GetPlans(ctx, model.PlanCondition{
 		UtilAfter:   model.NewDate(now),
-		StartBefore: model.NewTime(time.Unix(int64(overlapSeconds), 0)),
-		StartAfter:  model.NewTime(time.Unix(int64(nowSeconds), 0)),
+		StartBefore: model.NewTime(now.Add(d.scanInterval).Add(d.overlap)),
+		StartAfter:  model.NewTime(now),
 	})
 	if xerror.Error(xerr) {
 		d.ILogger.Error(ctx, "department %s scan plans fail %v", d.department, xerr)
@@ -215,8 +211,7 @@ func (d *departmentTrigger) registerTaskEndTimer(ctx context.Context, task model
 		return nil
 	}
 
-	end := model.ConcatTimeInToday(task.End.Time).Add(time.Duration(task.Router.Deviation) * time.Second)
-	spec := fmt.Sprintf("%d %d %d %d %d *", end.Second(), end.Minute(), end.Hour(), end.Day(), end.Month())
+	spec := fmt.Sprintf("%d %d %d %d %d *", task.End.Time.Second(), task.End.Time.Minute(), task.End.Time.Hour(), task.End.Time.Day(), task.End.Time.Month())
 
 	// 添加结束的定时器
 	xerr := d.ITimer.Register(ctx, task.ID, spec, d.taskEndCallback(ctx, task))

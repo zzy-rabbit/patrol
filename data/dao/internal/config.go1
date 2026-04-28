@@ -22,7 +22,7 @@ func (s *session) AddPoint(ctx context.Context, point model.Point) (int, xerror.
 func (s *session) UpdatePoint(ctx context.Context, point model.Point) xerror.IError {
 	var table Point
 	table.FromModel(point)
-	err := s.db.Where("identify = ?", table.ID).Updates(&table).Error
+	err := s.db.Where("identify = ?", table.Identify).Updates(&table).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "update point %+v fail %v", point, err)
 		return transError(err)
@@ -149,7 +149,7 @@ func (s *session) AddRouter(ctx context.Context, router model.Router) (int, xerr
 func (s *session) UpdateRouter(ctx context.Context, router model.Router) xerror.IError {
 	var table Router
 	table.FromModel(router)
-	err := s.db.Where("identify = ?", table.ID).Updates(&table).Error
+	err := s.db.Where("identify = ?", table.Identify).Updates(&table).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "update router %+v fail %v", router, err)
 		return transError(err)
@@ -262,7 +262,7 @@ func (s *session) AddPlan(ctx context.Context, plan model.Plan) (int, xerror.IEr
 func (s *session) UpdatePlan(ctx context.Context, plan model.Plan) xerror.IError {
 	var table Plan
 	table.FromModel(plan)
-	err := s.db.Where("identify = ?", table.ID).Updates(&table).Error
+	err := s.db.Where("identify = ?", table.Identify).Updates(&table).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "update plan %+v fail %v", plan, err)
 		return transError(err)
@@ -392,7 +392,7 @@ func (s *session) AddCheckPoint(ctx context.Context, checkPoint model.CheckPoint
 func (s *session) UpdateCheckPoint(ctx context.Context, checkPoint model.CheckPoint) xerror.IError {
 	var table CheckPoint
 	table.FromModel(checkPoint)
-	err := s.db.Where("identify = ?", table.ID).Updates(&table).Error
+	err := s.db.Where("identify = ?", table.Identify).Updates(&table).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "update checkPoint %+v fail %v", checkPoint, err)
 		return transError(err)
@@ -426,10 +426,10 @@ func (s *session) GetCheckPoints(ctx context.Context, condition model.CheckPoint
 		db = db.Where("serial in ?", condition.Serials)
 	}
 	if !condition.TimeBefore.IsZero() {
-		db = db.Where("util <= ?", condition.TimeBefore.Time)
+		db = db.Where("util <= ?", condition.TimeBefore.Time.Format("2006-01-02T15:04:05-07:00"))
 	}
 	if !condition.TimeAfter.IsZero() {
-		db = db.Where("util >= ?", condition.TimeAfter.Time)
+		db = db.Where("util >= ?", condition.TimeAfter.Time.Format("2006-01-02T15:04:05-07:00"))
 	}
 
 	total := int64(0)
@@ -471,9 +471,10 @@ func (s *session) AddTask(ctx context.Context, task model.Task) (int, xerror.IEr
 }
 
 func (s *session) UpdateTask(ctx context.Context, task model.Task) xerror.IError {
+	defer xtrace.Trace(ctx)(task)
 	var table Task
 	table.FromModel(task)
-	err := s.db.Where("identify = ?", table.ID).Updates(&table).Error
+	err := s.db.Where("identify = ?", table.Identify).Updates(&table).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "update task %+v fail %v", task, err)
 		return transError(err)
@@ -501,10 +502,10 @@ func (s *session) GetTasks(ctx context.Context, condition model.TaskCondition) (
 		db = db.Where("identify in ?", condition.IDs)
 	}
 	if !condition.Start.IsZero() {
-		db = db.Where("start >= ?", condition.Start.Time)
+		db = db.Where("start >= ?", condition.Start.Time.Format("2006-01-02T15:04:05-07:00"))
 	}
 	if !condition.End.IsZero() {
-		db = db.Where("end <= ?", condition.End.Time)
+		db = db.Where("end <= ?", condition.End.Time.Format("2006-01-02T15:04:05-07:00"))
 	}
 	if len(condition.Statuses) > 0 {
 		db = db.Where("status in ?", condition.Statuses)
@@ -524,7 +525,7 @@ func (s *session) GetTasks(ctx context.Context, condition model.TaskCondition) (
 	var tables []Task
 	err := db.Find(&tables).Error
 	if xerror.Error(err) {
-		s.logger.Error(ctx, "query checkPoints by condition %+v fail %v", condition, err)
+		s.logger.Error(ctx, "query tasks by condition %+v fail %v", condition, err)
 		return nil, model.PageInfo{}, transError(err)
 	}
 	tasks := make([]model.Task, 0, len(tables))

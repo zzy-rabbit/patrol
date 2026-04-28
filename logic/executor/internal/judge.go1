@@ -90,7 +90,7 @@ POINT:
 		j.result.Status = model.TaskStatusAbnormal
 	}
 
-	if j.result.Status == model.TaskStatusRunning {
+	if j.result.Status == model.TaskStatusRunning || j.result.Status == model.TaskStatusWaiting {
 		j.result.Status = model.TaskStatusNormal
 	}
 }
