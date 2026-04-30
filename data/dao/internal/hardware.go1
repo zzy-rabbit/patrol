@@ -1,0 +1,87 @@
+package internal
+
+import (
+	"context"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+)
+
+func (s *session) AddHardware(ctx context.Context, hardware model.Hardware) (int, xerror.IError) {
+	var table Hardware
+	table.FromModel(hardware)
+	err := s.db.Create(&table).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "add hardware %+v fail %v", hardware, err)
+		return 0, transError(err)
+	}
+	return table.ID, nil
+}
+
+func (s *session) UpdateHardware(ctx context.Context, hardware model.Hardware) xerror.IError {
+	var table Hardware
+	table.FromModel(hardware)
+	err := s.db.Where("identify = ?", table.Identify).Updates(&table).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "update hardware %+v fail %v", hardware, err)
+		return transError(err)
+	}
+	return nil
+}
+
+func (s *session) DeleteHardwares(ctx context.Context, identifies ...model.Identify) xerror.IError {
+	ids := make([]string, 0, len(identifies))
+	for _, identify := range identifies {
+		ids = append(ids, identify.ID)
+	}
+
+	tx := s.getTransaction(ctx)
+
+	// 删除hardware
+	err := tx.db.Where("identify in ?", ids).Delete(&Hardware{}).Error
+	if xerror.Error(err) {
+		tx.Rollback(ctx)
+		s.logger.Error(ctx, "delete hardwares %+v fail %v", ids, err)
+		return transError(err)
+	}
+
+	tx.Commit(ctx)
+	return nil
+}
+
+func (s *session) GetHardwares(ctx context.Context, condition model.HardwareCondition) ([]model.Hardware, model.PageInfo, xerror.IError) {
+	db := s.db
+	if len(condition.IDs) > 0 {
+		db = db.Where("identify in ?", condition.IDs)
+	}
+	if len(condition.Types) > 0 {
+		db = db.Where("type in ?", condition.Types)
+	}
+	if condition.Name != "" {
+		db = db.Where("name like ?", "%"+condition.Name+"%")
+	}
+	total := int64(0)
+	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
+		err := db.Count(&total).Error
+		if xerror.Error(err) {
+			s.logger.Error(ctx, "query hardwares count by condition %+v fail %v", condition, err)
+			return nil, model.PageInfo{}, transError(err)
+		}
+		offset := (condition.PageQuery.Num - 1) * condition.PageQuery.Size
+		db = db.Offset(offset).Limit(condition.PageQuery.Size)
+	}
+
+	var tables []Hardware
+	err := db.Find(&tables).Error
+	if xerror.Error(err) {
+		s.logger.Error(ctx, "query hardwares by condition %+v fail %v", condition, err)
+		return nil, model.PageInfo{}, transError(err)
+	}
+	hardwares := make([]model.Hardware, 0, len(tables))
+	for _, table := range tables {
+		hardwares = append(hardwares, table.ToModel())
+	}
+	return hardwares, model.PageInfo{
+		Count: len(tables),
+		Total: int(total),
+	}, nil
+}

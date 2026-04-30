@@ -1,0 +1,113 @@
+package internal
+
+import (
+	"context"
+	"os"
+	"path/filepath"
+
+	"github.com/google/uuid"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+	"github.com/zzy-rabbit/xtools/xfile"
+	"github.com/zzy-rabbit/xtools/xtrace"
+)
+
+func (s *service) AddHardware(ctx context.Context, department string, hardware model.Hardware) (model.Identify, xerror.IError) {
+	defer xtrace.Trace(ctx)(department, hardware)
+	if hardware.ID == "" {
+		hardware.ID = uuid.New().String()
+	}
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return model.Identify{}, xerror.Extend(xerror.ErrNotFound, "department %s", department)
+	}
+
+	hardware.Content = s.buildQrCodeContent(ctx, hardware.ID)
+	s.ILogger.Info(ctx, "department %s generate hardware %s content %s", department, hardware.ID, hardware.Content)
+
+	fileIdentify := uuid.New().String()
+	filePath := filepath.Join(s.config.Path, fileIdentify+".jpg")
+	tx := database.GetDB(ctx).GetTransaction(ctx)
+
+	qrcodeProcess := func() xerror.IError {
+		xerr := s.IQrcode.BuildAndSave(ctx, hardware.Content, 256, filePath)
+		if xerror.Error(xerr) {
+			s.ILogger.Error(ctx, "department %s save qrcode file %s fail %v", department, filePath, xerr)
+			return xerr
+		}
+
+		size, _ := xfile.GetFileSize(ctx, filePath)
+
+		file := model.File{
+			Identify: model.Identify{},
+			FileBasic: model.FileBasic{
+				Name: hardware.Name,
+				Type: model.FileTypeImage,
+				Size: size,
+				Mime: "image/jpeg",
+				Path: filePath,
+			},
+			FileExtern: model.FileExtern{},
+		}
+		_, xerr = tx.AddFile(ctx, file)
+		if xerror.Error(xerr) {
+			s.ILogger.Error(ctx, "department %s add file %+v fail %v", department, file, xerr)
+			return xerr
+		}
+
+		hardware.File = fileIdentify
+		_, xerr = tx.AddHardware(ctx, hardware)
+		if xerror.Error(xerr) {
+			s.ILogger.Error(ctx, "department %s add hardware %+v fail %v", department, hardware, xerr)
+			return xerr
+		}
+		return xerr
+	}
+	nfcProcess := func() xerror.IError {
+		return nil
+	}
+
+	var xerr xerror.IError
+	switch hardware.Type {
+	case model.HardwareTypeQrcode:
+		xerr = qrcodeProcess()
+	case model.HardwareTypeNFC:
+		xerr = nfcProcess()
+	}
+	if xerror.Error(xerr) {
+		tx.Rollback(ctx)
+		_ = os.RemoveAll(filePath)
+		return model.Identify{}, xerr
+	}
+	return hardware.Identify, nil
+}
+
+func (s *service) UpdateHardware(ctx context.Context, department string, hardware model.Hardware) xerror.IError {
+	defer xtrace.Trace(ctx)(department, hardware)
+	return nil
+}
+
+func (s *service) DeleteHardwares(ctx context.Context, department string, hardwares ...model.Identify) xerror.IError {
+	defer xtrace.Trace(ctx)(department, hardwares)
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return xerror.Extend(xerror.ErrNotFound, "department %s", department)
+	}
+	return database.GetDB(ctx).DeleteHardwares(ctx, hardwares...)
+}
+
+func (s *service) GetHardwares(ctx context.Context, department string, condition model.HardwareCondition) ([]model.Hardware, model.PageInfo, xerror.IError) {
+	defer xtrace.Trace(ctx)(department, condition)
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return nil, model.PageInfo{}, xerror.Extend(xerror.ErrNotFound, "department %s", department)
+	}
+	return database.GetDB(ctx).GetHardwares(ctx, condition)
+}
+
+func (s *service) ExportHardwares(ctx context.Context, department string, hardwares ...model.Identify) (string, xerror.IError) {
+	return "", nil
+}

@@ -1,0 +1,23 @@
+package model
+
+type HardwareType int
+
+const (
+	HardwareTypeQrcode = iota + 1
+	HardwareTypeNFC
+)
+
+type Hardware struct {
+	Identify
+	Name    string       `json:"name"`
+	Type    HardwareType `json:"type"`
+	Content string       `json:"content"`
+	File    string       `json:"file"`
+}
+
+type HardwareCondition struct {
+	*PageQuery
+	IDs   []string       `json:"ids"`
+	Types []HardwareType `json:"types"`
+	Name  string         `json:"name"`
+}

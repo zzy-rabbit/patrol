@@ -1,0 +1,51 @@
+package internal
+
+import (
+	"context"
+	"encoding/json"
+	reportApi "github.com/zzy-rabbit/bp/protocol/report/api"
+	logApi "github.com/zzy-rabbit/bp/tool/log/api"
+	databaseApi "github.com/zzy-rabbit/patrol/data/database/api"
+	qrcodeApi "github.com/zzy-rabbit/patrol/hardware/qrcode/api"
+	"github.com/zzy-rabbit/patrol/logic/hardware/api"
+	triggerApi "github.com/zzy-rabbit/patrol/logic/trigger/api"
+	"github.com/zzy-rabbit/xtools/xerror"
+)
+
+type service struct {
+	config    api.Config
+	IDatabase databaseApi.IPlugin `xplugin:"patrol.data.database"`
+	IQrcode   qrcodeApi.IPlugin   `xplugin:"patrol.hardware.qrcode"`
+	ITrigger  triggerApi.IPlugin  `xplugin:"patrol.logic.trigger"`
+	IReport   reportApi.IPlugin   `xplugin:"bp.protocol.report"`
+	ILogger   logApi.IPlugin      `xplugin:"bp.tool.log"`
+}
+
+func New(ctx context.Context) api.IPlugin {
+	return &service{}
+}
+
+func (s *service) GetName(ctx context.Context) string {
+	return api.PluginName
+}
+
+func (s *service) Init(ctx context.Context, initParam string) xerror.IError {
+	err := json.Unmarshal([]byte(initParam), &s.config)
+	if xerror.Error(err) {
+		s.ILogger.Error(ctx, "plugin %s init fail %v", s.GetName(ctx), err)
+		return xerror.Extend(xerror.ErrInvalidParam, "init param invalid")
+	}
+
+	s.ILogger.Info(ctx, "plugin %s init success", s.GetName(ctx))
+	return nil
+}
+
+func (s *service) Run(ctx context.Context, runParam string) xerror.IError {
+	s.ILogger.Info(ctx, "plugin %s run success", s.GetName(ctx))
+	return nil
+}
+
+func (s *service) Stop(ctx context.Context, stopParam string) xerror.IError {
+	s.ILogger.Info(ctx, "plugin %s stop success", s.GetName(ctx))
+	return nil
+}

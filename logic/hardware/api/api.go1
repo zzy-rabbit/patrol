@@ -1,0 +1,27 @@
+package api
+
+import (
+	"context"
+	bpmodel "github.com/zzy-rabbit/bp/model"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+	"github.com/zzy-rabbit/xtools/xplugin"
+)
+
+const (
+	PluginName = "patrol.logic.hardware"
+)
+
+type Config struct {
+	bpmodel.Network
+	Path string `json:"path"`
+}
+
+type IPlugin interface {
+	xplugin.IPlugin
+	AddHardware(ctx context.Context, department string, hardware model.Hardware) (model.Identify, xerror.IError)
+	UpdateHardware(ctx context.Context, department string, hardware model.Hardware) xerror.IError
+	DeleteHardwares(ctx context.Context, department string, hardwares ...model.Identify) xerror.IError
+	GetHardwares(ctx context.Context, department string, condition model.HardwareCondition) ([]model.Hardware, model.PageInfo, xerror.IError)
+	ExportHardwares(ctx context.Context, department string, hardwares ...model.Identify) (string, xerror.IError)
+}

@@ -1,0 +1,22 @@
+package internal
+
+import (
+	"context"
+	"github.com/gofiber/fiber/v2"
+)
+
+func (s *service) registerRouter(ctx context.Context, fiberApp *fiber.App) {
+	hardwareGroup := fiberApp.Group(
+		"/patrol/api/v1/hardware",
+		s.IHttp.CORSMiddleware(),
+		s.IHttp.TimingMiddleware(),
+		s.IAuth.Middleware(),
+	)
+
+	qrcodeGroup := hardwareGroup.Group("")
+	qrcodeGroup.Post("add", s.AddHardware)
+	qrcodeGroup.Post("update", s.UpdateHardware)
+	qrcodeGroup.Delete("", s.DeleteHardwares)
+	qrcodeGroup.Get("", s.GetHardwares)
+	qrcodeGroup.Post("export", s.ExportHardwares)
+}

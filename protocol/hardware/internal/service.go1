@@ -1,0 +1,128 @@
+package internal
+
+import (
+	"github.com/gofiber/fiber/v2"
+	bpmodel "github.com/zzy-rabbit/bp/model"
+	"github.com/zzy-rabbit/patrol/model"
+	"github.com/zzy-rabbit/xtools/xerror"
+)
+
+func (s *service) AddHardware(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
+	var hardware model.Hardware
+	xerr := s.IHttp.ParseBodyParams(ctx, &header, &hardware)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse body params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	department := ctx.Get("department")
+	identify, xerr := s.IHardware.AddHardware(ctx.UserContext(), department, hardware)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "department %s add hardware %+v fail %v", department, hardware, xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+		Data:   identify,
+	})
+}
+
+func (s *service) UpdateHardware(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
+	var hardware model.Hardware
+	xerr := s.IHttp.ParseBodyParams(ctx, &header, &hardware)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse body params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	department := ctx.Get("department")
+	xerr = s.IHardware.UpdateHardware(ctx.UserContext(), department, hardware)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "department %s update hardware %+v fail %v", department, hardware, xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+	})
+}
+
+func (s *service) DeleteHardwares(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
+	var hardwares []model.Identify
+	xerr := s.IHttp.ParseBodyParams(ctx, &header, &hardwares)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse body params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	department := ctx.Get("department")
+	xerr = s.IHardware.DeleteHardwares(ctx.UserContext(), department, hardwares...)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "department %s delete hardwares %+v fail %v", department, hardwares, xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+	})
+}
+
+func (s *service) GetHardwares(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
+	var condition model.HardwareCondition
+	xerr := s.IHttp.ParseQueryParams(ctx, &header, &condition)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse query params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	department := ctx.Get("department")
+	hardwares, page, xerr := s.IHardware.GetHardwares(ctx.UserContext(), department, condition)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "department %s get hardwares %+v fail %v", department, condition, xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+		Data: model.PaginatedData[model.Hardware]{
+			PageInfo: page,
+			List:     hardwares,
+		},
+	})
+}
+
+func (s *service) ExportHardwares(ctx *fiber.Ctx) error {
+	var header bpmodel.Header
+	var hardwares []model.Identify
+	xerr := s.IHttp.ParseBodyParams(ctx, &header, &hardwares)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "parse body params fail %v", xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
+	}
+
+	department := ctx.Get("department")
+	path, xerr := s.IHardware.ExportHardwares(ctx.UserContext(), department, hardwares...)
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx.UserContext(), "delete file %s fail %v", hardwares, xerr)
+	}
+	_ = path
+
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+	})
+}

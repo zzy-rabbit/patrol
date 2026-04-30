@@ -118,3 +118,16 @@ type User struct {
 func (*User) TableName() string {
 	return "table_user"
 }
+
+type Hardware struct {
+	ID       int    `gorm:"column:id;primaryKey;autoIncrement"`
+	Identify string `gorm:"column:identify;unique"`
+	Name     string `gorm:"column:name"`
+	Type     int    `gorm:"column:type"`
+	Content  string `gorm:"column:content"`
+	File     string `gorm:"column:file"`
+}
+
+func (*Hardware) TableName() string {
+	return "table_hardware"
+}

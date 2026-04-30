@@ -1,0 +1,10 @@
+package internal
+
+import (
+	"context"
+	"fmt"
+)
+
+func (s *service) buildQrCodeContent(ctx context.Context, hardware string) string {
+	return fmt.Sprintf("http://%s:%d/patrol/page/v1/qrcode?id=%s", s.network.Host, s.network.Port, hardware)
+}

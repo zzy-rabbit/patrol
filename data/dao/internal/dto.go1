@@ -207,3 +207,23 @@ func (u *User) ToModel() model.User {
 		Permissions: permissions,
 	}
 }
+
+func (h *Hardware) FromModel(m model.Hardware) {
+	h.Identify = m.Identify.ID
+	h.Name = m.Name
+	h.Type = int(m.Type)
+	h.Content = m.Content
+	h.File = m.File
+}
+
+func (h *Hardware) ToModel() model.Hardware {
+	return model.Hardware{
+		Identify: model.Identify{
+			ID: h.Identify,
+		},
+		Name:    h.Name,
+		Type:    model.HardwareType(h.Type),
+		Content: h.Content,
+		File:    h.File,
+	}
+}
