@@ -12,7 +12,6 @@ type Hardware struct {
 	Name    string       `json:"name"`
 	Type    HardwareType `json:"type"`
 	Content string       `json:"content"`
-	File    string       `json:"file"`
 }
 
 type HardwareCondition struct {

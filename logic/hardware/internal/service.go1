@@ -2,14 +2,13 @@ package internal
 
 import (
 	"context"
-	"os"
-	"path/filepath"
-
 	"github.com/google/uuid"
 	"github.com/zzy-rabbit/patrol/model"
 	"github.com/zzy-rabbit/xtools/xerror"
 	"github.com/zzy-rabbit/xtools/xfile"
 	"github.com/zzy-rabbit/xtools/xtrace"
+	"os"
+	"path/filepath"
 )
 
 func (s *service) AddHardware(ctx context.Context, department string, hardware model.Hardware) (model.Identify, xerror.IError) {
@@ -23,61 +22,10 @@ func (s *service) AddHardware(ctx context.Context, department string, hardware m
 		return model.Identify{}, xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
 
-	hardware.Content = s.buildQrCodeContent(ctx, hardware.ID)
-	s.ILogger.Info(ctx, "department %s generate hardware %s content %s", department, hardware.ID, hardware.Content)
-
-	fileIdentify := uuid.New().String()
-	filePath := filepath.Join(s.config.Path, fileIdentify+".jpg")
-	tx := database.GetDB(ctx).GetTransaction(ctx)
-
-	qrcodeProcess := func() xerror.IError {
-		xerr := s.IQrcode.BuildAndSave(ctx, hardware.Content, 256, filePath)
-		if xerror.Error(xerr) {
-			s.ILogger.Error(ctx, "department %s save qrcode file %s fail %v", department, filePath, xerr)
-			return xerr
-		}
-
-		size, _ := xfile.GetFileSize(ctx, filePath)
-
-		file := model.File{
-			Identify: model.Identify{},
-			FileBasic: model.FileBasic{
-				Name: hardware.Name,
-				Type: model.FileTypeImage,
-				Size: size,
-				Mime: "image/jpeg",
-				Path: filePath,
-			},
-			FileExtern: model.FileExtern{},
-		}
-		_, xerr = tx.AddFile(ctx, file)
-		if xerror.Error(xerr) {
-			s.ILogger.Error(ctx, "department %s add file %+v fail %v", department, file, xerr)
-			return xerr
-		}
-
-		hardware.File = fileIdentify
-		_, xerr = tx.AddHardware(ctx, hardware)
-		if xerror.Error(xerr) {
-			s.ILogger.Error(ctx, "department %s add hardware %+v fail %v", department, hardware, xerr)
-			return xerr
-		}
-		return xerr
-	}
-	nfcProcess := func() xerror.IError {
-		return nil
-	}
-
-	var xerr xerror.IError
-	switch hardware.Type {
-	case model.HardwareTypeQrcode:
-		xerr = qrcodeProcess()
-	case model.HardwareTypeNFC:
-		xerr = nfcProcess()
-	}
+	hardware.Content = s.buildQrCodeContent(ctx, hardware)
+	_, xerr := database.GetDB(ctx).AddHardware(ctx, hardware)
 	if xerror.Error(xerr) {
-		tx.Rollback(ctx)
-		_ = os.RemoveAll(filePath)
+		s.ILogger.Error(ctx, "department %s add hardware %+v fail %v", department, hardware, xerr)
 		return model.Identify{}, xerr
 	}
 	return hardware.Identify, nil
@@ -85,7 +33,12 @@ func (s *service) AddHardware(ctx context.Context, department string, hardware m
 
 func (s *service) UpdateHardware(ctx context.Context, department string, hardware model.Hardware) xerror.IError {
 	defer xtrace.Trace(ctx)(department, hardware)
-	return nil
+	database, ok := s.IDatabase.Get(ctx, department)
+	if !ok {
+		s.ILogger.Error(ctx, "department %s database not found", department)
+		return xerror.Extend(xerror.ErrNotFound, "department %s", department)
+	}
+	return database.GetDB(ctx).UpdateHardware(ctx, hardware)
 }
 
 func (s *service) DeleteHardwares(ctx context.Context, department string, hardwares ...model.Identify) xerror.IError {
@@ -108,6 +61,55 @@ func (s *service) GetHardwares(ctx context.Context, department string, condition
 	return database.GetDB(ctx).GetHardwares(ctx, condition)
 }
 
-func (s *service) ExportHardwares(ctx context.Context, department string, hardwares ...model.Identify) (string, xerror.IError) {
+func (s *service) ExportHardwares(ctx context.Context, department string, identifies ...model.Identify) (string, xerror.IError) {
+	defer xtrace.Trace(ctx)(department, identifies)
+
+	ids := make([]string, len(identifies))
+	for i, identify := range identifies {
+		ids[i] = identify.ID
+	}
+	hardwares, _, xerr := s.GetHardwares(ctx, department, model.HardwareCondition{IDs: ids})
+	if xerror.Error(xerr) {
+		s.ILogger.Error(ctx, "department %s get hardwares %v fail %v", department, ids, xerr)
+		return "", xerr
+	}
+
+	if xfile.IsExist(ctx, s.config.Path) {
+		err := os.RemoveAll(s.config.Path)
+		if xerror.Error(err) {
+			s.ILogger.Error(ctx, "department %s remove path %s fail %v", department, s.config.Path, err)
+			return "", xerror.Extend(xerror.ErrFileOperationFail, "department %s remove path %s fail %v", department, s.config.Path, err)
+		}
+	}
+
+	err := os.MkdirAll(s.config.Path, os.ModePerm)
+	if xerror.Error(err) {
+		s.ILogger.Error(ctx, "department %s create path %s fail %v", department, s.config.Path, err)
+		return "", xerror.Extend(xerror.ErrFileOperationFail, "department %s create path %s fail %v", department, s.config.Path, err)
+	}
+
+	filePaths := make([]string, 0, len(hardwares))
+	for _, hardware := range hardwares {
+		if hardware.Type != model.HardwareTypeQrcode {
+			continue
+		}
+
+		filePath := filepath.Join(s.config.Path, hardware.ID+".png")
+		xerr = s.IQrcode.BuildAndSave(ctx, hardware.Content, 256, filePath)
+		if xerror.Error(xerr) {
+			s.ILogger.Error(ctx, "department %s build qrcode %s fail %v", department, hardware.Content, xerr)
+			return "", xerr
+		}
+		filePaths = append(filePaths, filePath)
+	}
+
+	if len(filePaths) <= 0 {
+		xerr = xerror.Extend(xerror.ErrInvalidParam, "no valid qrcode content was selected")
+		s.ILogger.Error(ctx, "department %s identifies %+v %v", department, identifies, xerr)
+		return "", xerr
+	}
+
+	// todo: zip
+
 	return "", nil
 }

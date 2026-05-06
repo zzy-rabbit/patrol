@@ -161,6 +161,12 @@
             "init_param": "",
             "run_param": "",
             "stop_param": ""
+        },
+        {
+            "plugin_name": "patrol.protocol.hardware",
+            "init_param": "{\"host\": \"101.42.15.143\", \"port\": 9900, \"path\": \"./temp/hardware\"}",
+            "run_param": "",
+            "stop_param": ""
         }
     ]
 }

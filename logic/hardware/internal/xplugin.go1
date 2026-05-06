@@ -10,6 +10,8 @@ import (
 	"github.com/zzy-rabbit/patrol/logic/hardware/api"
 	triggerApi "github.com/zzy-rabbit/patrol/logic/trigger/api"
 	"github.com/zzy-rabbit/xtools/xerror"
+	"github.com/zzy-rabbit/xtools/xfile"
+	"os"
 )
 
 type service struct {
@@ -36,6 +38,14 @@ func (s *service) Init(ctx context.Context, initParam string) xerror.IError {
 		return xerror.Extend(xerror.ErrInvalidParam, "init param invalid")
 	}
 
+	if !xfile.IsExist(ctx, s.config.Path) {
+		s.ILogger.Info(ctx, "plugin %s init create path %s", s.GetName(ctx), s.config.Path)
+		err = os.Mkdir(s.config.Path, os.ModePerm)
+		if xerror.Error(err) {
+			s.ILogger.Error(ctx, "plugin %s init create path %s fail %v", s.GetName(ctx), s.config.Path, err)
+			return xerror.Extend(xerror.ErrInvalidParam, "init param invalid")
+		}
+	}
 	s.ILogger.Info(ctx, "plugin %s init success", s.GetName(ctx))
 	return nil
 }
