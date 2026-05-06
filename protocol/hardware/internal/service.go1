@@ -119,10 +119,9 @@ func (s *service) ExportHardwares(ctx *fiber.Ctx) error {
 	path, xerr := s.IHardware.ExportHardwares(ctx.UserContext(), department, hardwares...)
 	if xerror.Error(xerr) {
 		s.ILogger.Error(ctx.UserContext(), "delete file %s fail %v", hardwares, xerr)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerr,
+		})
 	}
-	_ = path
-
-	return ctx.JSON(&bpmodel.HttpResponse{
-		IError: xerror.ErrSuccess,
-	})
+	return ctx.SendFile(path)
 }

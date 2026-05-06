@@ -78,14 +78,14 @@ func (s *service) ExportHardwares(ctx context.Context, department string, identi
 		err := os.RemoveAll(s.config.Path)
 		if xerror.Error(err) {
 			s.ILogger.Error(ctx, "department %s remove path %s fail %v", department, s.config.Path, err)
-			return "", xerror.Extend(xerror.ErrFileOperationFail, "department %s remove path %s fail %v", department, s.config.Path, err)
+			return "", xerror.Extend(xerror.ErrFileOperationFail, "department %s remove path %s: %v", department, s.config.Path, err)
 		}
 	}
 
 	err := os.MkdirAll(s.config.Path, os.ModePerm)
 	if xerror.Error(err) {
 		s.ILogger.Error(ctx, "department %s create path %s fail %v", department, s.config.Path, err)
-		return "", xerror.Extend(xerror.ErrFileOperationFail, "department %s create path %s fail %v", department, s.config.Path, err)
+		return "", xerror.Extend(xerror.ErrFileOperationFail, "department %s create path %s: %v", department, s.config.Path, err)
 	}
 
 	filePaths := make([]string, 0, len(hardwares))
@@ -94,7 +94,7 @@ func (s *service) ExportHardwares(ctx context.Context, department string, identi
 			continue
 		}
 
-		filePath := filepath.Join(s.config.Path, hardware.ID+".png")
+		filePath := filepath.Join(s.config.Path, hardware.Name+"("+hardware.ID+").png")
 		xerr = s.IQrcode.BuildAndSave(ctx, hardware.Content, 256, filePath)
 		if xerror.Error(xerr) {
 			s.ILogger.Error(ctx, "department %s build qrcode %s fail %v", department, hardware.Content, xerr)
@@ -109,7 +109,11 @@ func (s *service) ExportHardwares(ctx context.Context, department string, identi
 		return "", xerr
 	}
 
-	// todo: zip
-
-	return "", nil
+	zipPath := filepath.Join(s.config.Path, uuid.New().String()+".zip")
+	err = xfile.Zip(ctx, zipPath, filePaths)
+	if xerror.Error(err) {
+		s.ILogger.Error(ctx, "department %s zip path %s %+v fail %v", department, zipPath, filePaths, err)
+		return "", xerror.Extend(xerror.ErrFileOperationFail, "department %s zip path: %v", department, err)
+	}
+	return zipPath, nil
 }

@@ -6,6 +6,16 @@ import (
 )
 
 func (s *service) registerRouter(ctx context.Context, fiberApp *fiber.App) {
+	exportGroup := fiberApp.Group(
+		"/patrol/api/v1/hardware/export",
+		s.IHttp.CORSMiddleware(),
+		s.IHttp.TimingMiddleware(func(ctx *fiber.Ctx) bool {
+			return true
+		}),
+		s.IAuth.Middleware(),
+	)
+	exportGroup.Post("", s.ExportHardwares)
+
 	hardwareGroup := fiberApp.Group(
 		"/patrol/api/v1/hardware",
 		s.IHttp.CORSMiddleware(),
@@ -18,5 +28,4 @@ func (s *service) registerRouter(ctx context.Context, fiberApp *fiber.App) {
 	qrcodeGroup.Post("update", s.UpdateHardware)
 	qrcodeGroup.Delete("", s.DeleteHardwares)
 	qrcodeGroup.Get("", s.GetHardwares)
-	qrcodeGroup.Post("export", s.ExportHardwares)
 }
