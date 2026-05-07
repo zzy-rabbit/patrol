@@ -122,7 +122,7 @@
         },
         {
             "plugin_name": "patrol.logic.hardware",
-            "init_param": "{\"host\": \"101.42.15.143\", \"port\": 9900, \"path\": \"./temp/hardware\"}",
+            "init_param": "{\"host\": \"101.42.15.143\",\"port\": 9900,\"url\":\"/patrol/page/v1/qrcode\",\"\"path\": \"./temp/hardware\"}",
             "run_param": "",
             "stop_param": ""
         },

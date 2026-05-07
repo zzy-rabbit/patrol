@@ -9,7 +9,7 @@ import (
 func (s *service) buildQrCodeContent(ctx context.Context, hardware model.Hardware) string {
 	switch hardware.Type {
 	case model.HardwareTypeQrcode:
-		return fmt.Sprintf("http://%s:%d/patrol/page/v1/qrcode?id=%s", s.config.Host, s.config.Port, hardware.ID)
+		return fmt.Sprintf("http://%s:%d%s?id=%s", s.config.Host, s.config.Port, s.config.URL, hardware.ID)
 	case model.HardwareTypeNFC:
 		return ""
 	}
