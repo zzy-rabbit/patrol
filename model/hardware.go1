@@ -20,3 +20,8 @@ type HardwareCondition struct {
 	Types []HardwareType `json:"types"`
 	Name  string         `json:"name"`
 }
+
+type ExportHardwareCondition struct {
+	IDs  []string `json:"ids"`
+	Size int      `json:"size"`
+}

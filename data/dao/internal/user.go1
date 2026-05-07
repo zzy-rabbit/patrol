@@ -53,7 +53,7 @@ func (s *session) GetUsers(ctx context.Context, condition model.UserCondition) (
 	}
 	total := int64(0)
 	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
-		err := db.Count(&total).Error
+		err := db.Model(&User{}).Count(&total).Error
 		if xerror.Error(err) {
 			s.logger.Error(ctx, "query users count by condition %+v fail %v", condition, err)
 			return nil, model.PageInfo{}, transError(err)

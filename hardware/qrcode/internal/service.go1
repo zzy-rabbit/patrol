@@ -23,6 +23,9 @@ func (s *service) Build(ctx context.Context, content string, size int) (image.Im
 		s.ILogger.Error(ctx, "build content %s qrcode fail %v", content, err)
 		return nil, xerror.Extend(xerror.ErrInternalError, "build qrcode: %v", err)
 	}
+	if size <= 0 {
+		size = 256
+	}
 	return qr.Image(size), nil
 }
 

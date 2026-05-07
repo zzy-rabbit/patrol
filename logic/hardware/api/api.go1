@@ -23,5 +23,5 @@ type IPlugin interface {
 	UpdateHardware(ctx context.Context, department string, hardware model.Hardware) xerror.IError
 	DeleteHardwares(ctx context.Context, department string, hardwares ...model.Identify) xerror.IError
 	GetHardwares(ctx context.Context, department string, condition model.HardwareCondition) ([]model.Hardware, model.PageInfo, xerror.IError)
-	ExportHardwares(ctx context.Context, department string, hardwares ...model.Identify) (string, xerror.IError)
+	ExportHardwares(ctx context.Context, department string, condition model.ExportHardwareCondition) (string, xerror.IError)
 }

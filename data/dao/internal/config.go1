@@ -110,7 +110,7 @@ func (s *session) GetPoints(ctx context.Context, condition model.PointCondition)
 	}
 	total := int64(0)
 	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
-		err := db.Count(&total).Error
+		err := db.Model(&Point{}).Count(&total).Error
 		if xerror.Error(err) {
 			s.logger.Error(ctx, "query points count by condition %+v fail %v", condition, err)
 			return nil, model.PageInfo{}, transError(err)
@@ -222,7 +222,7 @@ func (s *session) GetRouters(ctx context.Context, condition model.RouterConditio
 	}
 	total := int64(0)
 	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
-		err := db.Count(&total).Error
+		err := db.Model(&Router{}).Count(&total).Error
 		if xerror.Error(err) {
 			s.logger.Error(ctx, "query routers count by condition %+v fail %v", condition, err)
 			return nil, model.PageInfo{}, transError(err)
@@ -320,7 +320,7 @@ func (s *session) GetPlans(ctx context.Context, condition model.PlanCondition) (
 
 	total := int64(0)
 	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
-		err := db.Count(&total).Error
+		err := db.Model(&Plan{}).Count(&total).Error
 		if xerror.Error(err) {
 			s.logger.Error(ctx, "query plans count by condition %+v fail %v", condition, err)
 			return nil, model.PageInfo{}, transError(err)
@@ -330,7 +330,7 @@ func (s *session) GetPlans(ctx context.Context, condition model.PlanCondition) (
 	}
 
 	var tables []Plan
-	err := db.Debug().Find(&tables).Error
+	err := db.Find(&tables).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "query plans by condition %+v fail %v", condition, err)
 		return nil, model.PageInfo{}, transError(err)
@@ -434,7 +434,7 @@ func (s *session) GetCheckPoints(ctx context.Context, condition model.CheckPoint
 
 	total := int64(0)
 	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
-		err := db.Count(&total).Error
+		err := db.Model(&CheckPoint{}).Count(&total).Error
 		if xerror.Error(err) {
 			s.logger.Error(ctx, "query checkPoints count by condition %+v fail %v", condition, err)
 			return nil, model.PageInfo{}, transError(err)
@@ -513,7 +513,7 @@ func (s *session) GetTasks(ctx context.Context, condition model.TaskCondition) (
 
 	total := int64(0)
 	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
-		err := db.Count(&total).Error
+		err := db.Model(&Task{}).Count(&total).Error
 		if xerror.Error(err) {
 			s.logger.Error(ctx, "query checkPoints count by condition %+v fail %v", condition, err)
 			return nil, model.PageInfo{}, transError(err)
@@ -523,7 +523,7 @@ func (s *session) GetTasks(ctx context.Context, condition model.TaskCondition) (
 	}
 
 	var tables []Task
-	err := db.Debug().Find(&tables).Error
+	err := db.Find(&tables).Error
 	if xerror.Error(err) {
 		s.logger.Error(ctx, "query tasks by condition %+v fail %v", condition, err)
 		return nil, model.PageInfo{}, transError(err)

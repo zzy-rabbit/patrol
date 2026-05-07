@@ -106,8 +106,8 @@ func (s *service) GetHardwares(ctx *fiber.Ctx) error {
 
 func (s *service) ExportHardwares(ctx *fiber.Ctx) error {
 	var header bpmodel.Header
-	var hardwares []model.Identify
-	xerr := s.IHttp.ParseBodyParams(ctx, &header, &hardwares)
+	var condition model.ExportHardwareCondition
+	xerr := s.IHttp.ParseBodyParams(ctx, &header, &condition)
 	if xerror.Error(xerr) {
 		s.ILogger.Error(ctx.UserContext(), "parse body params fail %v", xerr)
 		return ctx.JSON(&bpmodel.HttpResponse{
@@ -116,9 +116,9 @@ func (s *service) ExportHardwares(ctx *fiber.Ctx) error {
 	}
 
 	department := ctx.Get("department")
-	path, xerr := s.IHardware.ExportHardwares(ctx.UserContext(), department, hardwares...)
+	path, xerr := s.IHardware.ExportHardwares(ctx.UserContext(), department, condition)
 	if xerror.Error(xerr) {
-		s.ILogger.Error(ctx.UserContext(), "delete file %s fail %v", hardwares, xerr)
+		s.ILogger.Error(ctx.UserContext(), "delete file %s fail %v", condition, xerr)
 		return ctx.JSON(&bpmodel.HttpResponse{
 			IError: xerr,
 		})

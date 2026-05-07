@@ -67,7 +67,7 @@ func (s *session) GetFiles(ctx context.Context, condition model.FileCondition) (
 	}
 	total := int64(0)
 	if condition.PageQuery != nil && condition.PageQuery.Num > 0 && condition.PageQuery.Size > 0 {
-		err := db.Count(&total).Error
+		err := db.Model(&File{}).Count(&total).Error
 		if xerror.Error(err) {
 			s.logger.Error(ctx, "query files count by condition %+v fail %v", condition, err)
 			return nil, model.PageInfo{}, transError(err)

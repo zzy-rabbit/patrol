@@ -38,6 +38,7 @@ func (s *service) UpdateHardware(ctx context.Context, department string, hardwar
 		s.ILogger.Error(ctx, "department %s database not found", department)
 		return xerror.Extend(xerror.ErrNotFound, "department %s", department)
 	}
+	hardware.Content = s.buildQrCodeContent(ctx, hardware)
 	return database.GetDB(ctx).UpdateHardware(ctx, hardware)
 }
 
@@ -61,16 +62,12 @@ func (s *service) GetHardwares(ctx context.Context, department string, condition
 	return database.GetDB(ctx).GetHardwares(ctx, condition)
 }
 
-func (s *service) ExportHardwares(ctx context.Context, department string, identifies ...model.Identify) (string, xerror.IError) {
-	defer xtrace.Trace(ctx)(department, identifies)
+func (s *service) ExportHardwares(ctx context.Context, department string, condition model.ExportHardwareCondition) (string, xerror.IError) {
+	defer xtrace.Trace(ctx)(department, condition)
 
-	ids := make([]string, len(identifies))
-	for i, identify := range identifies {
-		ids[i] = identify.ID
-	}
-	hardwares, _, xerr := s.GetHardwares(ctx, department, model.HardwareCondition{IDs: ids})
+	hardwares, _, xerr := s.GetHardwares(ctx, department, model.HardwareCondition{IDs: condition.IDs})
 	if xerror.Error(xerr) {
-		s.ILogger.Error(ctx, "department %s get hardwares %v fail %v", department, ids, xerr)
+		s.ILogger.Error(ctx, "department %s get hardwares %v fail %v", department, condition.IDs, xerr)
 		return "", xerr
 	}
 
@@ -95,7 +92,7 @@ func (s *service) ExportHardwares(ctx context.Context, department string, identi
 		}
 
 		filePath := filepath.Join(s.config.Path, hardware.Name+"("+hardware.ID+").png")
-		xerr = s.IQrcode.BuildAndSave(ctx, hardware.Content, 256, filePath)
+		xerr = s.IQrcode.BuildAndSave(ctx, hardware.Content, condition.Size, filePath)
 		if xerror.Error(xerr) {
 			s.ILogger.Error(ctx, "department %s build qrcode %s fail %v", department, hardware.Content, xerr)
 			return "", xerr
@@ -105,7 +102,7 @@ func (s *service) ExportHardwares(ctx context.Context, department string, identi
 
 	if len(filePaths) <= 0 {
 		xerr = xerror.Extend(xerror.ErrInvalidParam, "no valid qrcode content was selected")
-		s.ILogger.Error(ctx, "department %s identifies %+v %v", department, identifies, xerr)
+		s.ILogger.Error(ctx, "department %s condition %+v %v", department, condition, xerr)
 		return "", xerr
 	}
 
