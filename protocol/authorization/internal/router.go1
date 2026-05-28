@@ -14,4 +14,5 @@ func (s *service) registerRouter(ctx context.Context, fiberApp *fiber.App) {
 
 	systemGroup.Post("login", s.Login)
 	systemGroup.Post("logout", s.Logout)
+	systemGroup.Post("keepalive", s.KeepAlive)
 }

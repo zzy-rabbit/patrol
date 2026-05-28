@@ -161,3 +161,33 @@ func (s *service) Logout(ctx *fiber.Ctx) error {
 		IError: xerror.ErrSuccess,
 	})
 }
+
+func (s *service) KeepAlive(ctx *fiber.Ctx) error {
+	token := ctx.Get("authorization")
+	if token == "" {
+		s.ILogger.Error(ctx.UserContext(), "authorization empty")
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerror.ErrAuthenticationFail,
+			Data:   struct{}{},
+		})
+	}
+
+	s.mutex.RLock()
+	defer s.mutex.Unlock()
+
+	cacheClaim, ok := s.tokenMap[string(token)]
+	if !ok {
+		s.ILogger.Error(ctx.UserContext(), "token %+v not exist", token)
+		return ctx.JSON(&bpmodel.HttpResponse{
+			IError: xerror.ErrAuthenticationFail,
+			Data:   struct{}{},
+		})
+	}
+
+	cacheClaim.Time = model.NewDateTime(time.Now())
+	s.tokenMap[string(token)] = cacheClaim
+
+	return ctx.JSON(&bpmodel.HttpResponse{
+		IError: xerror.ErrSuccess,
+	})
+}
